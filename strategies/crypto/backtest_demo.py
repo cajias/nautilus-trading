@@ -11,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import sys
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 
@@ -35,7 +36,10 @@ if _nautilus_src not in sys.path:
 # Configuration
 # ---------------------------------------------------------------------------
 
-PAIRS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+PAIRS = [
+    "BTCUSDT", "ETHUSDT", "SOLUSDT",
+    "DOGEUSDT", "LINKUSDT", "PEPEUSDT", "NEARUSDT", "SUIUSDT",
+]
 VENUE = Venue("BINANCE")
 CATALOG_DIR = Path(_project_root) / "catalog" / "binance"
 STARTING_CAPITAL = Decimal("500")
@@ -43,9 +47,14 @@ INTERVAL = "1h"  # kline interval used by BinanceDataProvider
 
 # Trade sizes appropriate for each pair at current price levels
 TRADE_SIZES: dict[str, Decimal] = {
-    "BTCUSDT": Decimal("0.00100"),  # ~$0.10 worth at ~100k
-    "ETHUSDT": Decimal("0.0100"),   # ~$0.18 worth at ~1800
-    "SOLUSDT": Decimal("0.10"),     # ~$0.13 worth at ~130
+    "BTCUSDT": Decimal("0.00100"),   # ~$0.07 worth at ~$67k
+    "ETHUSDT": Decimal("0.0100"),    # ~$0.21 worth at ~$2050
+    "SOLUSDT": Decimal("0.10"),      # ~$0.08 worth at ~$81
+    "DOGEUSDT": Decimal("100"),      # ~$9.15 worth at ~$0.09
+    "LINKUSDT": Decimal("1.00"),     # ~$8.68 worth at ~$8.68
+    "PEPEUSDT": Decimal("1000000"),  # ~$3.40 worth at ~$0.0000034
+    "NEARUSDT": Decimal("5.0"),      # ~$6.30 worth at ~$1.26
+    "SUIUSDT": Decimal("5.0"),       # ~$4.35 worth at ~$0.87
 }
 
 # DCA budget per buy cycle (USDT) -- split across pairs
@@ -53,6 +62,11 @@ DCA_BUDGET_SPLIT: dict[str, Decimal] = {
     "BTCUSDT": Decimal("10.0"),
     "ETHUSDT": Decimal("8.0"),
     "SOLUSDT": Decimal("5.0"),
+    "DOGEUSDT": Decimal("5.0"),
+    "LINKUSDT": Decimal("5.0"),
+    "PEPEUSDT": Decimal("3.0"),
+    "NEARUSDT": Decimal("4.0"),
+    "SUIUSDT": Decimal("4.0"),
 }
 
 
@@ -82,7 +96,12 @@ def _load_catalog() -> ParquetDataCatalog:
     """Download Binance kline data (if needed) and return the catalog."""
     from nautilus_trading.data.providers import BinanceDataProvider
 
-    provider = BinanceDataProvider(pairs=PAIRS, interval=INTERVAL)
+    now = datetime.now(timezone.utc)
+    provider = BinanceDataProvider(
+        pairs=PAIRS,
+        interval=INTERVAL,
+        start_date=now - timedelta(days=365),
+    )
     return provider.ensure_catalog(CATALOG_DIR)
 
 
@@ -98,6 +117,7 @@ def _get_bars_for_pair(
 def _derive_grid_bounds(
     bars: list[Bar],
     buffer_pct: float = 0.05,
+    precision: int = 2,
 ) -> tuple[Decimal, Decimal]:
     """Derive upper/lower grid bounds from bar price range with a buffer."""
     prices = [float(bar.close) for bar in bars]
@@ -106,7 +126,7 @@ def _derive_grid_bounds(
     spread = max_price - min_price
     lower = min_price - spread * buffer_pct
     upper = max_price + spread * buffer_pct
-    return Decimal(str(round(lower, 2))), Decimal(str(round(upper, 2)))
+    return Decimal(str(round(lower, precision))), Decimal(str(round(upper, precision)))
 
 
 def _create_engine(starting_balance: Money) -> BacktestEngine:
@@ -180,7 +200,7 @@ def run_grid_bot(catalog: ParquetDataCatalog) -> None:
             print(f"  [SKIP] No instrument for {pair}")
             continue
 
-        lower_price, upper_price = _derive_grid_bounds(bars)
+        lower_price, upper_price = _derive_grid_bounds(bars, precision=instrument.price_precision)
 
         engine = _create_engine(Money(STARTING_CAPITAL, usdt))
         engine.add_instrument(instrument)
@@ -286,7 +306,7 @@ def run_timesfm_swing(catalog: ParquetDataCatalog) -> None:
             forecast_horizon=12,
             forecast_interval_bars=4,
             confidence_threshold=0.6,
-            ema_period=50,          # Shorter for 90-day window
+            ema_period=200,         # Full 200 EMA for 365-day window
             stop_loss_pct=0.03,     # 3% stop loss (crypto volatility)
             take_profit_pct=0.06,   # 6% take profit
         )
@@ -307,7 +327,7 @@ if __name__ == "__main__":
     print("CRYPTO STRATEGY BACKTEST DEMO")
     print(f"Starting capital: ${STARTING_CAPITAL} USDT per strategy per pair")
     print(f"Pairs: {', '.join(PAIRS)}")
-    print(f"Data: Binance {INTERVAL} klines (last 90 days)")
+    print(f"Data: Binance {INTERVAL} klines (last 365 days)")
     print("=" * 60)
 
     catalog = _load_catalog()

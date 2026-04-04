@@ -32,7 +32,7 @@ help:
 	@echo "  make backtest          - Run backtest (default: STRATEGY=$(STRATEGY))"
 	@echo "  make backtest-crypto   - Run crypto backtest with Binance data"
 	@echo "  make strategies        - List all available strategies"
-	@echo "  make live              - Live trading placeholder"
+	@echo "  make live              - Paper trade on Binance testnet"
 	@echo "  make jupyter           - Launch Jupyter Lab with strategy notebooks"
 	@echo ""
 	@echo "Variables:"
@@ -134,10 +134,17 @@ backtest-crypto:
 strategies:
 	cd nautilus && uv run nt strategies
 
-# Live trading placeholder
+# Live paper trading on Binance testnet (requires BINANCE_TESTNET_API_KEY/SECRET)
+# Usage: make live STRATEGY=crypto.grid_bot INSTRUMENT=SOLUSDT.BINANCE BAR_TYPE=SOLUSDT.BINANCE-1-HOUR-LAST-EXTERNAL TRADE_SIZE=0.10
+INSTRUMENT ?= BTCUSDT.BINANCE
+BAR_TYPE ?= BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL
+TRADE_SIZE ?= 0.001
 live:
-	@echo "Live trading with strategy: strategies.$(STRATEGY)"
-	@echo "Not yet implemented — use TradingNode directly"
+	cd nautilus && uv run nt live \
+		--strategy strategies.$(STRATEGY) \
+		--instrument $(INSTRUMENT) \
+		--bar-type $(BAR_TYPE) \
+		--trade-size $(TRADE_SIZE)
 
 # Launch Jupyter Lab with strategy notebooks
 jupyter:

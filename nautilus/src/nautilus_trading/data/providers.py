@@ -143,10 +143,30 @@ _PAIR_DEFAULTS: dict[str, tuple[int, int, str, str, str]] = {
     "XRPUSDT": (4, 1, "0.1", "0.0001", "0.1"),
     "DOGEUSDT": (5, 0, "1", "0.00001", "1"),
     "ADAUSDT": (4, 1, "0.1", "0.0001", "0.1"),
+    "LINKUSDT": (2, 2, "0.01", "0.01", "0.01"),
+    "PEPEUSDT": (8, 0, "1", "0.00000001", "1"),
+    "NEARUSDT": (3, 1, "0.1", "0.001", "0.1"),
+    "SUIUSDT": (4, 1, "0.1", "0.0001", "0.1"),
 }
 
 # Fallback when a pair is not in the defaults table above
 _FALLBACK_DEFAULTS: tuple[int, int, str, str, str] = (4, 4, "0.0001", "0.0001", "0.0001")
+
+# Per-pair max_quantity overrides (Binance exchange info).  Default is 9000.
+_MAX_QUANTITY: dict[str, str] = {
+    "BTCUSDT": "9000",
+    "ETHUSDT": "9000",
+    "SOLUSDT": "9000",
+    "DOGEUSDT": "90000000",
+    "PEPEUSDT": "100000000000",  # Binance allows very large PEPE orders
+    "NEARUSDT": "9000000",
+    "SUIUSDT": "9000000",
+}
+
+# Per-pair min_notional overrides (USDT).  Default is 10.0.
+_MIN_NOTIONAL: dict[str, float] = {
+    "PEPEUSDT": 1.0,  # Binance lowered min notional for micro-priced tokens
+}
 
 
 def _parse_base_quote(symbol: str) -> tuple[str, str]:
@@ -206,8 +226,8 @@ def _build_crypto_instrument(
         size_increment=Quantity.from_str(size_inc_str),
         lot_size=Quantity.from_str(min_qty_str),
         min_quantity=Quantity.from_str(min_qty_str),
-        max_quantity=Quantity.from_str("9000"),
-        min_notional=Money(10.0, quote_currency),
+        max_quantity=Quantity.from_str(_MAX_QUANTITY.get(symbol, "9000")),
+        min_notional=Money(_MIN_NOTIONAL.get(symbol, 10.0), quote_currency),
         max_notional=Money(9_000_000.0, quote_currency),
         max_price=Price.from_str("1000000." + "0" * price_prec),
         min_price=Price.from_str(price_inc_str),
