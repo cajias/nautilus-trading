@@ -6,11 +6,12 @@ from pathlib import Path
 
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 
-from nautilus_trading.data.providers import DataProvider, TestDataProvider
+from nautilus_trading.data.providers import BinanceDataProvider, DataProvider, TestDataProvider
 
 # Registry of available providers
 PROVIDERS: dict[str, type[DataProvider]] = {
     "test": TestDataProvider,
+    "binance": BinanceDataProvider,
 }
 
 

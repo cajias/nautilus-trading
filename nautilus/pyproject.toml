@@ -30,6 +30,12 @@ binance = [
 interactive_brokers = [
     "nautilus_trader>=1.224.0",
 ]
+ml = [
+    "timesfm>=1.3.0",
+    "torch>=2.0.0",
+    "numpy>=1.26.0",
+    "pandas>=2.0.0",
+]
 
 [project.scripts]
 nt = "nautilus_trading.cli:app"

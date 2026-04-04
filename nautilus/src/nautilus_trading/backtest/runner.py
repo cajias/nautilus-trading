@@ -37,35 +37,45 @@ def build_backtest_config(
 ) -> BacktestRunConfig:
     """Build a complete BacktestRunConfig from high-level parameters.
 
-    The strategy config receives instrument_id, bar_type, trade_size,
-    fast_ema_period, and slow_ema_period by default. Pass
-    ``strategy_config_overrides`` to supply or override arbitrary keys.
+    The strategy config receives instrument_id, bar_type, and trade_size
+    by default. For EMA strategies, fast_ema_period and slow_ema_period
+    are also included. Pass ``strategy_config_overrides`` to supply or
+    override arbitrary keys for any strategy type.
     """
     instruments = catalog.instruments()
     if not instruments:
         raise RuntimeError(f"No instruments found in catalog at {catalog.path}")
+    if instrument_index >= len(instruments):
+        raise RuntimeError(
+            f"instrument_index {instrument_index} out of range "
+            f"(catalog has {len(instruments)} instruments)"
+        )
 
     instrument = instruments[instrument_index]
     instrument_id = str(instrument.id)
     bar_type = f"{instrument.id}-{bar_interval}"
 
+    # Base config — works for all strategies
     strat_config: dict[str, Any] = {
         "instrument_id": instrument_id,
         "bar_type": bar_type,
         "trade_size": trade_size,
-        "fast_ema_period": fast_ema_period,
-        "slow_ema_period": slow_ema_period,
     }
+
+    # Include EMA params only for EMA-based strategies
+    if "ema_cross" in strategy_path:
+        strat_config["fast_ema_period"] = fast_ema_period
+        strat_config["slow_ema_period"] = slow_ema_period
+
     if strategy_config_overrides:
         strat_config.update(strategy_config_overrides)
 
-    data_kwargs: dict[str, Any] = {
-        "catalog_path": str(catalog.path),
-        "data_cls": QuoteTick,
-        "instrument_id": instrument.id,
-    }
-    if end_time is not None:
-        data_kwargs["end_time"] = end_time
+    data_config = BacktestDataConfig(
+        catalog_path=str(catalog.path),
+        data_cls=QuoteTick,
+        instrument_id=instrument.id,
+        end_time=end_time,
+    )
 
     return BacktestRunConfig(
         engine=BacktestEngineConfig(
@@ -87,7 +97,7 @@ def build_backtest_config(
                 starting_balances=[starting_balance],
             ),
         ],
-        data=[BacktestDataConfig(**data_kwargs)],
+        data=[data_config],
     )
 
 

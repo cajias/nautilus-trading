@@ -9,7 +9,7 @@
 # Strategy module path (relative to strategies/), e.g. forex.ema_cross
 STRATEGY ?= forex.ema_cross
 
-.PHONY: help install test test-unit lint lint-fix validate backtest strategies live jupyter clean
+.PHONY: help install install-ml test test-unit lint lint-fix validate backtest backtest-crypto strategies live jupyter clean
 
 # Default target
 help:
@@ -17,6 +17,7 @@ help:
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install           - Install all dev dependencies and tools"
+	@echo "  make install-ml        - Install ML dependencies (TimesFM, PyTorch)"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test              - Run all tests (pytest)"
@@ -29,6 +30,7 @@ help:
 	@echo ""
 	@echo "Running:"
 	@echo "  make backtest          - Run backtest (default: STRATEGY=$(STRATEGY))"
+	@echo "  make backtest-crypto   - Run crypto backtest with Binance data"
 	@echo "  make strategies        - List all available strategies"
 	@echo "  make live              - Live trading placeholder"
 	@echo "  make jupyter           - Launch Jupyter Lab with strategy notebooks"
@@ -37,9 +39,11 @@ help:
 	@echo "  STRATEGY=forex.ema_cross   Module path under strategies/ (default: forex.ema_cross)"
 	@echo ""
 	@echo "Examples:"
-	@echo "  make backtest                           # backtest default strategy"
-	@echo "  make backtest STRATEGY=forex.ema_cross  # backtest specific strategy"
-	@echo "  make live STRATEGY=crypto.btc_momentum  # live placeholder"
+	@echo "  make backtest                              # backtest default strategy"
+	@echo "  make backtest STRATEGY=forex.ema_cross     # backtest specific strategy"
+	@echo "  make backtest-crypto STRATEGY=crypto.grid_bot  # crypto with Binance data"
+	@echo "  make backtest-crypto STRATEGY=crypto.dca_bot   # DCA bot backtest"
+	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove test artifacts and caches"
@@ -66,6 +70,14 @@ install:
 	@echo "  - isort (import sorter)"
 	@echo "  - pytest (test runner)"
 	@echo "  - jupyter (notebook server)"
+
+# Install ML dependencies (TimesFM, PyTorch)
+install-ml:
+	@echo "Installing ML dependencies (TimesFM, PyTorch)..."
+	@cd nautilus && uv sync --extra ml --extra dev
+	@echo "v ML installation complete!"
+	@echo "  - timesfm (time series foundation model)"
+	@echo "  - torch (PyTorch backend)"
 
 # Run all tests
 test: test-unit
@@ -108,6 +120,15 @@ validate:
 # Run backtest with parameterized strategy
 backtest:
 	cd nautilus && uv run nt backtest --strategy strategies.$(STRATEGY)
+
+# Run crypto backtest with Binance data provider
+backtest-crypto:
+	cd nautilus && uv run nt backtest \
+		--strategy strategies.$(STRATEGY) \
+		--data-provider binance \
+		--venue BINANCE \
+		--currency USDT \
+		--balance "500 USDT"
 
 # List available strategies
 strategies:
