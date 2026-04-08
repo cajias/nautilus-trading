@@ -29,8 +29,13 @@ htmlcov/
 # Linting
 .ruff_cache/
 
-# Claude Code
-.claude/projects/
+# Claude Code / local tooling state
+.claude/
+.playwright-mcp/
+.remember/
+
+# uv temp lockfiles (not the main nautilus/uv.lock)
+/uv-*.lock
 
 # Data & catalog (generated/downloaded)
 /catalog/
@@ -40,6 +45,7 @@ htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/
+*_executed.ipynb
 
 # macOS
 .DS_Store
