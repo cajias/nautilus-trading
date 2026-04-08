@@ -10,6 +10,7 @@ dependencies = [
     "rich>=13.0.0",
     "scikit-learn>=1.8.0",
     "lightgbm>=4.6.0",
+    "requests>=2.33.1",
 ]
 
 [project.optional-dependencies]

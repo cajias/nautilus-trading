@@ -38,7 +38,7 @@ class GridBotStrategy(Strategy):
     def __init__(self, config: GridBotConfig) -> None:
         super().__init__(config)
         self.instrument: Instrument | None = None
-        self.grid_prices: list[Decimal] = []
+        self.grid_prices: list[Price] = []
         # Maps grid level index -> client_order_id (or None if no active order)
         self.grid_orders: dict[int, str | None] = {}
         # Maps client_order_id -> grid level index for fill lookups
@@ -67,19 +67,32 @@ class GridBotStrategy(Strategy):
             self.stop()
             return
 
-        # Calculate evenly spaced grid prices (inclusive of bounds)
-        # Round to instrument precision to avoid Decimal overflow in Price.from_str()
+        # Calculate evenly spaced grid prices (inclusive of bounds), then snap
+        # each level to the instrument's tick size via make_price(). This is the
+        # NautilusTrader-idiomatic way to align prices with the venue's
+        # PRICE_FILTER rules -- a plain decimal round() can still leave sub-tick
+        # residue for instruments where tick size != 10^-price_precision.
         step = (self.config.upper_price - self.config.lower_price) / (
             self.config.grid_levels - 1
         )
-        precision = self.instrument.price_precision
-        self.grid_prices = [
-            round(self.config.lower_price + step * i, precision)
-            for i in range(self.config.grid_levels)
+        raw_levels = [
+            self.config.lower_price + step * i for i in range(self.config.grid_levels)
         ]
 
+        snapped: list[Price] = []
+        for raw in raw_levels:
+            price = self.instrument.make_price(raw)
+            # De-duplicate: consecutive levels may collapse to the same Price
+            # after rounding when the grid spacing is finer than tick size.
+            if snapped and snapped[-1] == price:
+                continue
+            snapped.append(price)
+        self.grid_prices = snapped
+
+        self.log.info(f"Grid levels: {[str(p) for p in self.grid_prices]}")
+
         # Initialize grid state -- no active orders yet
-        self.grid_orders = {i: None for i in range(self.config.grid_levels)}
+        self.grid_orders = dict.fromkeys(range(len(self.grid_prices)))
 
         # Register trend filter EMA
         self.register_indicator_for_bars(self.config.bar_type, self._ema)
@@ -91,7 +104,8 @@ class GridBotStrategy(Strategy):
         )
 
         self.log.info(
-            f"Grid initialized: {self.config.grid_levels} levels "
+            f"Grid initialized: {len(self.grid_prices)} levels "
+            f"(requested {self.config.grid_levels}) "
             f"from {self.config.lower_price} to {self.config.upper_price} "
             f"| stop-loss at {self._stop_loss_price} "
             f"| trend filter: {'ON' if self.config.use_trend_filter else 'OFF'}",
@@ -155,7 +169,7 @@ class GridBotStrategy(Strategy):
 
             open_count += 1
 
-    def _place_order(self, level: int, grid_price: Decimal, side: OrderSide) -> None:
+    def _place_order(self, level: int, grid_price: Price, side: OrderSide) -> None:
         """Place a limit order at the given grid level."""
         if self.instrument is None:
             return
@@ -164,7 +178,7 @@ class GridBotStrategy(Strategy):
             instrument_id=self.config.instrument_id,
             order_side=side,
             quantity=self.instrument.make_qty(self.config.trade_size),
-            price=Price.from_str(str(grid_price)),
+            price=grid_price,
             time_in_force=TimeInForce.GTC,
         )
         self.grid_orders[level] = order.client_order_id.value

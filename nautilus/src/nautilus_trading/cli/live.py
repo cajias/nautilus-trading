@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
 from typing import Annotated
 
 import typer
@@ -142,6 +140,7 @@ def live(
         strategy_path=resolved_strategy,
         config_path=resolved_config,
         strategy_config=strat_config,
+        instrument_id=instrument_id,
         account_type=account_type,
         testnet=testnet,
         log_level=log_level,

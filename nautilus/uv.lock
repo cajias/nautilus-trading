@@ -1389,6 +1389,7 @@ source = { editable = "." }
 dependencies = [
     { name = "lightgbm" },
     { name = "nautilus-trader" },
+    { name = "requests" },
     { name = "rich" },
     { name = "scikit-learn" },
     { name = "typer" },
@@ -1436,6 +1437,7 @@ requires-dist = [
     { name = "plotly", marker = "extra == 'viz'", specifier = ">=5.18.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.1.0" },
+    { name = "requests", specifier = ">=2.33.1" },
     { name = "rich", specifier = ">=13.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.6" },
     { name = "scikit-learn", specifier = ">=1.8.0" },

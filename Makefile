@@ -135,16 +135,61 @@ strategies:
 	cd nautilus && uv run nt strategies
 
 # Live paper trading on Binance testnet (requires BINANCE_TESTNET_API_KEY/SECRET)
-# Usage: make live STRATEGY=crypto.grid_bot INSTRUMENT=SOLUSDT.BINANCE BAR_TYPE=SOLUSDT.BINANCE-1-HOUR-LAST-EXTERNAL TRADE_SIZE=0.10
-INSTRUMENT ?= BTCUSDT.BINANCE
-BAR_TYPE ?= BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL
-TRADE_SIZE ?= 0.001
+#
+# Base variables:
+#   STRATEGY      Strategy module under strategies/ (e.g. crypto.grid_bot)
+#   INSTRUMENT    Instrument ID (e.g. BTCUSDT.BINANCE, SOLUSDT.BINANCE)
+#   BAR_INTERVAL  Bar interval segment (default: 1-HOUR-LAST-EXTERNAL)
+#   BAR_TYPE      Full bar type — auto-derived from INSTRUMENT+BAR_INTERVAL if unset
+#   TRADE_SIZE    Order quantity per trade
+#
+# Strategy-specific (optional — omitted from command if empty):
+#   Grid Bot:     UPPER_PRICE, LOWER_PRICE, GRID_LEVELS
+#   DCA Bot:      BUY_AMOUNT, BUY_INTERVAL
+#   EMA/TimesFM:  FAST_EMA, SLOW_EMA
+#
+# Examples:
+#   make live STRATEGY=crypto.grid_bot INSTRUMENT=LINKUSDT.BINANCE \
+#       TRADE_SIZE=1.0 UPPER_PRICE=18 LOWER_PRICE=10
+#   make live STRATEGY=crypto.dca_bot INSTRUMENT=BTCUSDT.BINANCE \
+#       TRADE_SIZE=0.001 BUY_AMOUNT=5.0
+#   make live STRATEGY=crypto.timesfm_swing INSTRUMENT=ETHUSDT.BINANCE \
+#       TRADE_SIZE=0.01 FAST_EMA=20 SLOW_EMA=100
+INSTRUMENT    ?= BTCUSDT.BINANCE
+BAR_INTERVAL  ?= 1-HOUR-LAST-EXTERNAL
+BAR_TYPE      ?= $(INSTRUMENT)-$(BAR_INTERVAL)
+TRADE_SIZE    ?= 0.001
+
+# Strategy-specific (empty by default so they're omitted from the command if unset)
+UPPER_PRICE   ?=
+LOWER_PRICE   ?=
+GRID_LEVELS   ?=
+BUY_AMOUNT    ?=
+BUY_INTERVAL  ?=
+FAST_EMA      ?=
+SLOW_EMA      ?=
+
+# Build optional CLI args only when the corresponding variable is non-empty
+LIVE_EXTRA_ARGS := \
+	$(if $(UPPER_PRICE),--upper-price $(UPPER_PRICE)) \
+	$(if $(LOWER_PRICE),--lower-price $(LOWER_PRICE)) \
+	$(if $(GRID_LEVELS),--grid-levels $(GRID_LEVELS)) \
+	$(if $(BUY_AMOUNT),--buy-amount $(BUY_AMOUNT)) \
+	$(if $(BUY_INTERVAL),--buy-interval $(BUY_INTERVAL)) \
+	$(if $(FAST_EMA),--fast-ema $(FAST_EMA)) \
+	$(if $(SLOW_EMA),--slow-ema $(SLOW_EMA))
+
 live:
+	@if [ -z "$(STRATEGY)" ]; then \
+		echo "ERROR: STRATEGY is required. e.g. make live STRATEGY=crypto.grid_bot INSTRUMENT=LINKUSDT.BINANCE TRADE_SIZE=1.0 UPPER_PRICE=18 LOWER_PRICE=10"; \
+		exit 1; \
+	fi
 	cd nautilus && uv run nt live \
 		--strategy strategies.$(STRATEGY) \
 		--instrument $(INSTRUMENT) \
 		--bar-type $(BAR_TYPE) \
-		--trade-size $(TRADE_SIZE)
+		--trade-size $(TRADE_SIZE) \
+		$(LIVE_EXTRA_ARGS)
 
 # Launch Jupyter Lab with strategy notebooks
 jupyter:

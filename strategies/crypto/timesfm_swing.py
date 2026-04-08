@@ -144,12 +144,15 @@ class TimesFMSwingStrategy(Strategy):
                 hparams=timesfm.TimesFmHparams(
                     per_core_batch_size=1,
                     horizon_len=self.config.forecast_horizon,
-                    num_layers=20,
+                    context_len=self.config.lookback_bars,
+                    num_layers=50,
                     model_dims=1280,
+                    use_positional_embedding=False,
                     backend="cpu",
                 ),
                 checkpoint=timesfm.TimesFmCheckpoint(
-                    huggingface_repo_id="google/timesfm-2.0-200m-pytorch",
+                    version="torch",
+                    huggingface_repo_id="google/timesfm-2.0-500m-pytorch",
                 ),
             )
             self._model_available = True

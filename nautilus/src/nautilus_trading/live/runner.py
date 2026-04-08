@@ -9,6 +9,7 @@ from typing import Any
 
 from nautilus_trader.adapters.binance import (
     BINANCE,
+    BinanceInstrumentProviderConfig,
     BinanceLiveDataClientFactory,
     BinanceLiveExecClientFactory,
 )
@@ -16,6 +17,7 @@ from nautilus_trader.adapters.binance.common.enums import BinanceAccountType, Bi
 from nautilus_trader.adapters.binance.config import (
     BinanceDataClientConfig,
     BinanceExecClientConfig,
+    BinanceKeyType,
 )
 from nautilus_trader.config import (
     ImportableStrategyConfig,
@@ -23,6 +25,7 @@ from nautilus_trader.config import (
     TradingNodeConfig,
 )
 from nautilus_trader.live.node import TradingNode
+from nautilus_trader.model.identifiers import InstrumentId
 
 
 def build_live_config(
@@ -30,6 +33,7 @@ def build_live_config(
     strategy_path: str,
     config_path: str,
     strategy_config: dict[str, Any],
+    instrument_id: str,
     account_type: str = "SPOT",
     testnet: bool = True,
     log_level: str = "INFO",
@@ -45,6 +49,8 @@ def build_live_config(
         Full import path for the config class (e.g. "strategies.crypto.grid_bot:GridBotConfig").
     strategy_config : dict
         Strategy configuration parameters.
+    instrument_id : str
+        Instrument ID to load into the venue cache (e.g. "BTCUSDT.BINANCE").
     account_type : str
         Binance account type: SPOT, MARGIN, USDT_FUTURE, COIN_FUTURE.
     testnet : bool
@@ -56,6 +62,9 @@ def build_live_config(
     """
     binance_account = BinanceAccountType[account_type]
     environment = BinanceEnvironment.TESTNET if testnet else BinanceEnvironment.LIVE
+    instrument_provider = BinanceInstrumentProviderConfig(
+        load_ids=frozenset([InstrumentId.from_str(instrument_id)]),
+    )
 
     return TradingNodeConfig(
         trader_id=trader_id,
@@ -64,12 +73,16 @@ def build_live_config(
             BINANCE: BinanceDataClientConfig(
                 account_type=binance_account,
                 environment=environment,
+                key_type=BinanceKeyType.ED25519,
+                instrument_provider=instrument_provider,
             ),
         },
         exec_clients={
             BINANCE: BinanceExecClientConfig(
                 account_type=binance_account,
                 environment=environment,
+                key_type=BinanceKeyType.ED25519,
+                instrument_provider=instrument_provider,
             ),
         },
         strategies=[
@@ -122,7 +135,7 @@ def _check_api_keys(config: TradingNodeConfig) -> None:
         env_label = "BINANCE_API_KEY / BINANCE_API_SECRET"
 
     if not key or not secret:
-        print(f"ERROR: Binance API keys not found in environment.")
+        print("ERROR: Binance API keys not found in environment.")
         print(f"Set {env_label} before running.")
         if is_testnet:
             print("Get testnet keys at: https://testnet.binance.vision/")
