@@ -1,0 +1,26 @@
+Agent 4 -- ML Engineer: Round 10 (FINAL) Results
+==================================================
+
+SELECTED: BB_MR(35/65)
+symbol: BTCUSDT  interval: 1d
+train_period: 2024-01-01 to 2024-12-31
+test_period: 2025-01-01 to 2025-06-30
+buy_and_hold_test_pct: 13.27
+
+TRAIN:
+  initial_capital: 1000.0
+  final_equity: 1534.87
+  total_return_pct: 53.49
+  sharpe_ratio: 1.9157
+  max_drawdown_pct: -10.2
+  num_trades: 6
+  win_rate: 66.7
+
+TEST:
+  initial_capital: 1000.0
+  final_equity: 997.02
+  total_return_pct: -0.3
+  sharpe_ratio: 0.1399
+  max_drawdown_pct: -16.98
+  num_trades: 4
+  win_rate: 50.0

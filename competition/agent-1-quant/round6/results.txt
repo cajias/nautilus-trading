@@ -1,0 +1,67 @@
+Agent 1 — Quantitative Trader: Round 6 Results
+============================================================
+
+Strategy: Aggressive Multi-Asset Momentum Tournament (4h)
+Description: Tournament of 24+ strategy variants across BTC/ETH/SOL on 4h bars. Strategies: EMA cross, RSI dip, BB reversion, MACD, Donchian breakout, volatility squeeze, triple EMA, RSI trend, ADX trend. Multiple stop/TP configs. Select best by composite train score (60% Sharpe + 40% return). 95% position sizing, ATR stops.
+Symbols: BTCUSDT, ETHUSDT, SOLUSDT
+Interval: 4h
+
+TRAIN Period Results:
+  final_equity: 973.72
+  total_return_pct: -2.63
+  sharpe_ratio: -0.2519
+  max_drawdown_pct: -10.83
+  num_trades: 15
+  win_rate: 53.3
+  strategy_name: BTCUSDT:BB_Rev(20,2.0):SL2.5_TP5.0_TTrue
+
+TEST Period Results:
+  final_equity: 537.99
+  total_return_pct: -46.2
+  sharpe_ratio: -4.2047
+  max_drawdown_pct: -50.24
+  num_trades: 40
+  win_rate: 27.5
+  strategy_name: SOLUSDT:MACD(5,13,8):SL2.0_TP4.0_TTrue
+
+Trade Log (TEST):
+  2025-10-01 08:00:00 -> 2025-10-03 04:00:00: LONG entry=$217.75 exit=$229.41 pnl=+5.14%
+  2025-10-05 04:00:00 -> 2025-10-05 12:00:00: LONG entry=$236.59 exit=$230.14 pnl=-2.92%
+  2025-10-06 08:00:00 -> 2025-10-07 04:00:00: LONG entry=$233.02 exit=$231.01 pnl=-1.06%
+  2025-10-08 16:00:00 -> 2025-10-09 12:00:00: LONG entry=$229.34 exit=$219.11 pnl=-4.65%
+  2025-10-10 08:00:00 -> 2025-10-10 12:00:00: LONG entry=$221.14 exit=$210.70 pnl=-4.91%
+  2025-10-12 04:00:00 -> 2025-10-14 08:00:00: LONG entry=$182.55 exit=$195.32 pnl=+6.78%
+  2025-10-15 04:00:00 -> 2025-10-15 12:00:00: LONG entry=$204.66 exit=$197.13 pnl=-3.87%
+  2025-10-17 20:00:00 -> 2025-10-20 16:00:00: LONG entry=$181.96 exit=$188.83 pnl=+3.57%
+  2025-10-21 12:00:00 -> 2025-10-21 20:00:00: LONG entry=$196.22 exit=$185.63 pnl=-5.59%
+  2025-10-23 04:00:00 -> 2025-10-25 08:00:00: LONG entry=$187.48 exit=$192.71 pnl=+2.58%
+  2025-10-26 08:00:00 -> 2025-10-27 12:00:00: LONG entry=$197.75 exit=$200.11 pnl=+0.99%
+  2025-10-30 04:00:00 -> 2025-10-30 08:00:00: LONG entry=$195.80 exit=$191.85 pnl=-2.21%
+  2025-10-31 08:00:00 -> 2025-11-02 12:00:00: LONG entry=$188.89 exit=$183.77 pnl=-2.90%
+  2025-11-02 20:00:00 -> 2025-11-03 00:00:00: LONG entry=$187.71 exit=$177.57 pnl=-5.59%
+  2025-11-05 04:00:00 -> 2025-11-08 12:00:00: LONG entry=$156.47 exit=$156.65 pnl=-0.08%
+  2025-11-09 08:00:00 -> 2025-11-11 04:00:00: LONG entry=$159.06 exit=$163.98 pnl=+2.89%
+  2025-11-13 04:00:00 -> 2025-11-13 16:00:00: LONG entry=$155.31 exit=$142.73 pnl=-8.28%
+  2025-11-14 16:00:00 -> 2025-11-14 20:00:00: LONG entry=$143.14 exit=$138.92 pnl=-3.14%
+  2025-11-15 00:00:00 -> 2025-11-16 16:00:00: LONG entry=$142.53 exit=$136.83 pnl=-4.19%
+  2025-11-17 00:00:00 -> 2025-11-17 16:00:00: LONG entry=$140.28 exit=$129.65 pnl=-7.76%
+  2025-11-18 04:00:00 -> 2025-11-19 12:00:00: LONG entry=$136.92 exit=$134.62 pnl=-1.88%
+  2025-11-20 00:00:00 -> 2025-11-20 16:00:00: LONG entry=$143.18 exit=$133.92 pnl=-6.65%
+  2025-11-22 04:00:00 -> 2025-11-25 12:00:00: LONG entry=$127.74 exit=$134.86 pnl=+5.36%
+  2025-11-25 20:00:00 -> 2025-11-26 08:00:00: LONG entry=$138.96 exit=$136.87 pnl=-1.70%
+  2025-11-26 16:00:00 -> 2025-11-27 12:00:00: LONG entry=$143.99 exit=$142.15 pnl=-1.48%
+  2025-11-30 08:00:00 -> 2025-11-30 20:00:00: LONG entry=$136.42 exit=$133.48 pnl=-2.35%
+  2025-12-02 04:00:00 -> 2025-12-03 04:00:00: LONG entry=$127.26 exit=$141.88 pnl=+11.27%
+  2025-12-07 00:00:00 -> 2025-12-08 20:00:00: LONG entry=$133.50 exit=$133.25 pnl=-0.39%
+  2025-12-09 12:00:00 -> 2025-12-10 12:00:00: LONG entry=$138.45 exit=$136.17 pnl=-1.84%
+  2025-12-11 20:00:00 -> 2025-12-12 16:00:00: LONG entry=$136.41 exit=$131.27 pnl=-3.96%
+  2025-12-13 20:00:00 -> 2025-12-14 08:00:00: LONG entry=$133.14 exit=$131.47 pnl=-1.45%
+  2025-12-15 04:00:00 -> 2025-12-15 12:00:00: LONG entry=$132.34 exit=$126.89 pnl=-4.31%
+  2025-12-16 08:00:00 -> 2025-12-17 16:00:00: LONG entry=$128.63 exit=$122.39 pnl=-5.04%
+  2025-12-18 12:00:00 -> 2025-12-18 16:00:00: LONG entry=$127.40 exit=$117.56 pnl=-7.91%
+  2025-12-19 04:00:00 -> 2025-12-21 00:00:00: LONG entry=$124.44 exit=$125.22 pnl=+0.43%
+  2025-12-22 00:00:00 -> 2025-12-22 16:00:00: LONG entry=$126.02 exit=$124.66 pnl=-1.28%
+  2025-12-24 20:00:00 -> 2025-12-25 20:00:00: LONG entry=$122.53 exit=$120.06 pnl=-2.21%
+  2025-12-26 00:00:00 -> 2025-12-28 16:00:00: LONG entry=$122.67 exit=$123.30 pnl=+0.31%
+  2025-12-28 20:00:00 -> 2025-12-29 12:00:00: LONG entry=$125.27 exit=$123.44 pnl=-1.66%
+  2025-12-30 12:00:00 -> 2025-12-31 00:00:00: LONG entry=$125.16 exit=$125.82 pnl=+0.33%

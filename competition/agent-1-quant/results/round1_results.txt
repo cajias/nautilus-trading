@@ -1,0 +1,59 @@
+=================================================================
+  STRATEGY: Adaptive RSI Mean-Reversion (Multi-Asset)
+=================================================================
+  RSI(14) oversold/overbought mean-reversion on 4h BTC/USDT and ETH/USDT. Entries at RSI extremes with Bollinger Band confirmation and EMA(100) trend filter. Exits at RSI=50 or BB midline. ATR-based stops. Equal capital split across assets.
+
+  Pairs:             BTCUSDT, ETHUSDT
+  Period:            2025-07-01 to 2025-12-31
+  Initial Capital:   $1,000.00
+  Final Equity:      $1,048.63
+-----------------------------------------------------------------
+  Total Return:      +4.86%
+  Sharpe Ratio:      2.05
+  Max Drawdown:      6.06%
+  Number of Trades:  29
+  Win Rate:          69.0%
+  Profit Factor:     1.90
+  Avg Win:           $5.80
+  Avg Loss:          $-6.78
+=================================================================
+
+  EDGE: Exploits short-term RSI extremes in liquid crypto markets.
+  Bollinger Band confirmation ensures entries at statistical extremes.
+  EMA trend filter prevents fighting the dominant trend.
+  Multi-asset diversification (BTC + ETH) smooths returns.
+  Quick exits at mean (RSI=50 / BB mid) capture reversion profit
+  before momentum resumes.
+=================================================================
+
+  All Trades:
+     symbol                entry_time   side      entry          exit        pnl  reason
+0   BTCUSDT 2025-07-10 16:00:00+00:00  short  113301.81  115790.64125  -7.848931    stop
+1   BTCUSDT 2025-07-10 20:00:00+00:00  short  116010.00  118862.20875  -7.684578    stop
+2   BTCUSDT 2025-07-14 00:00:00+00:00  short  120750.24  117148.47000   8.387097  target
+3   BTCUSDT 2025-08-11 00:00:00+00:00  short  121728.99  118522.22000   9.293933  target
+4   BTCUSDT 2025-09-22 04:00:00+00:00   long  112519.99  113346.41000   3.294247  target
+5   BTCUSDT 2025-09-25 20:00:00+00:00   long  108994.49  110037.93000   2.539342  target
+6   BTCUSDT 2025-10-01 12:00:00+00:00  short  117423.73  119906.36625  -7.954480    stop
+7   BTCUSDT 2025-10-05 04:00:00+00:00  short  124713.63  121846.01000   7.326849  target
+8   BTCUSDT 2025-10-10 20:00:00+00:00   long  112774.50  114821.12000   2.520393  target
+9   BTCUSDT 2025-10-27 04:00:00+00:00  short  115554.60  112898.45000   7.857834  target
+10  BTCUSDT 2025-11-04 16:00:00+00:00   long  100542.64  103395.25000   5.691329  target
+11  BTCUSDT 2025-11-21 04:00:00+00:00   long   84049.39   86331.28000   3.415376  target
+12  BTCUSDT 2025-12-01 12:00:00+00:00   long   84677.87   90850.01000  16.685463  target
+13  ETHUSDT 2025-07-09 16:00:00+00:00  short    2765.01    2879.55500  -7.688543    stop
+14  ETHUSDT 2025-07-10 20:00:00+00:00  short    2951.29    2951.80000  -0.187731  target
+15  ETHUSDT 2025-07-16 12:00:00+00:00  short    3244.49    3404.41375  -7.533774    stop
+16  ETHUSDT 2025-07-16 20:00:00+00:00  short    3371.35    3549.73250  -7.405988    stop
+17  ETHUSDT 2025-07-20 08:00:00+00:00  short    3756.71    3676.91000   2.472302  target
+18  ETHUSDT 2025-08-13 00:00:00+00:00  short    4647.00    4537.63000   3.057001  target
+19  ETHUSDT 2025-09-12 16:00:00+00:00  short    4657.18    4582.22000   3.181918  target
+20  ETHUSDT 2025-09-22 04:00:00+00:00   long    4193.38    4048.42625  -7.475087    stop
+21  ETHUSDT 2025-09-25 04:00:00+00:00   long    4009.18    4018.38000   0.177869  target
+22  ETHUSDT 2025-10-02 16:00:00+00:00  short    4495.61    4487.26000   0.153605  target
+23  ETHUSDT 2025-10-10 16:00:00+00:00   long    3997.56    3740.70000  -7.261159    stop
+24  ETHUSDT 2025-10-10 20:00:00+00:00   long    3829.72    4034.59000   4.158689  target
+25  ETHUSDT 2025-10-27 00:00:00+00:00  short    4205.08    4039.39000   7.972156  target
+26  ETHUSDT 2025-10-30 16:00:00+00:00   long    3686.93    3877.79000   6.377716  target
+27  ETHUSDT 2025-11-04 16:00:00+00:00   long    3230.94    3443.60000   6.629035  target
+28  ETHUSDT 2025-12-01 12:00:00+00:00   long    2745.72    3006.61000  14.762868  target

@@ -1,0 +1,33 @@
+AGENT 3 - MACRO STRATEGIST - ROUND 4
+Daily Momentum (20-SMA + RSI Filter) BTC Long-Only
+==================================================
+
+Strategy:
+  Entry: Close > 20-SMA AND RSI(7) < 70
+  Exit: Close < 20-SMA OR 8% hard stop
+  95% position, 0.1% fees
+
+TRAIN Oct 2024 - Mar 2025:
+  final_equity: 1321.2
+  total_return_pct: 32.12
+  sharpe_ratio: 1.96
+  max_drawdown_pct: 20.24
+  num_trades: 2
+  win_rate: 50.0
+
+  Trades:
+    long  2024-10-01 -> 2024-12-29 | $ 60,805.78 -> $ 93,738.20 | PnL: +54.16%
+    long  2025-01-19 -> 2025-02-05 | $101,331.57 -> $ 96,612.43 | PnL: -4.66%
+
+TEST Apr - Jun 2025:
+  final_equity: 1078.44
+  total_return_pct: 7.84
+  sharpe_ratio: 1.07
+  max_drawdown_pct: 13.32
+  num_trades: 2
+  win_rate: 100.0
+
+  Trades:
+    long  2025-04-12 -> 2025-06-21 | $ 85,276.90 -> $102,120.01 | PnL: +19.75%
+    long  2025-06-26 -> 2025-06-30 | $106,947.06 -> $107,146.50 | PnL: +0.19%
+

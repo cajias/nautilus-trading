@@ -1,0 +1,8 @@
+Round 9 - Agent 1 Quant
+Strategy: BTCUSDT:Donchian(5/3)_SMA50_ATR2.0
+
+TRAIN 2025-01-01..2025-12-31:
+  return=5.85% sharpe=0.35 maxDD=11.99% trades=10 wr=30.0%
+
+TEST 2026-01-01..2026-02-28:
+  return=2.10% sharpe=0.59 maxDD=3.51% trades=1 wr=100.0%

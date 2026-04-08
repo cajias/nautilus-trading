@@ -1,0 +1,103 @@
+Agent 5 - Hybrid Strategist: Round 1 Results
+==================================================
+
+TRAIN (Jan-Jun 2024):
+======================================================================
+  STRATEGY: Hybrid Ensemble: Multi-Signal Adaptive Weighting (MSAW)
+======================================================================
+  Assets:            BTCUSDT, ETHUSDT, SOLUSDT
+  Timeframe:         4H
+  Period:            2024-01-01 to 2024-06-30
+  Initial Capital:   $1,000.00
+  Final Equity:      $979.57
+----------------------------------------------------------------------
+  Total Return:      -2.04%
+  Sharpe Ratio:      -0.24
+  Max Drawdown:      10.45%
+  Profit Factor:     0.94
+  Number of Trades:  37
+  Win Rate:          46.0%
+  Avg Win:           $10.92
+  Avg Loss:          $-9.86
+----------------------------------------------------------------------
+  Per-Asset P&L:
+    BTCUSDT: $-16.61
+    ETHUSDT: $+26.76
+    SOLUSDT: $-21.84
+======================================================================
+
+  Trade Summary by Asset:
+    BTCUSDT: 13 trades, 5 wins (38%)
+    ETHUSDT: 13 trades, 7 wins (54%)
+    SOLUSDT: 11 trades, 5 wins (45%)
+
+  Last 15 Trades:
+     symbol                entry_time   side     entry         exit        pnl     reason
+22  ETHUSDT 2024-03-04 12:00:00+00:00   long   3560.42   3695.53100  10.333539       stop
+23  BTCUSDT 2024-03-11 04:00:00+00:00   long  71019.99  68272.59000 -11.017036       stop
+24  SOLUSDT 2024-03-13 20:00:00+00:00   long    163.90    179.21100  12.098815       stop
+25  ETHUSDT 2024-03-19 00:00:00+00:00  short   3419.17   3376.70900   1.666298       stop
+26  BTCUSDT 2024-03-19 04:00:00+00:00  short  64704.22  68793.14000 -10.936121       stop
+27  SOLUSDT 2024-03-25 12:00:00+00:00   long    192.78    196.00400   2.359490       stop
+28  ETHUSDT 2024-03-26 00:00:00+00:00   long   3623.00   3441.78250 -10.861717       stop
+29  BTCUSDT 2024-03-26 12:00:00+00:00   long  70250.00  67130.51875 -10.886478       stop
+30  SOLUSDT 2024-04-02 12:00:00+00:00  short    177.43    190.31625 -10.613303       stop
+31  ETHUSDT 2024-04-02 12:00:00+00:00  short   3240.13   3408.36500 -10.672784       stop
+32  ETHUSDT 2024-04-08 08:00:00+00:00   long   3633.08   3489.61625 -10.489604       stop
+33  BTCUSDT 2024-04-08 04:00:00+00:00   long  70698.63  68198.29875 -10.522806       stop
+34  SOLUSDT 2024-04-05 08:00:00+00:00  short    169.76    172.67000  -2.045868  time_exit
+35  BTCUSDT 2024-04-22 20:00:00+00:00   long  66819.32  64552.32500 -10.292295       stop
+36  ETHUSDT 2024-04-24 08:00:00+00:00   long   3281.96   3169.64875 -10.286732       stop
+
+TEST (Jul-Sep 2024):
+======================================================================
+  STRATEGY: Hybrid Ensemble: Multi-Signal Adaptive Weighting (MSAW)
+======================================================================
+  Assets:            BTCUSDT, ETHUSDT, SOLUSDT
+  Timeframe:         4H
+  Period:            2024-07-01 to 2024-09-30
+  Initial Capital:   $1,000.00
+  Final Equity:      $1,131.57
+----------------------------------------------------------------------
+  Total Return:      +13.16%
+  Sharpe Ratio:      2.48
+  Max Drawdown:      6.90%
+  Profit Factor:     1.92
+  Number of Trades:  33
+  Win Rate:          54.5%
+  Avg Win:           $16.25
+  Avg Loss:          $-10.17
+----------------------------------------------------------------------
+  Per-Asset P&L:
+    SOLUSDT: $+19.16
+    BTCUSDT: $+43.34
+    ETHUSDT: $+77.39
+======================================================================
+
+  Trade Summary by Asset:
+    SOLUSDT: 11 trades, 5 wins (45%)
+    BTCUSDT: 11 trades, 7 wins (64%)
+    ETHUSDT: 11 trades, 6 wins (55%)
+
+  Last 15 Trades:
+     symbol                entry_time   side     entry         exit        pnl reason
+18  ETHUSDT 2024-08-23 20:00:00+00:00   long   2762.48   2647.50375 -12.025098   stop
+19  BTCUSDT 2024-08-23 16:00:00+00:00   long  63628.84  60885.55625 -12.018104   stop
+20  ETHUSDT 2024-08-28 08:00:00+00:00  short   2523.20   2490.00500   2.719760   stop
+21  SOLUSDT 2024-08-28 16:00:00+00:00  short    144.26    133.48200  12.452921   stop
+22  BTCUSDT 2024-08-28 20:00:00+00:00  short  59034.90  58914.27000   0.263926   stop
+23  ETHUSDT 2024-09-04 00:00:00+00:00  short   2373.00   2269.48100   9.188036   stop
+24  BTCUSDT 2024-09-04 00:00:00+00:00  short  56653.98  54596.91100  10.412382   stop
+25  SOLUSDT 2024-09-14 00:00:00+00:00   long    139.43    133.51375 -12.164843   stop
+26  BTCUSDT 2024-09-13 20:00:00+00:00   long  60498.00  58250.73875 -12.208024   stop
+27  ETHUSDT 2024-09-16 12:00:00+00:00  short   2287.72   2376.80375 -11.960666   stop
+28  BTCUSDT 2024-09-17 12:00:00+00:00   long  61135.50  59268.95250 -12.016675   stop
+29  SOLUSDT 2024-09-18 12:00:00+00:00  short    127.67    133.64250 -11.781280   stop
+30  ETHUSDT 2024-09-19 16:00:00+00:00   long   2460.93   2555.04700   9.305146   stop
+31  ETHUSDT 2024-09-23 12:00:00+00:00   long   2675.38   2566.66125 -11.637861   stop
+32  BTCUSDT 2024-09-23 00:00:00+00:00   long  64354.00  65448.66100   6.538485   stop
+
+SUMMARY:
+  TRAIN Return: -2.04%
+  TEST Return:  +13.16%
+  TEST Profitable: YES

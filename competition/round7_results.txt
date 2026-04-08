@@ -1,0 +1,78 @@
+ROUND 7 COMPETITION RESULTS
+Evaluation Period: 2025-01-01 to 2025-03-31
+Starting Capital: $1,000
+Evaluated: 2026-04-08 20:40:25
+======================================================================
+
+Rank  Agent                           Return %    Equity  Sharpe  MaxDD%  Trades   WinR%
+----------------------------------------------------------------------------------------
+1     Agent 5 - Hybrid                   +0.00   1000.00    0.00   -0.00       0     0.0
+2     Agent 2 - Sentiment                -1.79    982.14   -0.69   -4.33       1     0.0
+3     Agent 3 - Macro                    -7.91    920.87   -0.44   15.80       4    25.0
+4     Agent 4 - ML                      -14.81    851.85   -1.39  -16.56       2     0.0
+        Strategy: BTCUSDT:BB_MR_20_rsi35_65
+5     Agent 1 - Quant                   -29.45    705.51   -0.60  -43.13       4    25.0
+        Strategy: SOLUSDT:RSI_Dip(10,35/70),ATR3.5
+
+NO WINNER: No agent achieved a positive return.
+
+
+Detailed Results:
+======================================================================
+
+Agent 5 - Hybrid
+----------------------------------------
+  final_equity: 1000.0
+  total_return_pct: 0.0
+  sharpe_ratio: 0.0
+  max_drawdown_pct: -0.0
+  num_trades: 0
+  win_rate: 0.0
+  _selected: {'strategy': 'ema_trend', 'params': {'fast': 8, 'slow': 21, 'atr_mult': 2.0}, 'symbol': 'SOLUSDT'}
+  _train_metrics: {'final_equity': 1915.8901381848639, 'total_return_pct': 91.58901381848639, 'sharpe_ratio': 2.878315639459615, 'max_drawdown_pct': 15.708726204410626, 'num_trades': 3, 'win_rate': 100.0}
+  elapsed_seconds: 2.6
+
+Agent 2 - Sentiment
+----------------------------------------
+  final_equity: 982.14
+  total_return_pct: -1.79
+  sharpe_ratio: -0.69
+  max_drawdown_pct: -4.33
+  num_trades: 1
+  win_rate: 0.0
+  _trade_log: [{'symbol': 'BTCUSDT', 'entry_time': 1737072000000, 'exit_time': 1738526400000, 'entry_price': 101051.73, 'exit_price': 96495.08305158361, 'pnl_usd': -17.860031052694193, 'pnl_pct': -4.509222106753031, 'reason': 'trail_stop'}]
+  elapsed_seconds: 1.1
+
+Agent 3 - Macro
+----------------------------------------
+  final_equity: 920.87
+  total_return_pct: -7.91
+  sharpe_ratio: -0.44
+  max_drawdown_pct: 15.8
+  num_trades: 4
+  win_rate: 25.0
+  _trades: [{'date': '2025-01-02', 'side': 'BUY', 'price': 96984.79, 'pnl': 0.0, 'reason': 'trend_entry'}, {'date': '2025-01-07', 'side': 'SELL', 'price': 96954.61, 'pnl': -2.262389545700671, 'reason': 'trend_break'}, {'date': '2025-01-14', 'side': 'BUY', 'price': 96560.86, 'pnl': 0.0, 'reason': 'trend_entry'}, {'date': '2025-01-28', 'side': 'SELL', 'price': 101335.52, 'pnl': 46.298278015897836, 'reason': 'trend_break'}, {'date': '2025-01-29', 'side': 'BUY', 'price': 103733.24, 'pnl': 0.0, 'reason': 'trend_entry'}, {'date': '2025-02-01', 'side': 'SELL', 'price': 100635.65, 'pnl': -32.53568062217471, 'reason': 'trend_break'}, {'date': '2025-02-25', 'side': 'BUY', 'price': 88680.4, 'pnl': 0.0, 'reason': 'dip_entry'}, {'date': '2025-03-09', 'side': 'SELL', 'price': 80734.37, 'pnl': -90.62352343400289, 'reason': 'dip_stop'}]
+  elapsed_seconds: 0.3
+
+Agent 4 - ML
+----------------------------------------
+  final_equity: 851.85
+  total_return_pct: -14.81
+  sharpe_ratio: -1.3865
+  max_drawdown_pct: -16.56
+  num_trades: 2
+  win_rate: 0.0
+  strategy_name: BTCUSDT:BB_MR_20_rsi35_65
+  _trades: [Trade(entry_ts=1740355200000, entry=91552.88, exit_ts=1740528000000, exit=84250.09, pnl_pct=-8.17658140300994), Trade(entry_ts=1740614400000, entry=84708.58, exit_ts=1741564800000, exit=78595.86, pnl_pct=-7.416175740403152)]
+  elapsed_seconds: 0.3
+
+Agent 1 - Quant
+----------------------------------------
+  final_equity: 705.51
+  total_return_pct: -29.45
+  sharpe_ratio: -0.6043
+  max_drawdown_pct: -43.13
+  num_trades: 4
+  win_rate: 25.0
+  strategy_name: SOLUSDT:RSI_Dip(10,35/70),ATR3.5
+  elapsed_seconds: 2.2

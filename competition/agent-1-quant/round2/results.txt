@@ -1,0 +1,49 @@
+Agent 1 — Quantitative Trader | Round 2
+Strategy: Long-Only Trend Following (Donchian Breakout + Momentum)
+Assets: BTCUSDT (50%), ETHUSDT (30%), SOLUSDT (20%)
+Timeframe: Daily candles
+Entry: Close > 20-day Donchian high AND close > close[10] AND > 50-EMA
+Exit: 4x ATR trailing stop OR close < 10-day Donchian low
+Position sizing: 3% equity risk, volatility-scaled, max 45% per position
+Fees: 0.1% per trade
+Long only — no shorts
+
+============================================================
+TRAIN PERIOD: 2024-04-01 to 2024-09-30
+============================================================
+Final Equity:    $990.17
+Total Return:    -0.98%
+Sharpe Ratio:    -0.02
+Max Drawdown:    4.2%
+Num Trades:      10
+Win Rate:        70.0%
+
+Trade Log (TRAIN):
+  2024-04-08 -> 2024-04-12 | ETHUSDT long | entry=$3694.61 exit=$3202.79 | pnl=$-18.22 (-13.5%) | channel_exit | held 4.0d
+  2024-05-20 -> 2024-06-07 | ETHUSDT long | entry=$3661.78 exit=$3702.58 | pnl=$1.24 (0.91%) | channel_exit | held 18.0d
+  2024-05-16 -> 2024-06-07 | SOLUSDT long | entry=$159.37 exit=$161.32 | pnl=$0.9 (1.02%) | channel_exit | held 22.0d
+  2024-05-15 -> 2024-06-11 | BTCUSDT long | entry=$66206.5 exit=$67257.47 | pnl=$2.32 (1.39%) | channel_exit | held 27.0d
+  2024-07-15 -> 2024-08-01 | BTCUSDT long | entry=$64724.14 exit=$63456.7 | pnl=$-4.31 (-2.16%) | channel_exit | held 17.0d
+  2024-07-15 -> 2024-08-01 | SOLUSDT long | entry=$159.38 exit=$165.42 | pnl=$3.18 (3.59%) | channel_exit | held 17.0d
+  2024-08-23 -> 2024-08-30 | BTCUSDT long | entry=$64037.24 exit=$57860.0 | pnl=$-15.9 (-9.84%) | channel_exit | held 7.0d
+  2024-09-18 -> end_of_period | BTCUSDT long | entry=$61759.99 exit=$65602.01 | pnl=$10.97 (6.01%) | period_end | held 11.9d
+  2024-09-21 -> end_of_period | ETHUSDT long | entry=$2612.4 exit=$2657.62 | pnl=$2.02 (1.53%) | period_end | held 8.9d
+  2024-09-19 -> end_of_period | SOLUSDT long | entry=$142.89 exit=$158.46 | pnl=$9.34 (10.69%) | period_end | held 10.9d
+
+============================================================
+TEST PERIOD: 2024-10-01 to 2024-12-31
+============================================================
+Final Equity:    $1081.24
+Total Return:    8.12%
+Sharpe Ratio:    2.06
+Max Drawdown:    5.73%
+Num Trades:      6
+Win Rate:        50.0%
+
+Trade Log (TEST):
+  2024-10-20 -> 2024-10-25 | ETHUSDT long | entry=$2746.91 exit=$2450.0 | pnl=$-14.94 (-11.0%) | channel_exit | held 5.0d
+  2024-10-20 -> 2024-11-03 | SOLUSDT long | entry=$167.4 exit=$159.12 | pnl=$-4.66 (-5.14%) | channel_exit | held 14.0d
+  2024-11-06 -> 2024-12-02 | SOLUSDT long | entry=$186.59 exit=$221.8 | pnl=$16.93 (18.65%) | channel_exit | held 26.0d
+  2024-10-15 -> 2024-12-05 | BTCUSDT long | entry=$67074.14 exit=$90791.1 | pnl=$79.03 (35.12%) | channel_exit | held 51.0d
+  2024-11-07 -> 2024-12-19 | ETHUSDT long | entry=$2895.47 exit=$3509.0 | pnl=$28.71 (20.97%) | channel_exit | held 42.0d
+  2024-12-15 -> 2024-12-20 | BTCUSDT long | entry=$104463.99 exit=$94256.54 | pnl=$-22.91 (-9.96%) | channel_exit | held 5.0d

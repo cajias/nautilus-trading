@@ -1,0 +1,62 @@
+============================================================
+AGENT 3 - MACRO STRATEGIST - ROUND 10 - TRAIN
+Period: 2024-01-01 to 2024-12-31
+------------------------------------------------------------
+  final_equity: 1671.29
+  total_return_pct: 67.13
+  sharpe_ratio: 1.005
+  max_drawdown_pct: 76.89
+  num_trades: 11
+  win_rate: 45.45
+
+Trades:
+  2024-02-25  ETHUSDT  BUY  $     3112.59  pnl=$    0.00  breakout
+  2024-02-26  BTCUSDT  BUY  $    54476.47  pnl=$    0.00  breakout
+  2024-02-28  ETHUSDT  ADD  $     3383.10  pnl=$    0.00  pyramid
+  2024-02-28  BTCUSDT  ADD  $    62432.10  pnl=$    0.00  pyramid
+  2024-02-28  SOLUSDT  BUY  $      119.03  pnl=$    0.00  breakout
+  2024-02-29  SOLUSDT  ADD  $      125.68  pnl=$    0.00  pyramid
+  2024-03-19  ETHUSDT  SELL $     3158.64  pnl=$  -22.40  chandelier
+  2024-03-19  BTCUSDT  SELL $    61937.40  pnl=$  133.69  chandelier
+  2024-04-08  ETHUSDT  BUY  $     3694.61  pnl=$    0.00  breakout
+  2024-04-12  SOLUSDT  SELL $      153.16  pnl=$  494.06  chandelier
+  2024-04-13  ETHUSDT  SELL $     3007.01  pnl=$ -376.55  chandelier
+  2024-09-23  ETHUSDT  BUY  $     2646.97  pnl=$    0.00  breakout
+  2024-09-24  SOLUSDT  BUY  $      152.73  pnl=$    0.00  breakout
+  2024-09-26  BTCUSDT  BUY  $    65173.99  pnl=$    0.00  breakout
+  2024-10-03  ETHUSDT  SELL $     2349.80  pnl=$ -136.37  chandelier
+  2024-10-09  SOLUSDT  SELL $      139.33  pnl=$ -106.93  regime_off
+  2024-10-09  BTCUSDT  SELL $    60636.02  pnl=$  -85.85  regime_off
+  2024-10-15  BTCUSDT  BUY  $    67074.14  pnl=$    0.00  breakout
+  2024-10-20  ETHUSDT  BUY  $     2746.91  pnl=$    0.00  breakout
+  2024-10-20  SOLUSDT  BUY  $      167.40  pnl=$    0.00  breakout
+  2024-10-24  SOLUSDT  ADD  $      177.19  pnl=$    0.00  pyramid
+  2024-10-25  ETHUSDT  SELL $     2440.62  pnl=$ -100.43  chandelier
+  2024-10-29  BTCUSDT  ADD  $    72736.42  pnl=$    0.00  pyramid
+  2024-11-07  ETHUSDT  BUY  $     2895.47  pnl=$    0.00  breakout
+  2024-11-09  ETHUSDT  ADD  $     3126.21  pnl=$    0.00  pyramid
+  2024-12-19  SOLUSDT  SELL $      193.81  pnl=$  184.53  chandelier
+  2024-12-19  ETHUSDT  SELL $     3417.01  pnl=$  252.63  chandelier
+  2024-12-27  BTCUSDT  SELL $    94299.03  pnl=$  492.16  regime_off
+
+============================================================
+AGENT 3 - MACRO STRATEGIST - ROUND 10 - TEST
+Period: 2025-01-01 to 2025-06-30
+------------------------------------------------------------
+  final_equity: 1198.0
+  total_return_pct: 19.8
+  sharpe_ratio: 0.848
+  max_drawdown_pct: 34.26
+  num_trades: 3
+  win_rate: 100.0
+
+Trades:
+  2025-04-22  BTCUSDT  BUY  $    93442.99  pnl=$    0.00  breakout
+  2025-04-22  SOLUSDT  BUY  $      148.79  pnl=$    0.00  breakout
+  2025-05-08  BTCUSDT  ADD  $   103261.60  pnl=$    0.00  pyramid
+  2025-05-08  SOLUSDT  ADD  $      164.46  pnl=$    0.00  pyramid
+  2025-05-08  ETHUSDT  BUY  $     2207.39  pnl=$    0.00  breakout
+  2025-05-09  ETHUSDT  ADD  $     2345.04  pnl=$    0.00  pyramid
+  2025-05-30  SOLUSDT  SELL $      156.20  pnl=$   20.86  chandelier
+  2025-06-05  BTCUSDT  SELL $   101508.68  pnl=$   75.71  chandelier
+  2025-06-20  ETHUSDT  SELL $     2406.49  pnl=$  123.97  chandelier

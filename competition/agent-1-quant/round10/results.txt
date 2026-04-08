@@ -1,0 +1,4 @@
+Round 10 FINAL — Agent 1 (Quant)
+Strategy: BTC daily EMA10>EMA30 + price>EMA10 + 20d momentum>0, full-size long
+TRAIN (2024): {'final_equity': 1283.64, 'total_return_pct': 28.36, 'sharpe_ratio': 0.876, 'max_drawdown_pct': -29.25, 'num_trades': 22, 'win_rate': 45.5}
+TEST  (H1 2025): {'final_equity': 1098.63, 'total_return_pct': 9.86, 'sharpe_ratio': 0.986, 'max_drawdown_pct': -9.77, 'num_trades': 6, 'win_rate': 66.7}

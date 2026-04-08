@@ -1,0 +1,67 @@
+============================================================
+AGENT 3 - MACRO STRATEGIST - ROUND 9 - TRAIN
+Period: 2025-01-01 to 2025-12-31
+------------------------------------------------------------
+  final_equity:     993.4
+  total_return_pct: -0.66
+  sharpe_ratio:     0.13
+  max_drawdown_pct: 21.96
+  num_trades:       17
+  win_rate:         35.29
+
+Trades:
+  2025-01-02  BTC   BUY   $  96984.79  pnl=$    0.00  trend_entry
+  2025-01-07  BTC   SELL  $  96954.61  pnl=$   -2.26  trend_break
+  2025-01-14  BTC   BUY   $  96560.86  pnl=$    0.00  trend_entry
+  2025-01-28  BTC   SELL  $ 101335.52  pnl=$   46.30  trend_break
+  2025-01-29  BTC   BUY   $ 103733.24  pnl=$    0.00  trend_entry
+  2025-02-01  BTC   SELL  $ 100635.65  pnl=$  -32.54  trend_break
+  2025-02-26  BTC   BUY   $  84250.09  pnl=$    0.00  dip_entry
+  2025-03-10  BTC   SELL  $  78595.86  pnl=$  -68.37  dip_stop
+  2025-04-24  BTC   BUY   $  93980.47  pnl=$    0.00  trend_entry
+  2025-05-30  BTC   SELL  $ 103985.48  pnl=$   96.35  trend_break
+  2025-06-01  BTC   BUY   $ 105642.93  pnl=$    0.00  trend_entry
+  2025-06-03  BTC   SELL  $ 105376.89  pnl=$   -4.60  trend_break
+  2025-06-07  BTC   BUY   $ 105552.15  pnl=$    0.00  trend_entry
+  2025-06-12  BTC   SELL  $ 105671.73  pnl=$   -0.88  trend_break
+  2025-06-16  BTC   BUY   $ 106794.53  pnl=$    0.00  trend_entry
+  2025-06-17  BTC   SELL  $ 104551.17  pnl=$  -23.27  trend_break
+  2025-06-23  BTC   BUY   $ 105333.93  pnl=$    0.00  trend_entry
+  2025-07-01  BTC   SELL  $ 105681.14  pnl=$    1.28  trend_break
+  2025-07-02  BTC   BUY   $ 108849.60  pnl=$    0.00  trend_entry
+  2025-07-31  BTC   SELL  $ 115764.08  pnl=$   60.89  trend_break
+  2025-08-07  BTC   BUY   $ 117472.01  pnl=$    0.00  trend_entry
+  2025-08-15  BTC   SELL  $ 117342.05  pnl=$   -3.26  trend_break
+  2025-08-17  SOL   BUY   $    190.99  pnl=$    0.00  trend_entry
+  2025-08-19  SOL   SELL  $    176.22  pnl=$  -83.00  trend_break
+  2025-08-20  SOL   BUY   $    187.94  pnl=$    0.00  trend_entry
+  2025-08-21  SOL   SELL  $    180.29  pnl=$  -41.21  trend_break
+  2025-08-22  SOL   BUY   $    200.69  pnl=$    0.00  trend_entry
+  2025-08-25  SOL   SELL  $    187.20  pnl=$  -64.01  trend_break
+  2025-08-26  SOL   BUY   $    195.86  pnl=$    0.00  trend_entry
+  2025-09-22  SOL   SELL  $    220.38  pnl=$  106.20  trend_break
+  2025-10-01  BTC   BUY   $ 118594.99  pnl=$    0.00  trend_entry
+  2025-10-10  BTC   SELL  $ 112774.50  pnl=$  -49.34  trend_break
+  2025-11-20  BTC   BUY   $  86637.23  pnl=$    0.00  dip_entry
+  2025-12-10  BTC   SELL  $  92015.37  pnl=$   55.13  dip_timeout
+============================================================
+
+============================================================
+AGENT 3 - MACRO STRATEGIST - ROUND 9 - TEST
+Period: 2026-01-01 to 2026-02-28
+------------------------------------------------------------
+  final_equity:     832.44
+  total_return_pct: -16.76
+  sharpe_ratio:     -1.05
+  max_drawdown_pct: 22.78
+  num_trades:       3
+  win_rate:         33.33
+
+Trades:
+  2026-01-17  BTC   BUY   $  95147.77  pnl=$    0.00  trend_entry
+  2026-01-20  BTC   SELL  $  88427.66  pnl=$  -71.04  trend_break
+  2026-02-03  BTC   BUY   $  75770.21  pnl=$    0.00  dip_entry
+  2026-02-05  BTC   SELL  $  62909.86  pnl=$ -156.03  dip_stop
+  2026-02-05  BTC   BUY   $  62909.86  pnl=$    0.00  dip_entry
+  2026-02-25  BTC   SELL  $  67988.04  pnl=$   59.51  dip_timeout
+============================================================

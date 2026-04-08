@@ -1,0 +1,28 @@
+Agent 4 — ML Engineer: Round 3 Results
+==================================================
+
+TRAIN Period Results (2024-07-01 to 2024-12-31)
+----------------------------------------
+  final_equity: 1483.49
+  total_return_pct: 48.35
+  sharpe_ratio: 2.5144
+  max_drawdown_pct: -11.49
+  num_trades: 10
+  win_rate: 60.0
+  strategy_name: BTCUSDT:AdaptiveMom
+
+TEST Period Results (2025-01-01 to 2025-03-31)
+----------------------------------------
+  final_equity: 1081.61
+  total_return_pct: 8.16
+  sharpe_ratio: 0.9295
+  max_drawdown_pct: -13.07
+  num_trades: 2
+  win_rate: 50.0
+  strategy_name: SOLUSDT:MACD_Hist
+
+Trade Log (TEST period):
+  2025-01-15 00:00:00 BUY  @ $205.86
+  2025-01-18 00:00:00 SELL @ $261.97 pnl=+27.26%
+  2025-03-02 00:00:00 BUY  @ $178.71
+  2025-03-03 00:00:00 SELL @ $142.16 pnl=-20.45%

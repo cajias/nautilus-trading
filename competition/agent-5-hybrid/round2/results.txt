@@ -1,0 +1,62 @@
+Agent 5 - Hybrid Strategist - Round 2 Results
+============================================================
+
+Strategy: Long-only momentum with wide chandelier trailing stops
+Signals: EMA stack + RSI momentum + MACD histogram
+Timeframe: Daily | Assets: BTCUSDT (60%) + ETHUSDT (40%)
+Entry: Bullish score >= 3.0 in uptrend
+Initial stop: 3.5x ATR | Trail: 3x ATR from highest high (after 1.5x ATR profit)
+Risk: 4% per trade | Max pos: 50% equity
+
+TRAIN (2024-04-01 to 2024-09-30)
+  Final Equity:  $947.52
+  Return:        -5.25%
+  Sharpe Ratio:  -0.69
+  Max Drawdown:  7.66%
+  Trades:        10
+  Win Rate:      40.0%
+
+  Trade Log:
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-04-01', 'entry': np.float64(69649.8), 'score': 3.5, 'size_usd': np.float64(134.61), 'stop': np.float64(57231.78)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-05-01', 'entry': np.float64(69649.8), 'exit': np.float64(57231.78), 'pnl': np.float64(-24.11), 'reason': 'stop', 'bars_held': 30}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-05-05', 'entry': np.float64(64012.0), 'score': 3.5, 'size_usd': np.float64(154.72), 'stop': np.float64(54483.69)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-06-11', 'entry': np.float64(64012.0), 'exit': np.float64(66765.19), 'pnl': np.float64(6.49), 'reason': 'stop', 'bars_held': 37}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-06-13', 'entry': np.float64(66773.01), 'score': 3.5, 'size_usd': np.float64(232.49), 'stop': np.float64(60085.8)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-06-24', 'entry': np.float64(66773.01), 'exit': np.float64(60085.8), 'pnl': np.float64(-23.49), 'reason': 'stop', 'bars_held': 11}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-07-13', 'entry': np.float64(59204.02), 'score': 3.5, 'size_usd': np.float64(146.83), 'stop': np.float64(50198.55)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-08-01', 'entry': np.float64(59204.02), 'exit': np.float64(63012.27), 'pnl': np.float64(9.29), 'reason': 'stop', 'bars_held': 19}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-08-19', 'entry': np.float64(59438.5), 'score': 3.5, 'size_usd': np.float64(128.43), 'stop': np.float64(48932.24)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-08-30', 'entry': np.float64(59438.5), 'exit': np.float64(57945.79), 'pnl': np.float64(-3.35), 'reason': 'stop', 'bars_held': 11}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-09-13', 'entry': np.float64(60498.0), 'score': 3.5, 'size_usd': np.float64(170.71), 'stop': np.float64(52502.73)}
+    {'symbol': 'BTCUSDT', 'side': 'close_eod', 'date': '2024-09-29', 'entry': np.float64(60498.0), 'exit': np.float64(65602.01), 'pnl': np.float64(14.22)}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2024-04-01', 'entry': np.float64(3503.8), 'score': 3.5, 'size_usd': np.float64(74.3), 'stop': np.float64(2749.29)}
+    {'symbol': 'ETHUSDT', 'side': 'close_long', 'date': '2024-06-07', 'entry': np.float64(3503.8), 'exit': np.float64(3608.16), 'pnl': np.float64(2.14), 'reason': 'stop', 'bars_held': 67}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2024-06-09', 'entry': np.float64(3706.4), 'score': 3.5, 'size_usd': np.float64(145.36), 'stop': np.float64(3296.34)}
+    {'symbol': 'ETHUSDT', 'side': 'close_long', 'date': '2024-06-24', 'entry': np.float64(3706.4), 'exit': np.float64(3296.34), 'pnl': np.float64(-16.21), 'reason': 'stop', 'bars_held': 15}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2024-06-26', 'entry': np.float64(3371.44), 'score': 3.5, 'size_usd': np.float64(116.04), 'stop': np.float64(2923.18)}
+    {'symbol': 'ETHUSDT', 'side': 'close_long', 'date': '2024-07-05', 'entry': np.float64(3371.44), 'exit': np.float64(2923.18), 'pnl': np.float64(-15.53), 'reason': 'stop', 'bars_held': 9}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2024-07-13', 'entry': np.float64(3175.93), 'score': 3.5, 'size_usd': np.float64(86.71), 'stop': np.float64(2633.78)}
+    {'symbol': 'ETHUSDT', 'side': 'close_long', 'date': '2024-07-25', 'entry': np.float64(3175.93), 'exit': np.float64(3159.49), 'pnl': np.float64(-0.54), 'reason': 'stop', 'bars_held': 12}
+
+TEST (2024-10-01 to 2024-12-31)
+  Final Equity:  $1094.32
+  Return:        9.43%
+  Sharpe Ratio:  2.79
+  Max Drawdown:  4.79%
+  Trades:        6
+  Win Rate:      50.0%
+
+  Trade Log:
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-10-08', 'entry': np.float64(62160.49), 'score': 3.5, 'size_usd': np.float64(224.84), 'stop': np.float64(55525.34)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-11-03', 'entry': np.float64(62160.49), 'exit': np.float64(67790.29), 'pnl': np.float64(20.12), 'reason': 'stop', 'bars_held': 26}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-11-05', 'entry': np.float64(69372.01), 'score': 3.5, 'size_usd': np.float64(210.94), 'stop': np.float64(61217.52)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-12-05', 'entry': np.float64(69372.01), 'exit': np.float64(92067.96), 'pnl': np.float64(68.73), 'reason': 'stop', 'bars_held': 30}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-12-07', 'entry': np.float64(99831.99), 'score': 3.5, 'size_usd': np.float64(185.22), 'stop': np.float64(84990.19)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2024-12-20', 'entry': np.float64(99831.99), 'exit': np.float64(95366.52), 'pnl': np.float64(-8.46), 'reason': 'stop', 'bars_held': 13}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2024-12-22', 'entry': np.float64(95186.27), 'score': 3.5, 'size_usd': np.float64(165.01), 'stop': np.float64(79501.71)}
+    {'symbol': 'BTCUSDT', 'side': 'close_eod', 'date': '2024-12-30', 'entry': np.float64(95186.27), 'exit': np.float64(92792.05), 'pnl': np.float64(-4.31)}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2024-11-07', 'entry': np.float64(2895.47), 'score': 4.0, 'size_usd': np.float64(98.32), 'stop': np.float64(2424.26)}
+    {'symbol': 'ETHUSDT', 'side': 'close_long', 'date': '2024-12-19', 'entry': np.float64(2895.47), 'exit': np.float64(3502.7), 'pnl': np.float64(20.5), 'reason': 'stop', 'bars_held': 42}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2024-12-23', 'entry': np.float64(3422.53), 'score': 3.5, 'size_usd': np.float64(69.53), 'stop': np.float64(2594.79)}
+    {'symbol': 'ETHUSDT', 'side': 'close_eod', 'date': '2024-12-30', 'entry': np.float64(3422.53), 'exit': np.float64(3361.84), 'pnl': np.float64(-1.3)}
+

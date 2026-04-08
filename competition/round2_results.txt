@@ -1,0 +1,97 @@
+ROUND 2 EVALUATION RESULTS
+Hidden Period: 2025-01-01 to 2025-03-31
+Starting Capital: $1,000
+Evaluated: 2026-04-04 23:32:01
+======================================================================
+
+LEADERBOARD
+----------------------------------------------------------------------
+Rank  Agent                                       Return      Equity  Sharpe   MaxDD  Trades    WinR
+----------------------------------------------------------------------------------------------------
+1     Agent 4 — ML (Multi-Strategy Tournament      2.19%  $  1021.88    2.45  -0.19%       1  100.0%
+2     Agent 5 — Hybrid (Multi-Signal Ensemble     -1.07%  $   989.35   -1.53   3.32%       4   25.0%
+3     Agent 1 — Quant (Donchian Breakout)         -2.27%  $   977.34   -3.88   2.33%       2    0.0%
+4     Agent 3 — Macro (Trend Following)          -12.63%  $   873.67   -3.76  13.56%       3    0.0%
+5     Agent 2 — Sentiment (Volume-Sentiment)     -14.02%  $   859.84   -3.41  15.81%      12   16.7%
+
+WINNER: Agent 4 — ML (Multi-Strategy Tournament) with 2.19% return!
+
+
+======================================================================
+DETAILED RESULTS
+======================================================================
+
+--- Agent 4 — ML (Multi-Strategy Tournament) ---
+  Final Equity:  $1021.88
+  Total Return:  2.19%
+  Sharpe Ratio:  2.45
+  Max Drawdown:  -0.19%
+  Num Trades:    1
+  Win Rate:      100.0%
+  Trade Log (2 entries):
+    {'type': 'BUY', 'time': '2025-02-17 00:00:00', 'price': np.float64(95780.0), 'size': np.float64(0.009387)}
+    {'type': 'SELL', 'time': '2025-02-20 00:00:00', 'price': np.float64(98305.0), 'pnl_pct': np.float64(0.0264)}
+
+--- Agent 5 — Hybrid (Multi-Signal Ensemble) ---
+  Final Equity:  $989.35
+  Total Return:  -1.07%
+  Sharpe Ratio:  -1.53
+  Max Drawdown:  3.32%
+  Num Trades:    4
+  Win Rate:      25.0%
+  Trade Log (8 entries):
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2025-01-05', 'entry': np.float64(98363.61), 'score': 3.0, 'regime': 'range', 'size_usd': np.float64(151.14), 'stop': np.float64(90553.87), 'tp': np.float64(113983.08)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2025-01-08', 'entry': np.float64(98363.61), 'exit': np.float64(94329.24), 'pnl': np.float64(-6.34), 'reason': 'stop'}
+    {'symbol': 'BTCUSDT', 'side': 'long', 'date': '2025-01-15', 'entry': np.float64(100497.35), 'score': 2.5, 'regime': 'range', 'size_usd': np.float64(134.48), 'stop': np.float64(91626.78), 'tp': np.float64(118238.49)}
+    {'symbol': 'BTCUSDT', 'side': 'close_long', 'date': '2025-02-03', 'entry': np.float64(100497.35), 'exit': np.float64(94869.72), 'pnl': np.float64(-7.66), 'reason': 'stop'}
+    {'symbol': 'ETHUSDT', 'side': 'long', 'date': '2025-01-03', 'entry': np.float64(3609.01), 'score': 3.3, 'regime': 'uptrend', 'size_usd': np.float64(72.98), 'stop': np.float64(3213.4), 'tp': np.float64(4400.23)}
+    {'symbol': 'ETHUSDT', 'side': 'close_long', 'date': '2025-01-07', 'entry': np.float64(3609.01), 'exit': np.float64(3359.53), 'pnl': np.float64(-5.11), 'reason': 'stop'}
+    {'symbol': 'ETHUSDT', 'side': 'short', 'date': '2025-02-12', 'entry': np.float64(2738.27), 'score': -3.3, 'regime': 'downtrend', 'size_usd': np.float64(26.08), 'stop': np.float64(3360.12), 'tp': np.float64(1494.57)}
+    {'symbol': 'ETHUSDT', 'side': 'close_eod', 'date': '2025-03-30', 'entry': np.float64(2738.27), 'exit': np.float64(1807.74), 'pnl': np.float64(8.84)}
+
+--- Agent 1 — Quant (Donchian Breakout) ---
+  Final Equity:  $977.34
+  Total Return:  -2.27%
+  Sharpe Ratio:  -3.88
+  Max Drawdown:  2.33%
+  Num Trades:    2
+  Win Rate:      0.0%
+  Trade Log (2 entries):
+    {'symbol': 'BTCUSDT', 'side': 'long', 'entry_price': 104077.48, 'exit_price': 99550.0, 'size': 0.001967, 'pnl': -9.31, 'return_pct': -4.55, 'entry_time': '2025-01-17', 'exit_time': '2025-01-27', 'exit_reason': 'channel_exit', 'hold_days': 10.0}
+    {'symbol': 'SOLUSDT', 'side': 'long', 'entry_price': 261.97, 'exit_price': 224.46, 'size': 0.343804, 'pnl': -13.06, 'return_pct': -14.5, 'entry_time': '2025-01-18', 'exit_time': '2025-01-27', 'exit_reason': 'trailing_stop', 'hold_days': 9.0}
+
+--- Agent 3 — Macro (Trend Following) ---
+  Final Equity:  $873.67
+  Total Return:  -12.63%
+  Sharpe Ratio:  -3.76
+  Max Drawdown:  13.56%
+  Num Trades:    3
+  Win Rate:      0.0%
+  Trade Log (6 entries):
+    {'symbol': 'BTCUSDT', 'side': 'BUY', 'price': 104556.23, 'time': '2025-01-18', 'pnl': 0, 'reason': 'trend_start'}
+    {'symbol': 'SOLUSDT', 'side': 'BUY', 'price': 252.42, 'time': '2025-01-19', 'pnl': 0, 'reason': 'trend_start'}
+    {'symbol': 'BTCUSDT', 'side': 'SELL', 'price': 91403.95, 'time': '2025-02-03', 'pnl': -38.01, 'reason': 'trailing_stop'}
+    {'symbol': 'SOLUSDT', 'side': 'SELL', 'price': 184.28, 'time': '2025-02-03', 'pnl': -78.15, 'reason': 'trailing_stop'}
+    {'symbol': 'BTCUSDT', 'side': 'BUY', 'price': 101328.52, 'time': '2025-02-03', 'pnl': 0, 'reason': 'pullback (RSI=51)'}
+    {'symbol': 'BTCUSDT', 'side': 'SELL', 'price': 97869.99, 'time': '2025-02-12', 'pnl': -9.31, 'reason': 'trend_reversal'}
+
+--- Agent 2 — Sentiment (Volume-Sentiment) ---
+  Final Equity:  $859.84
+  Total Return:  -14.02%
+  Sharpe Ratio:  -3.41
+  Max Drawdown:  15.81%
+  Num Trades:    12
+  Win Rate:      16.7%
+  Trade Log (12 entries):
+    {'side': 'LONG', 'entry_price': np.float64(97521.35), 'entry_time': 1735905600000, 'size_usd': 900.0, 'stop_loss': np.float64(94804.78), 'take_profit': np.float64(102954.49), 'exit_price': np.float64(99663.14662200623), 'exit_time': 1736164800000, 'pnl_pct': np.float64(2.2), 'pnl_usd': np.float64(18.87), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(98992.42), 'entry_time': 1736942400000, 'size_usd': np.float64(916.17), 'stop_loss': np.float64(94951.03), 'take_profit': np.float64(107075.21), 'exit_price': np.float64(97422.51374904046), 'exit_time': 1737028800000, 'pnl_pct': np.float64(-1.59), 'pnl_usd': np.float64(-15.45), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(104000.0), 'entry_time': 1737115200000, 'size_usd': np.float64(901.44), 'stop_loss': np.float64(100214.95), 'take_profit': np.float64(111570.11), 'exit_price': np.float64(102670.88228156992), 'exit_time': 1737172800000, 'pnl_pct': np.float64(-1.28), 'pnl_usd': np.float64(-12.42), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(104363.23), 'entry_time': 1737273600000, 'size_usd': np.float64(889.45), 'stop_loss': np.float64(100433.43), 'take_profit': np.float64(112222.84), 'exit_price': np.float64(103065.55083711325), 'exit_time': 1737316800000, 'pnl_pct': np.float64(-1.24), 'pnl_usd': np.float64(-11.95), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(103758.25), 'entry_time': 1737446400000, 'size_usd': np.float64(877.9), 'stop_loss': np.float64(96032.38), 'take_profit': np.float64(119209.98), 'exit_price': np.float64(103314.12504017724), 'exit_time': 1737921600000, 'pnl_pct': np.float64(-0.43), 'pnl_usd': np.float64(-4.64), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(105564.0), 'entry_time': 1738238400000, 'size_usd': np.float64(872.94), 'stop_loss': np.float64(101859.78), 'take_profit': np.float64(112972.43), 'exit_price': np.float64(102809.56817662831), 'exit_time': 1738339200000, 'pnl_pct': np.float64(-2.61), 'pnl_usd': np.float64(-23.65), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(97531.9), 'entry_time': 1739635200000, 'size_usd': np.float64(850.87), 'stop_loss': np.float64(95333.13), 'take_profit': np.float64(101929.44), 'exit_price': np.float64(96072.08260362953), 'exit_time': 1739736000000, 'pnl_pct': np.float64(-1.5), 'pnl_usd': np.float64(-13.59), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(91350.0), 'entry_time': 1741248000000, 'size_usd': np.float64(837.87), 'stop_loss': np.float64(85863.95), 'take_profit': np.float64(102322.1), 'exit_price': np.float64(86393.20160767545), 'exit_time': 1741305600000, 'pnl_pct': np.float64(-5.43), 'pnl_usd': np.float64(-46.3), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(85891.02), 'entry_time': 1742428800000, 'size_usd': np.float64(795.45), 'stop_loss': np.float64(82420.93), 'take_profit': np.float64(92831.19), 'exit_price': np.float64(83255.08500524334), 'exit_time': 1742558400000, 'pnl_pct': np.float64(-3.07), 'pnl_usd': np.float64(-25.21), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(84109.09), 'entry_time': 1742644800000, 'size_usd': np.float64(772.04), 'stop_loss': np.float64(82225.33), 'take_profit': np.float64(87876.61), 'exit_price': np.float64(87876.60763786666), 'exit_time': 1742803200000, 'pnl_pct': np.float64(4.48), 'pnl_usd': np.float64(33.81), 'exit_reason': 'tp'}
+    {'side': 'LONG', 'entry_price': np.float64(88350.01), 'entry_time': 1742817600000, 'size_usd': np.float64(801.78), 'stop_loss': np.float64(86073.68), 'take_profit': np.float64(92902.66), 'exit_price': np.float64(86418.30482549027), 'exit_time': 1742860800000, 'pnl_pct': np.float64(-2.19), 'pnl_usd': np.float64(-18.33), 'exit_reason': 'stop'}
+    {'side': 'LONG', 'entry_price': np.float64(86752.52), 'entry_time': 1742990400000, 'size_usd': np.float64(784.56), 'stop_loss': np.float64(84144.25), 'take_profit': np.float64(91969.06), 'exit_price': np.float64(85611.44403196106), 'exit_time': 1743134400000, 'pnl_pct': np.float64(-1.32), 'pnl_usd': np.float64(-11.1), 'exit_reason': 'stop'}

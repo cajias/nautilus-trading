@@ -1,0 +1,296 @@
+{
+  "agent": "Agent 1 \u2014 Quantitative Trader",
+  "round": 4,
+  "strategy_name": "BTCUSDT:RSI_Dip(25,55)",
+  "description": "Tournament-style strategy selection. 14 strategies tested on TRAIN, best Sharpe selected: RSI_Dip(25,55). Daily BTCUSDT, 0.1% fees, 90% position sizing.",
+  "symbol": "BTCUSDT",
+  "interval": "1d",
+  "train_period": "2024-10-01 to 2025-03-31",
+  "test_period": "2025-04-01 to 2025-06-30",
+  "initial_capital": 1000.0,
+  "train": {
+    "initial_capital": 1000.0,
+    "final_equity": 1070.79,
+    "total_return_pct": 7.08,
+    "sharpe_ratio": 0.688,
+    "max_drawdown_pct": -15.12,
+    "num_trades": 2,
+    "win_rate": 100.0
+  },
+  "test": {
+    "initial_capital": 1000.0,
+    "final_equity": 1144.91,
+    "total_return_pct": 14.49,
+    "sharpe_ratio": 2.5522,
+    "max_drawdown_pct": -3.79,
+    "num_trades": 2,
+    "win_rate": 100.0
+  },
+  "buy_and_hold_pct": 25.82,
+  "all_strategies_train": {
+    "RSI_Dip(30,60)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1141.32,
+      "total_return_pct": 14.13,
+      "sharpe_ratio": 1.1027,
+      "max_drawdown_pct": -15.12,
+      "num_trades": 4,
+      "win_rate": 75.0
+    },
+    "RSI_Dip(25,55)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1070.79,
+      "total_return_pct": 7.08,
+      "sharpe_ratio": 0.688,
+      "max_drawdown_pct": -15.12,
+      "num_trades": 2,
+      "win_rate": 100.0
+    },
+    "Donchian(20,10)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1000.0,
+      "total_return_pct": 0.0,
+      "sharpe_ratio": 0.0,
+      "max_drawdown_pct": 0.0,
+      "num_trades": 0,
+      "win_rate": 0.0
+    },
+    "Donchian(30,15)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1000.0,
+      "total_return_pct": 0.0,
+      "sharpe_ratio": 0.0,
+      "max_drawdown_pct": 0.0,
+      "num_trades": 0,
+      "win_rate": 0.0
+    },
+    "MACD_Hist(8,17,9)": {
+      "initial_capital": 1000.0,
+      "final_equity": 966.53,
+      "total_return_pct": -3.35,
+      "sharpe_ratio": -0.0648,
+      "max_drawdown_pct": -24.8,
+      "num_trades": 9,
+      "win_rate": 33.3
+    },
+    "EMA_Trail(8,21,atr2.0)": {
+      "initial_capital": 1000.0,
+      "final_equity": 978.71,
+      "total_return_pct": -2.13,
+      "sharpe_ratio": -0.1232,
+      "max_drawdown_pct": -13.74,
+      "num_trades": 4,
+      "win_rate": 25.0
+    },
+    "MACD_Hist(12,26,9)": {
+      "initial_capital": 1000.0,
+      "final_equity": 943.07,
+      "total_return_pct": -5.69,
+      "sharpe_ratio": -0.249,
+      "max_drawdown_pct": -25.79,
+      "num_trades": 9,
+      "win_rate": 33.3
+    },
+    "EMA_Trail(10,30,atr1.5)": {
+      "initial_capital": 1000.0,
+      "final_equity": 977.59,
+      "total_return_pct": -2.24,
+      "sharpe_ratio": -0.2868,
+      "max_drawdown_pct": -6.07,
+      "num_trades": 2,
+      "win_rate": 0.0
+    },
+    "BB_MR(rsi 30/70)": {
+      "initial_capital": 1000.0,
+      "final_equity": 937.92,
+      "total_return_pct": -6.21,
+      "sharpe_ratio": -0.54,
+      "max_drawdown_pct": -15.2,
+      "num_trades": 1,
+      "win_rate": 0.0
+    },
+    "BB_MR(rsi 35/65)": {
+      "initial_capital": 1000.0,
+      "final_equity": 863.71,
+      "total_return_pct": -13.63,
+      "sharpe_ratio": -1.1925,
+      "max_drawdown_pct": -13.98,
+      "num_trades": 2,
+      "win_rate": 0.0
+    },
+    "BB_MR(rsi 40/60)": {
+      "initial_capital": 1000.0,
+      "final_equity": 863.71,
+      "total_return_pct": -13.63,
+      "sharpe_ratio": -1.1925,
+      "max_drawdown_pct": -13.98,
+      "num_trades": 2,
+      "win_rate": 0.0
+    },
+    "Vol_Squeeze(20,1.5,12)": {
+      "initial_capital": 1000.0,
+      "final_equity": 914.15,
+      "total_return_pct": -8.59,
+      "sharpe_ratio": -1.245,
+      "max_drawdown_pct": -8.59,
+      "num_trades": 3,
+      "win_rate": 33.3
+    },
+    "EMA_Trail(5,20,atr1.5)": {
+      "initial_capital": 1000.0,
+      "final_equity": 913.25,
+      "total_return_pct": -8.67,
+      "sharpe_ratio": -1.2505,
+      "max_drawdown_pct": -10.3,
+      "num_trades": 5,
+      "win_rate": 0.0
+    }
+  },
+  "all_strategies_test": {
+    "BB_MR(rsi 30/70)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1257.37,
+      "total_return_pct": 25.74,
+      "sharpe_ratio": 3.4836,
+      "max_drawdown_pct": -7.66,
+      "num_trades": 2,
+      "win_rate": 100.0
+    },
+    "Vol_Squeeze(20,1.5,12)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1205.65,
+      "total_return_pct": 20.57,
+      "sharpe_ratio": 3.3193,
+      "max_drawdown_pct": -6.45,
+      "num_trades": 1,
+      "win_rate": 100.0
+    },
+    "BB_MR(rsi 35/65)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1226.4,
+      "total_return_pct": 22.64,
+      "sharpe_ratio": 3.0365,
+      "max_drawdown_pct": -7.66,
+      "num_trades": 2,
+      "win_rate": 100.0
+    },
+    "BB_MR(rsi 40/60)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1226.4,
+      "total_return_pct": 22.64,
+      "sharpe_ratio": 3.0365,
+      "max_drawdown_pct": -7.66,
+      "num_trades": 2,
+      "win_rate": 100.0
+    },
+    "EMA_Trail(8,21,atr2.0)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1136.81,
+      "total_return_pct": 13.68,
+      "sharpe_ratio": 2.8864,
+      "max_drawdown_pct": -4.78,
+      "num_trades": 3,
+      "win_rate": 66.7
+    },
+    "RSI_Dip(25,55)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1144.91,
+      "total_return_pct": 14.49,
+      "sharpe_ratio": 2.5522,
+      "max_drawdown_pct": -3.79,
+      "num_trades": 2,
+      "win_rate": 100.0
+    },
+    "MACD_Hist(12,26,9)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1132.08,
+      "total_return_pct": 13.21,
+      "sharpe_ratio": 2.2706,
+      "max_drawdown_pct": -8.0,
+      "num_trades": 5,
+      "win_rate": 40.0
+    },
+    "EMA_Trail(10,30,atr1.5)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1028.09,
+      "total_return_pct": 2.81,
+      "sharpe_ratio": 1.9857,
+      "max_drawdown_pct": -1.01,
+      "num_trades": 2,
+      "win_rate": 50.0
+    },
+    "RSI_Dip(30,60)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1117.74,
+      "total_return_pct": 11.77,
+      "sharpe_ratio": 1.8975,
+      "max_drawdown_pct": -7.66,
+      "num_trades": 2,
+      "win_rate": 100.0
+    },
+    "MACD_Hist(8,17,9)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1066.77,
+      "total_return_pct": 6.68,
+      "sharpe_ratio": 1.4272,
+      "max_drawdown_pct": -7.66,
+      "num_trades": 5,
+      "win_rate": 60.0
+    },
+    "EMA_Trail(5,20,atr1.5)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1006.19,
+      "total_return_pct": 0.62,
+      "sharpe_ratio": 0.368,
+      "max_drawdown_pct": -4.01,
+      "num_trades": 3,
+      "win_rate": 33.3
+    },
+    "Donchian(20,10)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1000.0,
+      "total_return_pct": 0.0,
+      "sharpe_ratio": 0.0,
+      "max_drawdown_pct": 0.0,
+      "num_trades": 0,
+      "win_rate": 0.0
+    },
+    "Donchian(30,15)": {
+      "initial_capital": 1000.0,
+      "final_equity": 1000.0,
+      "total_return_pct": 0.0,
+      "sharpe_ratio": 0.0,
+      "max_drawdown_pct": 0.0,
+      "num_trades": 0,
+      "win_rate": 0.0
+    }
+  },
+  "test_trade_log": [
+    {
+      "type": "BUY",
+      "time": "2025-04-08 00:00:00",
+      "price": 76322.42,
+      "size": 0.01178
+    },
+    {
+      "type": "SELL",
+      "time": "2025-04-20 00:00:00",
+      "price": 85179.24,
+      "pnl_pct": 0.116,
+      "reason": "signal"
+    },
+    {
+      "type": "BUY",
+      "time": "2025-06-05 00:00:00",
+      "price": 101508.68,
+      "size": 0.009765
+    },
+    {
+      "type": "SELL",
+      "time": "2025-06-13 00:00:00",
+      "price": 106066.59,
+      "pnl_pct": 0.0449,
+      "reason": "signal"
+    }
+  ]
+}

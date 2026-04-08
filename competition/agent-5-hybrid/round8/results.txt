@@ -1,0 +1,24 @@
+Agent 5 — Round 8 Results
+========================================
+
+Selected: SOLUSDT / donchian
+Config: {"lookback": 10, "exit_lb": 5, "stop_pct": 0.06}
+
+TRAIN (2024-07-01 to 2025-06-30):
+  final_equity: 1690.76
+  total_return_pct: 69.08
+  sharpe_ratio: 1.4541
+  max_drawdown_pct: 17.3
+  num_trades: 11
+  win_rate: 63.6
+
+TEST (2025-07-01 to 2025-09-30):
+  final_equity: 994.86
+  total_return_pct: -0.51
+  sharpe_ratio: 0.1471
+  max_drawdown_pct: 16.94
+  num_trades: 4
+  win_rate: 50.0
+  _asset: SOLUSDT
+  _strategy: donchian
+  _config: {'lookback': 10, 'exit_lb': 5, 'stop_pct': 0.06}

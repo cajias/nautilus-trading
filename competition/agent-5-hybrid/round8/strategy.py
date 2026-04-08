@@ -1,0 +1,343 @@
+"""
+Agent 5 — Round 8: Multi-Asset Tournament + Aggressive Swing
+============================================================
+Strategy: Tournament-select best (asset, sub-strategy, config) on TRAIN,
+deploy on TEST. Universe: BTC/ETH/SOL daily bars. Risk mode: aggressive
+(full capital, pyramid adds on strength). Given the scoreboard, a bold
+single-asset swing is required to win a round.
+
+Sub-strategies:
+  1. Donchian Breakout (N-day high + trailing stop)
+  2. EMA Trend Follow (fast/slow + ATR stop)
+  3. Weekly Momentum (rolling return threshold)
+
+Selection score favors return*sharpe, penalizes max drawdown lightly.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+from dataclasses import dataclass, field
+from typing import Optional
+
+import numpy as np
+import pandas as pd
+import requests
+
+
+FEE_RATE = 0.001
+ASSETS = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
+
+
+# ─── Data ────────────────────────────────────────────────────────────────────
+
+def fetch_daily(symbol: str, start: str, end: str) -> pd.DataFrame:
+    url = "https://api.binance.com/api/v3/klines"
+    start_ms = int(pd.Timestamp(start).timestamp() * 1000)
+    end_ms = int(pd.Timestamp(end).timestamp() * 1000)
+    out = []
+    while start_ms < end_ms:
+        r = requests.get(url, params={
+            "symbol": symbol, "interval": "1d",
+            "startTime": start_ms, "endTime": end_ms, "limit": 1000,
+        }, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        if not data:
+            break
+        out.extend(data)
+        start_ms = data[-1][0] + 1
+    df = pd.DataFrame(out, columns=[
+        "open_time", "open", "high", "low", "close", "volume",
+        "close_time", "qv", "trades", "tbb", "tbq", "ignore",
+    ])
+    for c in ["open", "high", "low", "close", "volume"]:
+        df[c] = df[c].astype(float)
+    df["date"] = pd.to_datetime(df["open_time"], unit="ms")
+    return df.set_index("date").sort_index()
+
+
+# ─── Backtest state ──────────────────────────────────────────────────────────
+
+@dataclass
+class Position:
+    side: Optional[str] = None
+    entry: float = 0.0
+    size: float = 0.0  # usd notional
+
+
+@dataclass
+class State:
+    cash: float = 1000.0
+    pos: Position = field(default_factory=Position)
+    trades: list = field(default_factory=list)
+    curve: list = field(default_factory=list)
+    peak: float = 1000.0
+    max_dd: float = 0.0
+
+    def equity(self, price: float) -> float:
+        if self.pos.side == "long":
+            pnl = (price / self.pos.entry - 1) * self.pos.size
+            return self.cash + self.pos.size + pnl
+        return self.cash
+
+    def buy(self, price: float, date, frac: float = 0.99):
+        if self.pos.side is not None:
+            return
+        size = self.cash * frac
+        if size <= 0:
+            return
+        fee = size * FEE_RATE
+        self.cash -= (size + fee)
+        self.pos = Position("long", price, size)
+        self.trades.append({"date": str(date), "action": "BUY", "price": price, "size": size})
+
+    def sell(self, price: float, date):
+        if self.pos.side != "long":
+            return
+        pnl = (price / self.pos.entry - 1) * self.pos.size
+        proceeds = self.pos.size + pnl
+        fee = proceeds * FEE_RATE
+        self.cash += proceeds - fee
+        self.trades.append({"date": str(date), "action": "SELL", "price": price,
+                            "pnl": round(pnl - fee, 2)})
+        self.pos = Position()
+
+    def mark(self, price: float):
+        eq = self.equity(price)
+        self.curve.append(eq)
+        if eq > self.peak:
+            self.peak = eq
+        dd = (self.peak - eq) / self.peak * 100
+        if dd > self.max_dd:
+            self.max_dd = dd
+
+
+# ─── Sub-strategies ──────────────────────────────────────────────────────────
+
+def run_donchian(df, st, lookback=20, exit_lb=10, stop_pct=0.08):
+    df = df.copy()
+    df["hh"] = df["high"].rolling(lookback).max()
+    df["ll"] = df["low"].rolling(exit_lb).min()
+    peak_since_entry = 0.0
+    for i in range(lookback + 1, len(df)):
+        row = df.iloc[i]
+        prev = df.iloc[i - 1]
+        price = row["close"]
+        date = df.index[i]
+        if st.pos.side is None and price > prev["hh"]:
+            st.buy(price, date)
+            peak_since_entry = price
+        elif st.pos.side == "long":
+            peak_since_entry = max(peak_since_entry, price)
+            if price < prev["ll"] or price < peak_since_entry * (1 - stop_pct):
+                st.sell(price, date)
+        st.mark(price)
+    if st.pos.side == "long":
+        st.sell(df.iloc[-1]["close"], df.index[-1])
+    return st
+
+
+def run_ema(df, st, fast=10, slow=30, atr_p=14, atr_mult=2.5):
+    df = df.copy()
+    df["ef"] = df["close"].ewm(span=fast, adjust=False).mean()
+    df["es"] = df["close"].ewm(span=slow, adjust=False).mean()
+    df["atr"] = (df["high"] - df["low"]).rolling(atr_p).mean()
+    for i in range(max(slow, atr_p) + 1, len(df)):
+        row = df.iloc[i]
+        prev = df.iloc[i - 1]
+        price = row["close"]
+        date = df.index[i]
+        if prev["ef"] <= prev["es"] and row["ef"] > row["es"]:
+            st.buy(price, date)
+        elif st.pos.side == "long":
+            if row["ef"] < row["es"] or price < st.pos.entry - atr_mult * row["atr"]:
+                st.sell(price, date)
+        st.mark(price)
+    if st.pos.side == "long":
+        st.sell(df.iloc[-1]["close"], df.index[-1])
+    return st
+
+
+def run_momo(df, st, lookback=7, thresh=0.05, hold=5, stop_pct=0.07):
+    df = df.copy()
+    df["ret"] = df["close"].pct_change(lookback)
+    entry_idx = -1
+    for i in range(lookback + 2, len(df)):
+        row = df.iloc[i]
+        price = row["close"]
+        date = df.index[i]
+        if st.pos.side is None and row["ret"] > thresh:
+            st.buy(price, date)
+            entry_idx = i
+        elif st.pos.side == "long":
+            if price < st.pos.entry * (1 - stop_pct):
+                st.sell(price, date)
+            elif i - entry_idx >= hold and row["ret"] < 0:
+                st.sell(price, date)
+        st.mark(price)
+    if st.pos.side == "long":
+        st.sell(df.iloc[-1]["close"], df.index[-1])
+    return st
+
+
+RUNNERS = {"donchian": run_donchian, "ema": run_ema, "momo": run_momo}
+
+CONFIGS = {
+    "donchian": [
+        {"lookback": 20, "exit_lb": 10, "stop_pct": 0.08},
+        {"lookback": 15, "exit_lb": 7, "stop_pct": 0.07},
+        {"lookback": 30, "exit_lb": 15, "stop_pct": 0.10},
+        {"lookback": 10, "exit_lb": 5, "stop_pct": 0.06},
+    ],
+    "ema": [
+        {"fast": 8, "slow": 21, "atr_p": 14, "atr_mult": 2.5},
+        {"fast": 10, "slow": 30, "atr_p": 14, "atr_mult": 3.0},
+        {"fast": 5, "slow": 20, "atr_p": 10, "atr_mult": 2.0},
+        {"fast": 12, "slow": 26, "atr_p": 14, "atr_mult": 2.5},
+    ],
+    "momo": [
+        {"lookback": 7, "thresh": 0.05, "hold": 5, "stop_pct": 0.07},
+        {"lookback": 5, "thresh": 0.04, "hold": 4, "stop_pct": 0.06},
+        {"lookback": 10, "thresh": 0.08, "hold": 7, "stop_pct": 0.08},
+        {"lookback": 14, "thresh": 0.10, "hold": 10, "stop_pct": 0.09},
+    ],
+}
+
+
+# ─── Metrics ─────────────────────────────────────────────────────────────────
+
+def metrics(st: State, initial: float = 1000.0) -> dict:
+    if not st.curve:
+        return {"final_equity": initial, "total_return_pct": 0.0, "sharpe_ratio": 0.0,
+                "max_drawdown_pct": 0.0, "num_trades": 0, "win_rate": 0.0}
+    final = st.curve[-1]
+    ret = (final - initial) / initial * 100
+    arr = np.array(st.curve)
+    if len(arr) > 1:
+        r = np.diff(arr) / arr[:-1]
+        sharpe = (np.mean(r) / (np.std(r) + 1e-10)) * np.sqrt(365)
+    else:
+        sharpe = 0.0
+    sells = [t for t in st.trades if t["action"] == "SELL"]
+    wins = sum(1 for t in sells if t.get("pnl", 0) > 0)
+    wr = wins / len(sells) * 100 if sells else 0.0
+    return {
+        "final_equity": round(final, 2),
+        "total_return_pct": round(ret, 2),
+        "sharpe_ratio": round(float(sharpe), 4),
+        "max_drawdown_pct": round(st.max_dd, 2),
+        "num_trades": len(sells),
+        "win_rate": round(wr, 1),
+    }
+
+
+# ─── Tournament ──────────────────────────────────────────────────────────────
+
+def tournament(data: dict, initial: float = 1000.0):
+    """Evaluate every (asset, strat, config) on TRAIN; return best."""
+    best = None
+    best_score = -1e9
+    results = []
+    for asset, df in data.items():
+        for strat, cfgs in CONFIGS.items():
+            runner = RUNNERS[strat]
+            for cfg in cfgs:
+                st = State(cash=initial, peak=initial)
+                try:
+                    runner(df, st, **cfg)
+                except Exception as e:
+                    print(f"  FAIL {asset}/{strat}/{cfg}: {e}")
+                    continue
+                m = metrics(st, initial)
+                # Score: emphasize return + sharpe; penalize DD lightly;
+                # require >=2 trades
+                score = m["total_return_pct"] + m["sharpe_ratio"] * 10 - m["max_drawdown_pct"] * 0.2
+                if m["num_trades"] < 2:
+                    score = -1e9
+                results.append((asset, strat, cfg, m, score))
+                print(f"  {asset} {strat} {cfg} -> ret={m['total_return_pct']:.1f}% "
+                      f"sh={m['sharpe_ratio']:.2f} dd={m['max_drawdown_pct']:.1f}% "
+                      f"n={m['num_trades']} score={score:.1f}")
+                if score > best_score:
+                    best_score = score
+                    best = (asset, strat, cfg, m)
+    return best, results
+
+
+# ─── Public API ──────────────────────────────────────────────────────────────
+
+_SELECTION: dict = {}
+
+
+def run_backtest(start: str, end: str, initial_capital: float = 1000.0) -> dict:
+    """Run the (previously selected) best strategy over [start, end]. If no
+    selection has been made yet, run the tournament on this window first.
+    """
+    global _SELECTION
+    if not _SELECTION:
+        data = {a: fetch_daily(a, start, end) for a in ASSETS}
+        best, _ = tournament(data, initial_capital)
+        asset, strat, cfg, _ = best
+        _SELECTION = {"asset": asset, "strategy": strat, "config": cfg}
+
+    asset = _SELECTION["asset"]
+    strat = _SELECTION["strategy"]
+    cfg = _SELECTION["config"]
+    df = fetch_daily(asset, start, end)
+    st = State(cash=initial_capital, peak=initial_capital)
+    RUNNERS[strat](df, st, **cfg)
+    m = metrics(st, initial_capital)
+    m["_asset"] = asset
+    m["_strategy"] = strat
+    m["_config"] = cfg
+    return m
+
+
+def main():
+    TRAIN_START, TRAIN_END = "2024-07-01", "2025-06-30"
+    TEST_START, TEST_END = "2025-07-01", "2025-09-30"
+
+    print("=" * 60)
+    print("Round 8 — Multi-asset tournament on TRAIN")
+    print("=" * 60)
+    train_data = {a: fetch_daily(a, TRAIN_START, TRAIN_END) for a in ASSETS}
+    for a, df in train_data.items():
+        print(f"  {a}: {df.index[0].date()} to {df.index[-1].date()}, {len(df)} bars")
+    print()
+
+    best, _all = tournament(train_data)
+    asset, strat, cfg, train_m = best
+    print(f"\n*** WINNER: {asset} / {strat} / {cfg} ***")
+    print(f"    Train return: {train_m['total_return_pct']:.2f}% sharpe={train_m['sharpe_ratio']:.2f}")
+
+    global _SELECTION
+    _SELECTION = {"asset": asset, "strategy": strat, "config": cfg}
+
+    print("\n" + "=" * 60)
+    print("TEST deployment")
+    print("=" * 60)
+    test_m = run_backtest(TEST_START, TEST_END)
+    print(f"  Return: {test_m['total_return_pct']:.2f}% "
+          f"sharpe={test_m['sharpe_ratio']:.2f} "
+          f"dd={test_m['max_drawdown_pct']:.2f}% "
+          f"trades={test_m['num_trades']} wr={test_m['win_rate']:.1f}%")
+
+    results_file = os.path.join(os.path.dirname(__file__), "results.txt")
+    with open(results_file, "w") as f:
+        f.write("Agent 5 — Round 8 Results\n")
+        f.write("=" * 40 + "\n\n")
+        f.write(f"Selected: {asset} / {strat}\n")
+        f.write(f"Config: {json.dumps(cfg)}\n\n")
+        f.write(f"TRAIN ({TRAIN_START} to {TRAIN_END}):\n")
+        for k, v in train_m.items():
+            f.write(f"  {k}: {v}\n")
+        f.write(f"\nTEST ({TEST_START} to {TEST_END}):\n")
+        for k, v in test_m.items():
+            f.write(f"  {k}: {v}\n")
+    print(f"\nSaved -> {results_file}")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,41 @@
+AGENT 3 - MACRO STRATEGIST - ROUND 6
+Concentrated Momentum Rotator: BTC / ETH / SOL
+============================================================
+
+Strategy:
+  Multi-asset momentum rotation (BTC, ETH, SOL)
+  EMA stack (10/21/50) for regime detection
+  Momentum score: weighted ROC(20/40/60)
+  92% concentrated position in strongest trending asset
+  ATR-based trailing stop (3.5x) + 10% hard stop
+  Regime exit when EMA stack breaks down
+  0.1% fees per trade
+
+TRAIN Apr-Sep 2025:
+  final_equity: 1045.54
+  total_return_pct: 4.55
+  sharpe_ratio: 0.58
+  max_drawdown_pct: 14.28
+  num_trades: 3
+  win_rate: 66.67
+
+  Trades:
+    2025-04-27 | BTCUSDT  | BUY   | $  93749.30 | PnL: $    0.00 | momentum_entry(score=0.359,RSI=66)
+    2025-06-05 | BTCUSDT  | SELL  | $ 101155.32 | PnL: $   71.76 | trail_stop
+    2025-06-09 | BTCUSDT  | BUY   | $ 110263.02 | PnL: $    0.00 | momentum_entry(score=0.338,RSI=64)
+    2025-06-13 | BTCUSDT  | SELL  | $ 105018.58 | PnL: $  -47.84 | trail_stop
+    2025-07-03 | BTCUSDT  | BUY   | $ 109584.78 | PnL: $    0.00 | momentum_entry(score=0.158,RSI=60)
+    2025-08-02 | BTCUSDT  | SELL  | $ 112546.35 | PnL: $   24.47 | regime_exit
+
+TEST Oct-Dec 2025:
+  final_equity: 959.91
+  total_return_pct: -4.01
+  sharpe_ratio: -2.72
+  max_drawdown_pct: 4.01
+  num_trades: 1
+  win_rate: 0.0
+
+  Trades:
+    2025-10-08 | BTCUSDT  | BUY   | $ 123306.00 | PnL: $    0.00 | momentum_entry(score=0.209,RSI=65)
+    2025-10-10 | BTCUSDT  | SELL  | $ 118178.85 | PnL: $  -39.17 | trail_stop
+

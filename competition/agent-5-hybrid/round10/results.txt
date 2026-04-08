@@ -1,0 +1,24 @@
+Agent 5 — Round 10 FINAL Results
+========================================
+
+Leverage: 1.5x  Kill-switch DD: 25.0%
+Ensemble top-2:
+  - SOLUSDT / donchian / {"lookback": 20, "exit_lb": 10, "stop_pct": 0.08}
+  - DOGEUSDT / momo / {"lookback": 10, "thresh": 0.08, "hold": 7, "stop_pct": 0.08}
+
+TRAIN (2024-01-01 to 2024-12-31):
+  final_equity: 2432.58
+  total_return_pct: 143.26
+  sharpe_ratio: 1.6436
+  max_drawdown_pct: 19.3
+  num_trades: 10
+  win_rate: 60.0
+
+TEST (2025-01-01 to 2025-06-30):
+  final_equity: 958.87
+  total_return_pct: -4.11
+  sharpe_ratio: -0.1189
+  max_drawdown_pct: 20.64
+  num_trades: 4
+  win_rate: 25.0
+  _selections: [{'asset': 'SOLUSDT', 'strategy': 'donchian', 'config': {'lookback': 20, 'exit_lb': 10, 'stop_pct': 0.08}}, {'asset': 'DOGEUSDT', 'strategy': 'momo', 'config': {'lookback': 10, 'thresh': 0.08, 'hold': 7, 'stop_pct': 0.08}}]

@@ -1,0 +1,107 @@
+{
+  "agent": "Agent 2 - Sentiment Trader",
+  "round": 5,
+  "approach": "Regime dip-buyer with stability selection: RSI dip-buying in confirmed uptrend (SMA slope rising). Tournament selects for PARAMETER STABILITY \u2014 a config is good only if nearby parameter combinations also profit. ATR trailing stops (3.5-6x). Long-only. ~1900 candidates, stability-scored.",
+  "train": {
+    "strategy_name": "RDB_123",
+    "strategy_params": {
+      "rsi_entry": 25,
+      "regime_sma": 600,
+      "slope_lb": 168,
+      "atr_stop": 3.5,
+      "atr_trail": 6.0,
+      "take_profit": 0.1,
+      "max_loss": 0.15,
+      "max_hold": 336,
+      "cooldown": 24
+    },
+    "final_equity": 1093.34,
+    "total_return_pct": 9.33,
+    "sharpe_ratio": 2.0,
+    "max_drawdown_pct": 0.75,
+    "num_trades": 4,
+    "win_rate": 75.0,
+    "profit_factor": 13.27,
+    "trade_log": [
+      {
+        "entry_time": "2025-02-03 01:00:00+00:00",
+        "entry_price": 93435.82,
+        "exit_time": "2025-02-06 19:00:00+00:00",
+        "exit_price": 95694.41,
+        "side": "long",
+        "pnl_pct": 2.22
+      },
+      {
+        "entry_time": "2025-02-11 19:00:00+00:00",
+        "entry_price": 95040.82,
+        "exit_time": "2025-02-16 23:00:00+00:00",
+        "exit_price": 96118.12,
+        "side": "long",
+        "pnl_pct": 0.93
+      },
+      {
+        "entry_time": "2025-06-05 20:00:00+00:00",
+        "entry_price": 100483.91,
+        "exit_time": "2025-06-12 04:00:00+00:00",
+        "exit_price": 107488.77,
+        "side": "long",
+        "pnl_pct": 6.77
+      },
+      {
+        "entry_time": "2025-06-17 15:00:00+00:00",
+        "entry_price": 104241.63,
+        "exit_time": "2025-06-20 16:00:00+00:00",
+        "exit_price": 103670.61,
+        "side": "long",
+        "pnl_pct": -0.75
+      }
+    ]
+  },
+  "test": {
+    "strategy_name": "RDB_123",
+    "strategy_params": {
+      "rsi_entry": 25,
+      "regime_sma": 600,
+      "slope_lb": 168,
+      "atr_stop": 3.5,
+      "atr_trail": 6.0,
+      "take_profit": 0.1,
+      "max_loss": 0.15,
+      "max_hold": 336,
+      "cooldown": 24
+    },
+    "final_equity": 1018.31,
+    "total_return_pct": 1.83,
+    "sharpe_ratio": -3.52,
+    "max_drawdown_pct": 3.05,
+    "num_trades": 3,
+    "win_rate": 33.3,
+    "profit_factor": 1.64,
+    "trade_log": [
+      {
+        "entry_time": "2025-08-18 02:00:00+00:00",
+        "entry_price": 115453.24,
+        "exit_time": "2025-08-19 14:00:00+00:00",
+        "exit_price": 113773.59,
+        "side": "long",
+        "pnl_pct": -1.65
+      },
+      {
+        "entry_time": "2025-09-22 02:00:00+00:00",
+        "entry_price": 114187.81,
+        "exit_time": "2025-09-22 06:00:00+00:00",
+        "exit_price": 112800.77,
+        "side": "long",
+        "pnl_pct": -1.41
+      },
+      {
+        "entry_time": "2025-09-25 17:00:00+00:00",
+        "entry_price": 108833.63,
+        "exit_time": "2025-09-30 00:00:00+00:00",
+        "exit_price": 114525.97,
+        "side": "long",
+        "pnl_pct": 5.03
+      }
+    ]
+  }
+}

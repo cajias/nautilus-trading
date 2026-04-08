@@ -1,0 +1,29 @@
+Agent 5 — Round 4 Results
+========================
+
+Selected Strategy: momentum_breakout
+Config: {"lookback": 25, "exit_period": 10}
+
+TRAIN (2024-10-01 to 2025-03-31):
+  Final equity: $1374.38
+  Return: 37.44%
+  Sharpe: 2.1479
+  Max DD: 12.38%
+  Trades: 1
+  Win rate: 100.0%
+
+TEST (2025-04-01 to 2025-06-30):
+  Final equity: $1071.82
+  Return: 7.18%
+  Sharpe: 1.8112
+  Max DD: 6.70%
+  Trades: 1
+  Win rate: 100.0%
+
+TRAIN Trade Log:
+  {'date': '2024-10-28 00:00:00', 'action': 'BUY', 'price': np.float64(69962.21), 'size_usd': 950.0, 'fee': 0.9500000000000001}
+  {'date': '2025-02-02 00:00:00', 'action': 'SELL', 'price': np.float64(97700.59), 'pnl': np.float64(375.33), 'fee': np.float64(1.33)}
+
+TEST Trade Log:
+  {'date': '2025-05-01 00:00:00', 'action': 'BUY', 'price': np.float64(96489.91), 'size_usd': 950.0, 'fee': 0.9500000000000001}
+  {'date': '2025-05-30 00:00:00', 'action': 'SELL', 'price': np.float64(103985.48), 'pnl': np.float64(72.77), 'fee': np.float64(1.02)}

@@ -1,0 +1,55 @@
+{
+  "agent": "Agent 2 - Sentiment Trader",
+  "round": 9,
+  "approach": "Conviction concentration v2: tournament momentum/panic sentiment breakout across 6-asset universe on TRAIN (full 2025), then lock 100% capital onto the single best-scoring asset (return - 0.3*dd) for TEST. Signals: EMA trend + volume surge + breakout + taker-buy ratio surge, plus oversold panic reversal. 4h bars.",
+  "train_period": [
+    "2025-01-01",
+    "2025-12-31"
+  ],
+  "test_period": [
+    "2026-01-01",
+    "2026-02-28"
+  ],
+  "train": {
+    "final_equity": 2730.72,
+    "total_return_pct": 173.07,
+    "sharpe_ratio": 2.25,
+    "max_drawdown_pct": 23.15,
+    "num_trades": 20,
+    "win_rate": 55.0,
+    "selected_symbol": "SOLUSDT",
+    "config": {
+      "ef": 8,
+      "es": 40,
+      "rsi_p": 14,
+      "vw": 48,
+      "vmult": 1.5,
+      "tp": 0.3,
+      "stop_mult": 2.5,
+      "trail_mult": 3.5,
+      "lb": 24,
+      "max_hold": 120
+    }
+  },
+  "test": {
+    "final_equity": 709.94,
+    "total_return_pct": -29.01,
+    "sharpe_ratio": -5.01,
+    "max_drawdown_pct": 30.66,
+    "num_trades": 6,
+    "win_rate": 16.7,
+    "selected_symbol": "SOLUSDT",
+    "config": {
+      "ef": 8,
+      "es": 40,
+      "rsi_p": 14,
+      "vw": 48,
+      "vmult": 1.5,
+      "tp": 0.3,
+      "stop_mult": 2.5,
+      "trail_mult": 3.5,
+      "lb": 24,
+      "max_hold": 120
+    }
+  }
+}

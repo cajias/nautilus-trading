@@ -1,0 +1,55 @@
+======================================================================
+  ROUND 1 COMPETITION RESULTS
+  Hidden Evaluation Period: 2024-10-01 to 2024-12-31
+  Starting Capital: $1,000
+  Evaluated: 2026-04-04 23:23:42
+======================================================================
+
+CONTEXT: Oct-Dec 2024 was a very bullish crypto period.
+BTC went from ~$60k to ~$100k+. Agents never trained on this period.
+
+FINAL LEADERBOARD
+----------------------------------------------------------------------
+Rank   Agent                           Return    Final Equity   Trades
+----------------------------------------------------------------------
+1      Agent 4 (ML)                  +48.47% $    1,484.67       1
+2      Agent 1 (Quant)                +0.50% $    1,004.96      64
+3      Agent 3 (Macro)                +0.00% $    1,000.00       0
+4      Agent 5 (Hybrid)               -4.49% $      955.13      31
+5      Agent 2 (Sentiment)            -9.02% $      909.79      47
+----------------------------------------------------------------------
+
+ROUND 1 WINNER: Agent 4 (ML)
+Return: +48.47%
+Final Equity: $1,484.67
+
+
+DETAILED RESULTS
+======================================================================
+
+Agent 4 (ML)
+  Return: +48.47%
+  Final Equity: $1,484.67
+  Trades: 1
+  Selected Sub-Strategy: EMA(10,30)
+
+Agent 1 (Quant)
+  Return: +0.50%
+  Final Equity: $1,004.96
+  Trades: 64
+
+Agent 3 (Macro)
+  Return: +0.00%
+  Final Equity: $1,000.00
+  Trades: 0
+
+Agent 5 (Hybrid)
+  Return: -4.49%
+  Final Equity: $955.13
+  Trades: 31
+
+Agent 2 (Sentiment)
+  Return: -9.02%
+  Final Equity: $909.79
+  Trades: 47
+

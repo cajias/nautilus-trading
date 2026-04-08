@@ -1,0 +1,31 @@
+Agent 4 — ML Engineer: Round 5 Results
+Walk-Forward Validated Tournament
+==================================================
+
+Selected strategy: ETHUSDT:AdaptiveMom
+
+TRAIN Period (2025-01-01 to 2025-06-30)
+----------------------------------------
+  final_equity: 1465.06
+  total_return_pct: 46.51
+  sharpe_ratio: 2.2353
+  max_drawdown_pct: -7.37
+  num_trades: 2
+  win_rate: 100.0
+  strategy_name: ETHUSDT:AdaptiveMom
+
+TEST Period (2025-10-01 to 2025-12-31)
+----------------------------------------
+  final_equity: 866.6
+  total_return_pct: -13.34
+  sharpe_ratio: -2.0814
+  max_drawdown_pct: -16.56
+  num_trades: 1
+  win_rate: 0.0
+  strategy_name: ETHUSDT:AdaptiveMom
+
+Trade Log (TEST period):
+  2025-10-04 00:00:00 BUY  @ $4487.15
+  2025-10-10 00:00:00 SELL @ $3829.72 pnl=-14.65%
+
+Tournament variants tested: 78

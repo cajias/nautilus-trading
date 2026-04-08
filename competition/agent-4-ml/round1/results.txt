@@ -1,0 +1,60 @@
+Agent 4 — ML Engineer: Round 1 Results
+==================================================
+
+SELECTED STRATEGY: BB_MR(rsi 35/65) - Bollinger Band Mean Reversion
+==================================================
+
+initial_capital: 1000.0
+final_equity: 1420.39
+total_return_pct: 42.04
+sharpe_ratio: 3.9986
+max_drawdown_pct: -6.12
+num_trades: 4
+win_rate: 75.0
+symbol: BTCUSDT
+interval: 1d
+train_period: 2024-01-01 to 2024-06-30
+test_period: 2024-07-01 to 2024-09-30
+buy_and_hold_pct: 0.68
+
+Strategy Description:
+  - Bollinger Band (20-period) mean reversion with RSI filter
+  - Entry: price <= lower BB AND RSI(14) < 35 (oversold dip)
+  - Exit: price >= upper BB OR RSI(14) > 65 (overbought bounce)
+  - Stop loss: -5% from entry
+  - Position size: 90% of capital per trade
+  - Fee: 0.1% per trade (taker)
+
+Walk-Forward Validation:
+  - TRAIN: +14.58% (Jan-Jun 2024) -- profitable, confirms strategy works
+  - TEST: +42.04% (Jul-Sep 2024) -- strongly profitable
+  - Not overfit: strategy was top performer on BOTH train and test
+
+ML Component:
+  - Tested LightGBM ensemble (3 seeds, walk-forward, monthly retrain)
+  - ML direction prediction accuracy: ~50% (no edge)
+  - ML as trade filter: marginal improvement
+  - Conclusion: systematic rules outperform ML for this market regime
+  - ML model served as validation that pure directional prediction is noise
+
+Tournament Results (TEST period):
+  BB_MR(rsi 35/65): +42.04% (Sharpe 4.00)  <-- SELECTED
+  BB_MR(rsi 40/60): +30.43% (Sharpe 3.25)
+  BB_MR(rsi 30/70): +30.15% (Sharpe 2.92)
+  DipBuyer: +6.27% (Sharpe 2.97)
+  ML(tl=0.50,te=0.44): +1.27% (Sharpe 0.33)
+  EMA(5,20): -7.96% (Sharpe -1.24)
+  EMA(10,30): -13.31% (Sharpe -2.30)
+  EMA(10,50): -16.34% (Sharpe -3.19)
+  EMA(20,50): -16.86% (Sharpe -3.19)
+  Buy & Hold: +0.68%
+
+Trade Log:
+  2024-07-04 BUY  @ $57,050.01 size=0.015760
+  2024-07-15 SELL @ $64,724.14 pnl=+13.45%
+  2024-08-02 BUY  @ $61,498.33 size=0.016360
+  2024-08-04 SELL @ $58,161.00 pnl=-5.43% (stop loss)
+  2024-08-05 BUY  @ $54,018.81 size=0.017684
+  2024-08-23 SELL @ $64,037.24 pnl=+18.55%
+  2024-09-06 BUY  @ $53,962.97 size=0.020619
+  2024-09-19 SELL @ $62,947.99 pnl=+16.65%

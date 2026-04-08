@@ -1,0 +1,51 @@
+Agent 3 - Macro Strategist Round 3: Momentum + Extreme Dip Buyer
+======================================================================
+
+TRAIN PERIOD: 2024-07-01 to 2024-12-31
+----------------------------------------
+  final_equity: 1217.85
+  total_return_pct: 21.79
+  sharpe_ratio: 1.39
+  max_drawdown_pct: 14.13
+  num_trades: 10
+  win_rate: 60.0
+
+Trade Log (20 entries):
+  2024-07-15 | BTCUSDT  | BUY   | $  64724.14 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-07-29 | BTCUSDT  | SELL  | $  66784.69 | PnL: $   27.75 | mom_exit(weekly)
+  2024-08-05 | BTCUSDT  | BUY   | $  54018.81 | PnL: $    0.00 | dip_buy(dd=23%,RSI=27)
+  2024-08-23 | BTCUSDT  | SELL  | $  64037.24 | PnL: $  113.65 | dip_tp
+  2024-08-23 | BTCUSDT  | BUY   | $  64037.24 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-08-26 | BTCUSDT  | SELL  | $  62834.00 | PnL: $  -20.30 | mom_exit(weekly)
+  2024-09-16 | BTCUSDT  | BUY   | $  58213.99 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-10-01 | BTCUSDT  | SELL  | $  60589.36 | PnL: $   40.07 | mom_stop
+  2024-10-05 | BTCUSDT  | BUY   | $  62058.00 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-11-04 | BTCUSDT  | SELL  | $  66917.51 | PnL: $   80.54 | mom_stop
+  2024-11-08 | BTCUSDT  | BUY   | $  76509.78 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-11-11 | BTCUSDT  | SELL  | $  81556.15 | PnL: $   72.32 | mom_stop
+  2024-11-15 | BTCUSDT  | BUY   | $  91032.07 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-11-26 | BTCUSDT  | SELL  | $  90980.64 | PnL: $   -1.84 | mom_stop
+  2024-11-30 | BTCUSDT  | BUY   | $  96407.99 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-12-05 | BTCUSDT  | SELL  | $  90700.33 | PnL: $  -70.73 | mom_stop
+  2024-12-09 | BTCUSDT  | BUY   | $  97276.47 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-12-19 | BTCUSDT  | SELL  | $  97643.04 | PnL: $    3.07 | mom_stop
+  2024-12-23 | BTCUSDT  | BUY   | $  94881.47 | PnL: $    0.00 | momentum_entry(weekly)
+  2024-12-31 | BTCUSDT  | SELL  | $  93576.00 | PnL: $  -16.41 | end_of_period
+
+
+TEST PERIOD: 2025-01-01 to 2025-03-31
+----------------------------------------
+  final_equity: 1032.79
+  total_return_pct: 3.28
+  sharpe_ratio: 0.58
+  max_drawdown_pct: 11.15
+  num_trades: 3
+  win_rate: 66.67
+
+Trade Log (6 entries):
+  2025-01-01 | BTCUSDT  | BUY   | $  94591.79 | PnL: $    0.00 | momentum_entry(weekly)
+  2025-01-08 | BTCUSDT  | SELL  | $  94056.75 | PnL: $   -5.99 | mom_stop
+  2025-01-12 | BTCUSDT  | BUY   | $  94545.06 | PnL: $    0.00 | momentum_entry(weekly)
+  2025-02-02 | BTCUSDT  | SELL  | $  97652.31 | PnL: $   28.48 | mom_stop
+  2025-02-26 | BTCUSDT  | BUY   | $  84250.09 | PnL: $    0.00 | dip_buy(dd=21%,RSI=24)
+  2025-03-23 | BTCUSDT  | SELL  | $  86082.50 | PnL: $   12.71 | dip_time_exit

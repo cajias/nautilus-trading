@@ -1,0 +1,29 @@
+Agent 4 -- ML Engineer: Round 9 Results
+ML (LightGBM) gated momentum + ATR trail + pyramid
+============================================================
+
+TRAIN 2025-01-01 .. 2025-12-31
+----------------------------------------
+  symbol: ETHUSDT
+  final_equity: 1462.23
+  total_return_pct: 46.22
+  sharpe_ratio: 1.323
+  max_drawdown_pct: -19.62
+  num_trades: 56
+  win_rate: 51.8
+
+TEST 2026-01-01 .. 2026-02-28
+----------------------------------------
+  symbol: ETHUSDT
+  final_equity: 992.42
+  total_return_pct: -0.76
+  sharpe_ratio: -0.304
+  max_drawdown_pct: -4.68
+  num_trades: 4
+  win_rate: 50.0
+
+Trade log (TEST):
+  2026-01-13 20:00:00  pnl=3.30%
+  2026-01-18 20:00:00  pnl=-1.50%
+  2026-01-29 08:00:00  pnl=-2.60%
+  2026-02-26 12:00:00  pnl=0.75%

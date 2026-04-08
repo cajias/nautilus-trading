@@ -1,0 +1,48 @@
+{
+  "agent": "Agent 2 \u2014 Sentiment Trader",
+  "round": 3,
+  "strategy": "Dual-Mode: Breakout + Panic-Buy (BTC Only, Long Only)",
+  "description": "Two entry modes. BREAKOUT: all 5 conditions (trend, breakout, volume 2x, taker z>0.3, ROC>3%) with 90% equity, 3x ATR trailing stop, 60-day max hold. PANIC BUY: RSI<30, near BB lower, volume spike, above SMA200, 5-day ROC<-5%, 50% equity, target=BB midline, 3% stop, 10-day max hold. 10-day cooldown after loss.",
+  "train": {
+    "final_equity": 1283.19,
+    "total_return_pct": 28.32,
+    "sharpe_ratio": 1.88,
+    "max_drawdown_pct": 9.86,
+    "num_trades": 1,
+    "win_rate": 100.0,
+    "trade_log": [
+      {
+        "entry_date": "2024-10-29",
+        "exit_date": "2024-12-26",
+        "direction": "long",
+        "mode": "breakout",
+        "entry_price": 72736.42,
+        "exit_price": 95791.6,
+        "size_btc": 0.012373,
+        "pnl": 284.09,
+        "exit_reason": "momentum_collapse"
+      }
+    ]
+  },
+  "test": {
+    "final_equity": 1010.69,
+    "total_return_pct": 1.07,
+    "sharpe_ratio": 0.37,
+    "max_drawdown_pct": 4.56,
+    "num_trades": 1,
+    "win_rate": 100.0,
+    "trade_log": [
+      {
+        "entry_date": "2025-02-26",
+        "exit_date": "2025-03-08",
+        "direction": "long",
+        "mode": "panic_buy",
+        "entry_price": 84250.09,
+        "exit_price": 86222.45,
+        "size_btc": 0.005935,
+        "pnl": 11.19,
+        "exit_reason": "time_exit"
+      }
+    ]
+  }
+}

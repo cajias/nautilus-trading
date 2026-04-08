@@ -1,0 +1,32 @@
+Agent 4 — ML Engineer: Round 2 Results
+==================================================
+
+TRAIN Period Results (2024-04-01 to 2024-09-30)
+----------------------------------------
+  final_equity: 1503.53
+  total_return_pct: 50.35
+  sharpe_ratio: 2.7217
+  max_drawdown_pct: -9.69
+  num_trades: 6
+  win_rate: 66.7
+  strategy_name: BTCUSDT:BB_MR(35/65)
+
+TEST Period Results (2024-10-01 to 2024-12-31)
+----------------------------------------
+  final_equity: 1485.01
+  total_return_pct: 48.5
+  sharpe_ratio: 3.8273
+  max_drawdown_pct: -11.16
+  num_trades: 4
+  win_rate: 75.0
+  strategy_name: BTCUSDT:EMA_Trail(10,30,atr1.5)
+
+Trade Log (TEST period):
+  2024-10-01 00:00:00 BUY  @ $60,805.78
+  2024-11-01 00:00:00 SELL @ $69,496.01 pnl=+14.29%
+  2024-11-02 00:00:00 BUY  @ $69,374.74
+  2024-11-25 00:00:00 SELL @ $93,010.01 pnl=+34.07%
+  2024-11-26 00:00:00 BUY  @ $91,965.16
+  2024-12-19 00:00:00 SELL @ $97,461.86 pnl=+5.98%
+  2024-12-20 00:00:00 BUY  @ $97,805.44
+  2024-12-29 00:00:00 SELL @ $93,738.20 pnl=-4.16%

@@ -1,0 +1,79 @@
+ROUND 8 COMPETITION RESULTS
+Evaluation Period: 2025-10-01 to 2025-12-31
+Starting Capital: $1,000
+Evaluated: 2026-04-08 20:44:32
+======================================================================
+
+Rank  Agent                           Return %    Equity  Sharpe  MaxDD%  Trades   WinR%
+----------------------------------------------------------------------------------------
+1     Agent 2 - Sentiment               +25.18   1251.79    4.01    5.58       5    80.0
+2     Agent 3 - Macro                    -6.55    934.53   -0.53   16.88       3    33.3
+3     Agent 5 - Hybrid                   -9.43    905.75   -2.01    9.79       3     0.0
+4     Agent 4 - ML                      -15.15    848.51   -2.97  -18.48      11    18.2
+5     Agent 1 - Quant                   -39.82    601.80   -1.68  -49.43       3     0.0
+        Strategy: SOLUSDT:rsi(10,30,70),ATR3.5
+
+WINNER: Agent 2 - Sentiment with +25.18% return!
+
+
+Detailed Results:
+======================================================================
+
+Agent 2 - Sentiment
+----------------------------------------
+  final_equity: 1251.79
+  total_return_pct: 25.18
+  sharpe_ratio: 4.01
+  max_drawdown_pct: 5.58
+  num_trades: 5
+  win_rate: 80.0
+  selected_symbol: BTCUSDT
+  config: {'ef': 8, 'es': 40, 'rsi_p': 14, 'vw': 48, 'vmult': 1.5, 'tp': 0.1, 'stop_mult': 2.0, 'trail_mult': 3.5, 'lb': 48, 'max_hold': 120}
+  elapsed_seconds: 12.0
+
+Agent 3 - Macro
+----------------------------------------
+  final_equity: 934.53
+  total_return_pct: -6.55
+  sharpe_ratio: -0.53
+  max_drawdown_pct: 16.88
+  num_trades: 3
+  win_rate: 33.33
+  _trades: [{'date': '2025-10-02', 'sym': 'BTC', 'side': 'BUY', 'price': 120529.35, 'pnl': 0.0, 'reason': 'trend_entry'}, {'date': '2025-10-10', 'sym': 'BTC', 'side': 'SELL', 'price': 112774.5, 'pnl': -64.88512866141718, 'reason': 'trend_break'}, {'date': '2025-11-17', 'sym': 'BTC', 'side': 'BUY', 'price': 92215.14, 'pnl': 0.0, 'reason': 'dip_entry'}, {'date': '2025-11-21', 'sym': 'BTC', 'side': 'SELL', 'price': 85129.43, 'pnl': -72.10628981271964, 'reason': 'dip_stop'}, {'date': '2025-11-21', 'sym': 'BTC', 'side': 'BUY', 'price': 85129.43, 'pnl': 0.0, 'reason': 'dip_entry'}, {'date': '2025-12-11', 'sym': 'BTC', 'side': 'SELL', 'price': 92513.38, 'pnl': 71.5218549554885, 'reason': 'dip_timeout'}]
+  elapsed_seconds: 0.8
+
+Agent 5 - Hybrid
+----------------------------------------
+  final_equity: 905.75
+  total_return_pct: -9.43
+  sharpe_ratio: -2.0116
+  max_drawdown_pct: 9.79
+  num_trades: 3
+  win_rate: 0.0
+  _asset: BTCUSDT
+  _strategy: momo
+  _config: {'lookback': 7, 'thresh': 0.05, 'hold': 5, 'stop_pct': 0.07}
+  elapsed_seconds: 1.6
+
+Agent 4 - ML
+----------------------------------------
+  final_equity: 848.51
+  total_return_pct: -15.15
+  sharpe_ratio: -2.967
+  max_drawdown_pct: -18.48
+  num_trades: 11
+  win_rate: 18.2
+  symbol: ETHUSDT
+  threshold: 0.010211708698133763
+  elapsed_seconds: 7.7
+
+Agent 1 - Quant
+----------------------------------------
+  final_equity: 601.8
+  total_return_pct: -39.82
+  sharpe_ratio: -1.6794
+  max_drawdown_pct: -49.43
+  num_trades: 3
+  win_rate: 0.0
+  strategy_name: SOLUSDT:rsi(10,30,70),ATR3.5
+  elapsed_seconds: 2.1

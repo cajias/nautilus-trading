@@ -1,0 +1,27 @@
+Agent 1 — Quantitative Trader | Round 7
+Strategy: RSI Dip-Buy Tournament + ATR Trailing Stop (Daily)
+Selected: SOLUSDT:RSI_Dip(10,35/70),ATR3.5
+Symbols tested: BTCUSDT,ETHUSDT,SOLUSDT | Fee: 0.1%
+
+TRAIN 2024-01-01..2024-06-30
+  final_equity: 1538.87
+  total_return_pct: 53.89
+  sharpe_ratio: 1.7199
+  max_drawdown_pct: -21.05
+  num_trades: 3
+  win_rate: 66.67
+
+TEST  2024-07-01..2024-12-31
+  final_equity: 1288.6
+  total_return_pct: 28.86
+  sharpe_ratio: 0.9931
+  max_drawdown_pct: -23.46
+  num_trades: 5
+  win_rate: 40.0
+
+TEST trade log:
+  entry=157.83 exit=128.69 pnl=-18.66% reason=trail
+  entry=132.33 exit=184.49 pnl=39.22% reason=rsi_sell
+  entry=138.33 exit=125.05 pnl=-9.80% reason=trail
+  entry=127.71 exit=166.17 pnl=29.92% reason=rsi_sell
+  entry=194.48 exit=189.31 pnl=-2.86% reason=eod

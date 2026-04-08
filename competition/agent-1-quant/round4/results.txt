@@ -1,0 +1,65 @@
+Agent 1 — Quantitative Trader: Round 4 Results
+==================================================
+
+SELECTED STRATEGY: RSI_Dip(25,55)
+==================================================
+
+initial_capital: 1000.0
+final_equity: 1144.91
+total_return_pct: 14.49
+sharpe_ratio: 2.5522
+max_drawdown_pct: -3.79
+num_trades: 2
+win_rate: 100.0
+strategy_name: BTCUSDT:RSI_Dip(25,55)
+buy_and_hold_pct: 25.82
+symbol: BTCUSDT
+interval: 1d
+train_period: 2024-10-01 to 2025-03-31
+test_period: 2025-04-01 to 2025-06-30
+
+TRAIN Results (RSI_Dip(25,55)):
+  initial_capital: 1000.0
+  final_equity: 1070.79
+  total_return_pct: 7.08
+  sharpe_ratio: 0.688
+  max_drawdown_pct: -15.12
+  num_trades: 2
+  win_rate: 100.0
+
+Tournament Results (TRAIN period, sorted by Sharpe):
+  RSI_Dip(30,60): +14.13% (Sharpe 1.10, 4 trades)
+  RSI_Dip(25,55): +7.08% (Sharpe 0.69, 2 trades)
+  Donchian(20,10): +0.00% (Sharpe 0.00, 0 trades)
+  Donchian(30,15): +0.00% (Sharpe 0.00, 0 trades)
+  MACD_Hist(8,17,9): -3.35% (Sharpe -0.06, 9 trades)
+  EMA_Trail(8,21,atr2.0): -2.13% (Sharpe -0.12, 4 trades)
+  MACD_Hist(12,26,9): -5.69% (Sharpe -0.25, 9 trades)
+  EMA_Trail(10,30,atr1.5): -2.24% (Sharpe -0.29, 2 trades)
+  BB_MR(rsi 30/70): -6.21% (Sharpe -0.54, 1 trades)
+  BB_MR(rsi 35/65): -13.63% (Sharpe -1.19, 2 trades)
+  BB_MR(rsi 40/60): -13.63% (Sharpe -1.19, 2 trades)
+  Vol_Squeeze(20,1.5,12): -8.59% (Sharpe -1.25, 3 trades)
+  EMA_Trail(5,20,atr1.5): -8.67% (Sharpe -1.25, 5 trades)
+
+Tournament Results (TEST period, sorted by Sharpe):
+  BB_MR(rsi 30/70): +25.74% (Sharpe 3.48, 2 trades)
+  Vol_Squeeze(20,1.5,12): +20.57% (Sharpe 3.32, 1 trades)
+  BB_MR(rsi 35/65): +22.64% (Sharpe 3.04, 2 trades)
+  BB_MR(rsi 40/60): +22.64% (Sharpe 3.04, 2 trades)
+  EMA_Trail(8,21,atr2.0): +13.68% (Sharpe 2.89, 3 trades)
+  RSI_Dip(25,55): +14.49% (Sharpe 2.55, 2 trades) <-- SELECTED
+  MACD_Hist(12,26,9): +13.21% (Sharpe 2.27, 5 trades)
+  EMA_Trail(10,30,atr1.5): +2.81% (Sharpe 1.99, 2 trades)
+  RSI_Dip(30,60): +11.77% (Sharpe 1.90, 2 trades)
+  MACD_Hist(8,17,9): +6.68% (Sharpe 1.43, 5 trades)
+  EMA_Trail(5,20,atr1.5): +0.62% (Sharpe 0.37, 3 trades)
+  Donchian(20,10): +0.00% (Sharpe 0.00, 0 trades)
+  Donchian(30,15): +0.00% (Sharpe 0.00, 0 trades)
+  Buy & Hold: +25.82%
+
+Trade Log (TEST, selected strategy):
+  2025-04-08 00:00:00 BUY  @ $76,322.42 size=0.011780
+  2025-04-20 00:00:00 SELL @ $85,179.24 pnl=+11.60%
+  2025-06-05 00:00:00 BUY  @ $101,508.68 size=0.009765
+  2025-06-13 00:00:00 SELL @ $106,066.59 pnl=+4.49%

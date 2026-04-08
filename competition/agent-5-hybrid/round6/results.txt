@@ -1,0 +1,40 @@
+Agent 5 -- Round 6 Results
+==================================================
+
+Selected Strategy: ema_trend
+Config: {"fast": 8, "slow": 21, "atr_period": 14, "atr_mult": 2.0, "trail_atr": 2.5, "symbol": "ETHUSDT"}
+
+TRAIN (2025-04-01 to 2025-09-30):
+  Final equity: $2064.52
+  Return: 106.45%
+  Sharpe: 3.0755
+  Max DD: 19.06%
+  Trades: 3
+  Win rate: 66.7%
+
+TEST (2025-10-01 to 2025-12-31):
+  Final equity: $894.91
+  Return: -10.51%
+  Sharpe: -3.9928
+  Max DD: 10.58%
+  Trades: 1
+  Win rate: 0.0%
+
+Tournament Top 5 (TRAIN):
+  #1: ema_trend {"fast": 8, "slow": 21, "atr_period": 14, "atr_mult": 2.0, "trail_atr": 2.5, "symbol": "ETHUSDT"} -> ret=106.5% sharpe=3.08 score=121.5
+  #2: momentum_breakout {"lookback": 10, "exit_period": 5, "trail_pct": 0.04, "symbol": "ETHUSDT"} -> ret=96.3% sharpe=3.14 score=115.4
+  #3: rotator {"lookback": 10, "trail_pct": 0.04, "rebalance_days": 5, "min_score": 2.0} -> ret=88.0% sharpe=2.64 score=103.8
+  #4: ema_trend {"fast": 5, "slow": 13, "atr_period": 10, "atr_mult": 1.5, "trail_atr": 2.0, "symbol": "ETHUSDT"} -> ret=82.7% sharpe=2.62 score=100.2
+  #5: rotator {"lookback": 14, "trail_pct": 0.05, "rebalance_days": 5, "min_score": 3.0} -> ret=81.9% sharpe=2.51 score=98.1
+
+TRAIN Trade Log:
+  {'date': '2025-04-24 00:00:00', 'action': 'BUY', 'symbol': 'ETHUSDT', 'price': np.float64(1769.65), 'size_usd': 970.0, 'fee': 0.97}
+  {'date': '2025-06-18 00:00:00', 'action': 'SELL', 'symbol': 'ETHUSDT', 'price': np.float64(2525.0), 'pnl': np.float64(412.65), 'fee': np.float64(1.38), 'reason': 'ema_cross_down'}
+  {'date': '2025-07-03 00:00:00', 'action': 'BUY', 'symbol': 'ETHUSDT', 'price': np.float64(2591.25), 'size_usd': np.float64(1369.33), 'fee': np.float64(1.37)}
+  {'date': '2025-08-19 00:00:00', 'action': 'SELL', 'symbol': 'ETHUSDT', 'price': np.float64(4075.59), 'pnl': np.float64(782.23), 'fee': np.float64(2.15), 'reason': 'trail_stop'}
+  {'date': '2025-09-11 00:00:00', 'action': 'BUY', 'symbol': 'ETHUSDT', 'price': np.float64(4458.82), 'size_usd': np.float64(2126.77), 'fee': np.float64(2.13)}
+  {'date': '2025-09-22 00:00:00', 'action': 'SELL', 'symbol': 'ETHUSDT', 'price': np.float64(4199.08), 'pnl': np.float64(-125.89), 'fee': np.float64(2.0), 'reason': 'ema_cross_down'}
+
+TEST Trade Log:
+  {'date': '2025-12-09 00:00:00', 'action': 'BUY', 'symbol': 'ETHUSDT', 'price': np.float64(3318.04), 'size_usd': 970.0, 'fee': 0.97}
+  {'date': '2025-12-15 00:00:00', 'action': 'SELL', 'symbol': 'ETHUSDT', 'price': np.float64(2964.85), 'pnl': np.float64(-104.12), 'fee': np.float64(0.87), 'reason': 'ema_cross_down'}
