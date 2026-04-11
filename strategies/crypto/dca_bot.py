@@ -114,7 +114,7 @@ class DCABotStrategy(RiskGuard, Strategy):
             instrument_id=self.config.instrument_id,
             order_side=OrderSide.BUY,
             quantity=quantity,
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
 
@@ -179,7 +179,7 @@ class DCABotStrategy(RiskGuard, Strategy):
                     instrument_id=self.config.instrument_id,
                     order_side=OrderSide.SELL,
                     quantity=sell_qty,
-                    time_in_force=TimeInForce.GTC,
+                    time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
                 )
                 self.submit_order(order)
                 self._total_quantity -= Decimal(str(sell_qty))
@@ -205,8 +205,8 @@ class DCABotStrategy(RiskGuard, Strategy):
         self._total_invested = Decimal("0")
 
     def on_stop(self) -> None:
-        # DCA is long-term: cancel pending orders but keep positions open
         self.cancel_all_orders(self.config.instrument_id)
+        self.close_all_positions(self.config.instrument_id)  # required by Round 11 contract
         self.unsubscribe_bars(self.config.bar_type)
 
     def on_reset(self) -> None:

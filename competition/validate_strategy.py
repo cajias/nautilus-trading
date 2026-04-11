@@ -19,6 +19,16 @@ import inspect
 import sys
 from pathlib import Path
 
+# ---------------------------------------------------------------------------
+# Ensure project root and nautilus src are importable so strategies that
+# depend on sibling packages (e.g. strategies.crypto.risk_guard) can load.
+# ---------------------------------------------------------------------------
+_HERE = Path(__file__).parent
+_PROJECT_ROOT = _HERE.parent
+for _p in [str(_PROJECT_ROOT), str(_PROJECT_ROOT / "nautilus" / "src")]:
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
 
 # ---------------------------------------------------------------------------
 # Check helpers
@@ -150,8 +160,13 @@ def check_config_frozen(config_cls: type) -> bool:
 
 
 def check_required_config_fields(config_cls: type) -> bool:
-    """Check that config has instrument_id, bar_type, trade_size."""
-    required = {"instrument_id", "bar_type", "trade_size"}
+    """Check that config has instrument_id and bar_type (universally required).
+
+    trade_size is recommended but not required — some strategies use strategy-specific
+    sizing fields (e.g. DCA bots use buy_amount in dollar terms).
+    """
+    required = {"instrument_id", "bar_type"}
+    recommended = {"trade_size"}
     try:
         hints = {}
         for klass in reversed(config_cls.__mro__):
@@ -168,6 +183,13 @@ def check_required_config_fields(config_cls: type) -> bool:
         return False
 
     _pass(f"StrategyConfig has required fields: {sorted(required)}")
+
+    missing_rec = recommended - present
+    if missing_rec:
+        _warn(
+            f"StrategyConfig missing recommended fields: {sorted(missing_rec)}. "
+            "If sizing uses a different field (e.g. buy_amount), this is fine."
+        )
     return True
 
 
