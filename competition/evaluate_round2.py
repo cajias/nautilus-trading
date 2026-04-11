@@ -5,8 +5,11 @@ Uses importlib for isolated imports to prevent sys.path/module cache pollution.
 
 import importlib.util
 import sys
+from pathlib import Path
 import traceback
 from datetime import datetime
+
+_HERE = Path(__file__).parent
 
 START = "2025-01-01"
 END = "2025-03-31"
@@ -16,27 +19,27 @@ AGENTS = [
     {
         "name": "Agent 1 — Quant (Donchian Breakout)",
         "module_name": "agent1_r2_strategy",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-1-quant/round2/strategy.py",
+        "path": str(_HERE / "agent-1-quant" / "round2" / "strategy.py"),
     },
     {
         "name": "Agent 2 — Sentiment (Volume-Sentiment)",
         "module_name": "agent2_r2_strategy",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-2-sentiment/round2/strategy.py",
+        "path": str(_HERE / "agent-2-sentiment" / "round2" / "strategy.py"),
     },
     {
         "name": "Agent 3 — Macro (Trend Following)",
         "module_name": "agent3_r2_strategy",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-3-macro/round2/strategy.py",
+        "path": str(_HERE / "agent-3-macro" / "round2" / "strategy.py"),
     },
     {
         "name": "Agent 4 — ML (Multi-Strategy Tournament)",
         "module_name": "agent4_r2_strategy",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-4-ml/round2/strategy.py",
+        "path": str(_HERE / "agent-4-ml" / "round2" / "strategy.py"),
     },
     {
         "name": "Agent 5 — Hybrid (Multi-Signal Ensemble)",
         "module_name": "agent5_r2_strategy",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-5-hybrid/round2/strategy.py",
+        "path": str(_HERE / "agent-5-hybrid" / "round2" / "strategy.py"),
     },
 ]
 
@@ -127,7 +130,7 @@ def main():
         print("NO WINNER — no agent achieved a positive return this round.")
 
     # Save results to file
-    output_path = "/Users/rc/Projects/workspace/nautilus-trading/competition/round2_results.txt"
+    output_path = str(_HERE / "round2_results.txt")
     with open(output_path, "w") as f:
         f.write("ROUND 2 EVALUATION RESULTS\n")
         f.write(f"Hidden Period: {START} to {END}\n")

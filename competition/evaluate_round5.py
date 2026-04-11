@@ -9,6 +9,8 @@ import traceback
 import time
 from pathlib import Path
 
+_HERE = Path(__file__).parent
+
 EVAL_START = "2025-10-01"
 EVAL_END = "2025-12-31"
 INITIAL_CAPITAL = 1000.0
@@ -16,27 +18,27 @@ INITIAL_CAPITAL = 1000.0
 AGENTS = [
     {
         "name": "Agent 1 - Quant (RSI Dip-Buyer Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-1-quant/round5/strategy.py",
+        "path": str(_HERE / "agent-1-quant" / "round5" / "strategy.py"),
         "module": "agent1_r5",
     },
     {
         "name": "Agent 2 - Sentiment (Stability-Scored RSI Dip Buyer)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-2-sentiment/round5/strategy.py",
+        "path": str(_HERE / "agent-2-sentiment" / "round5" / "strategy.py"),
         "module": "agent2_r5",
     },
     {
         "name": "Agent 3 - Macro (Weekly EMA Momentum + Mean Reversion)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-3-macro/round5/strategy.py",
+        "path": str(_HERE / "agent-3-macro" / "round5" / "strategy.py"),
         "module": "agent3_r5",
     },
     {
         "name": "Agent 4 - ML (78-Variant Walk-Forward Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-4-ml/round5/strategy.py",
+        "path": str(_HERE / "agent-4-ml" / "round5" / "strategy.py"),
         "module": "agent4_r5",
     },
     {
         "name": "Agent 5 - Hybrid (BB Mean Reversion Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-5-hybrid/round5/strategy.py",
+        "path": str(_HERE / "agent-5-hybrid" / "round5" / "strategy.py"),
         "module": "agent5_r5",
     },
 ]
@@ -160,7 +162,7 @@ def main():
         print("NO WINNER: No agent achieved a positive return.")
 
     # Save results
-    output_path = Path("/Users/rc/Projects/workspace/nautilus-trading/competition/round5_results.txt")
+    output_path = Path(str(_HERE / "round5_results.txt"))
     with open(output_path, "w") as f:
         eval_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         f.write("ROUND 5 COMPETITION RESULTS\n")

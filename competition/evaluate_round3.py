@@ -7,38 +7,41 @@ $1,000 starting capital per agent.
 import importlib.util
 import json
 import sys
+from pathlib import Path
 import traceback
 from datetime import datetime
+
+_HERE = Path(__file__).parent
 
 AGENTS = [
     {
         "name": "Agent 1 — Quantitative Trader",
         "desc": "Regime-adaptive multi-strategy (4H BTC)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-1-quant/round3/strategy.py",
+        "path": str(_HERE / "agent-1-quant" / "round3" / "strategy.py"),
         "module": "agent1_r3_strategy",
     },
     {
         "name": "Agent 2 — Sentiment Trader",
         "desc": "Dual-mode breakout + panic-buy (BTC)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-2-sentiment/round3/strategy.py",
+        "path": str(_HERE / "agent-2-sentiment" / "round3" / "strategy.py"),
         "module": "agent2_r3_strategy",
     },
     {
         "name": "Agent 3 — Macro Strategist",
         "desc": "Weekly momentum + dip-buying (BTC)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-3-macro/round3/strategy.py",
+        "path": str(_HERE / "agent-3-macro" / "round3" / "strategy.py"),
         "module": "agent3_r3_strategy",
     },
     {
         "name": "Agent 4 — ML Engineer",
         "desc": "Multi-strategy tournament 97 variants (BTC/ETH/SOL)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-4-ml/round3/strategy.py",
+        "path": str(_HERE / "agent-4-ml" / "round3" / "strategy.py"),
         "module": "agent4_r3_strategy",
     },
     {
         "name": "Agent 5 — Hybrid Strategist",
         "desc": "Regime-adaptive daily BTC",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-5-hybrid/round3/strategy.py",
+        "path": str(_HERE / "agent-5-hybrid" / "round3" / "strategy.py"),
         "module": "agent5_r3_strategy",
     },
 ]
@@ -145,7 +148,7 @@ def main():
             print("NO WINNER — No agent achieved a positive return.")
 
     # Save results
-    output_path = "/Users/rc/Projects/workspace/nautilus-trading/competition/round3_results.txt"
+    output_path = str(_HERE / "round3_results.txt")
     with open(output_path, "w") as f:
         f.write("ROUND 3 — HIDDEN EVALUATION RESULTS\n")
         f.write(f"Period: {START} to {END} | Capital: ${CAPITAL:,.0f}\n")
