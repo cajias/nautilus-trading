@@ -81,24 +81,26 @@ install-ml:
 	@echo "  - torch (PyTorch backend)"
 
 # Install Kronos foundation model (financial OHLCV forecasting)
-# Kronos is not a PyPI package — clone and install requirements manually.
-# Sets KRONOS_REPO_PATH to ~/kronos by default; override with: KRONOS_DIR=/other/path make install-kronos
+# Kronos is not a PyPI package — its Python dependencies are declared in
+# pyproject.toml [kronos] and installed via uv sync. The repo itself is
+# cloned for its model/ source code, then pointed to via KRONOS_REPO_PATH.
+# Override clone dir: KRONOS_DIR=/other/path make install-kronos
 KRONOS_DIR ?= $(HOME)/kronos
 install-kronos:
 	@echo "Installing Kronos foundation model..."
+	@echo "-> Installing Python dependencies via uv..."
+	@cd nautilus && uv sync --extra kronos --extra dev
 	@if [ ! -d "$(KRONOS_DIR)" ]; then \
-		echo "-> Cloning Kronos from GitHub to $(KRONOS_DIR)..."; \
+		echo "-> Cloning Kronos model code to $(KRONOS_DIR)..."; \
 		git clone https://github.com/shiyu-coder/Kronos.git $(KRONOS_DIR); \
 	else \
 		echo "-> Kronos repo already at $(KRONOS_DIR), skipping clone"; \
 	fi
-	@echo "-> Installing Kronos requirements..."
-	@cd nautilus && uv run pip install -r $(KRONOS_DIR)/requirements.txt
 	@echo ""
 	@echo "v Kronos installation complete!"
-	@echo "  Repo: $(KRONOS_DIR)"
-	@echo "  Run with: export KRONOS_REPO_PATH=$(KRONOS_DIR)"
-	@echo "  Weights will be downloaded from HuggingFace on first run"
+	@echo "  Repo : $(KRONOS_DIR)"
+	@echo "  Usage: export KRONOS_REPO_PATH=$(KRONOS_DIR) && make backtest-kronos"
+	@echo "  HuggingFace model weights download on first run (~few GB)"
 
 # Run all tests
 test: test-unit
