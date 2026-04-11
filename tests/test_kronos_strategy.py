@@ -17,7 +17,7 @@ from __future__ import annotations
 import sys
 from decimal import Decimal
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -37,7 +37,7 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig
+from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig, build_kronos_signal
 from strategies.crypto.kronos.signal import KronosSignal
 from strategies.crypto.kronos.strategy import KronosStrategy, KronosStrategyConfig
 
@@ -188,19 +188,22 @@ class TestKronosActorConfig:
         assert default_actor_config.forecast_horizon == 12
         assert default_actor_config.inference_interval_bars == 2
         assert default_actor_config.n_samples == 10
-        assert default_actor_config.huggingface_repo_id is None
+        assert default_actor_config.huggingface_model_id is None
+        assert default_actor_config.huggingface_tokenizer_id is None
 
     def test_frozen(self, default_actor_config: KronosActorConfig) -> None:
         with pytest.raises(AttributeError):
             default_actor_config.model_size = "base"  # type: ignore[misc]
 
-    def test_custom_repo_id(self) -> None:
+    def test_custom_model_id(self) -> None:
         cfg = KronosActorConfig(
             instrument_id=INSTRUMENT_ID,
             bar_type=BAR_TYPE,
-            huggingface_repo_id="my-org/kronos-finetuned",
+            huggingface_model_id="my-org/kronos-finetuned",
+            huggingface_tokenizer_id="my-org/kronos-tokenizer",
         )
-        assert cfg.huggingface_repo_id == "my-org/kronos-finetuned"
+        assert cfg.huggingface_model_id == "my-org/kronos-finetuned"
+        assert cfg.huggingface_tokenizer_id == "my-org/kronos-tokenizer"
 
 
 # ---------------------------------------------------------------------------
@@ -240,31 +243,22 @@ class TestKronosStrategyConfig:
 
 
 class TestKronosActorBuildSignal:
-    """Test _build_signal() in isolation using a mock actor.
+    """Test build_kronos_signal() — the pure module-level signal builder.
 
-    Kronos returns a pandas DataFrame (not numpy array), so we build fake
-    DataFrames matching the KronosPredictor.predict() output format:
-        columns: ['open', 'high', 'low', 'close', 'volume', 'amount']
-        index:   y_timestamp (future pd.DatetimeIndex)
+    Actor.log is a read-only Cython property, so we test signal construction
+    via the extracted module-level function rather than a bare Actor instance.
+    Kronos returns a pandas DataFrame matching KronosPredictor.predict() format:
+        columns: ['open', 'high', 'low', 'close', 'volume']
+        index:   y_timestamp (future pd.DatetimeIndex, UTC)
     """
 
-    def _make_actor(self) -> KronosActor:
-        config = KronosActorConfig(
-            instrument_id=INSTRUMENT_ID,
-            bar_type=BAR_TYPE,
-            model_size="mini",
-            forecast_horizon=10,
-        )
-        actor = KronosActor.__new__(KronosActor)
-        actor._config = config
-        actor.log = MagicMock()
-        actor.config = config
-        actor._max_context = 2048
-        return actor
+    _INSTRUMENT = "BTCUSDT.BINANCE"
+    _MODEL = "mini"
+    _TS = 1_000_000_000
 
     def _make_pred_df(
         self, horizon: int = 10, direction: str = "up"
-    ) -> "pd.DataFrame":
+    ) -> pd.DataFrame:
         """Build a fake Kronos forecast DataFrame."""
         base_close = 50000.0
         delta = 500.0 if direction == "up" else -500.0
@@ -280,71 +274,59 @@ class TestKronosActorBuildSignal:
             index=idx,
         )
 
-    def _make_bar(self) -> MagicMock:
-        bar = MagicMock()
-        bar.ts_event = 1_000_000_000
-        bar.ts_init = 1_000_000_000
-        return bar
+    def _call(self, pred_df: pd.DataFrame, current_close: float = 50000.0) -> KronosSignal | None:
+        return build_kronos_signal(
+            pred_df=pred_df,
+            current_close=current_close,
+            instrument_id=self._INSTRUMENT,
+            model_size=self._MODEL,
+            bar_ts_event=self._TS,
+            bar_ts_init=self._TS,
+        )
 
     def test_bullish_forecast_produces_bullish_signal(self) -> None:
-        actor = self._make_actor()
-        pred_df = self._make_pred_df(direction="up")
-        bar = self._make_bar()
-        sig = actor._build_signal(pred_df, 50000.0, bar)
-
+        sig = self._call(self._make_pred_df(direction="up"))
         assert sig is not None
         assert sig.is_bullish()
         assert sig.predicted_return_pct > 0
         assert 0.0 <= sig.confidence <= 1.0
 
     def test_bearish_forecast_produces_bearish_signal(self) -> None:
-        actor = self._make_actor()
-        pred_df = self._make_pred_df(direction="down")
-        bar = self._make_bar()
-        sig = actor._build_signal(pred_df, 50000.0, bar)
-
+        sig = self._call(self._make_pred_df(direction="down"))
         assert sig is not None
         assert sig.is_bearish()
         assert sig.predicted_return_pct < 0
 
     def test_none_forecast_returns_none(self) -> None:
-        actor = self._make_actor()
-        bar = self._make_bar()
-        sig = actor._build_signal(None, 50000.0, bar)  # type: ignore[arg-type]
+        sig = build_kronos_signal(
+            pred_df=None,  # type: ignore[arg-type]
+            current_close=50000.0,
+            instrument_id=self._INSTRUMENT,
+            model_size=self._MODEL,
+            bar_ts_event=self._TS,
+            bar_ts_init=self._TS,
+        )
         assert sig is None
 
     def test_empty_forecast_returns_none(self) -> None:
-        actor = self._make_actor()
-        bar = self._make_bar()
         empty_df = pd.DataFrame({"open": [], "high": [], "low": [], "close": []})
-        sig = actor._build_signal(empty_df, 50000.0, bar)
+        sig = self._call(empty_df)
         assert sig is None
 
     def test_forecast_close_reflects_terminal_bar(self) -> None:
-        actor = self._make_actor()
         pred_df = self._make_pred_df(direction="up")
-        bar = self._make_bar()
-        sig = actor._build_signal(pred_df, 50000.0, bar)
-
+        sig = self._call(pred_df)
         assert sig is not None
-        # forecast_close should match the last row's close
         assert sig.forecast_close == pytest.approx(pred_df["close"].iloc[-1], abs=0.01)
 
     def test_model_size_stored_in_signal(self) -> None:
-        actor = self._make_actor()
-        pred_df = self._make_pred_df()
-        bar = self._make_bar()
-        sig = actor._build_signal(pred_df, 50000.0, bar)
-
+        sig = self._call(self._make_pred_df())
         assert sig is not None
         assert sig.model_size == "mini"
 
     def test_forecast_high_is_max_over_horizon(self) -> None:
-        actor = self._make_actor()
         pred_df = self._make_pred_df(direction="up")
-        bar = self._make_bar()
-        sig = actor._build_signal(pred_df, 50000.0, bar)
-
+        sig = self._call(pred_df)
         assert sig is not None
         assert sig.forecast_high == pytest.approx(pred_df["high"].max(), abs=0.01)
 

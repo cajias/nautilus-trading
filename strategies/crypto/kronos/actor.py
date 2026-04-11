@@ -50,6 +50,15 @@ from nautilus_trader.model.identifiers import InstrumentId
 from strategies.crypto.kronos.signal import KronosSignal
 
 # ---------------------------------------------------------------------------
+# Module-level availability flag
+# ---------------------------------------------------------------------------
+
+# Kronos is not a pip package — availability is determined at runtime by
+# _try_import_kronos(). This module-level flag defaults to False and is used
+# as a patchable sentinel in tests (mirrors the TIMESFM_AVAILABLE pattern).
+KRONOS_AVAILABLE: bool = False
+
+# ---------------------------------------------------------------------------
 # Model registry
 # ---------------------------------------------------------------------------
 
@@ -71,6 +80,79 @@ _MODEL_REGISTRY: dict[str, dict[str, str | int]] = {
         "max_context": 512,
     },
 }
+
+
+def build_kronos_signal(
+    pred_df: pd.DataFrame,
+    current_close: float,
+    instrument_id: str,
+    model_size: str,
+    bar_ts_event: int,
+    bar_ts_init: int,
+) -> KronosSignal | None:
+    """Derive a KronosSignal from a Kronos forecast DataFrame.
+
+    This is a module-level pure function so it can be unit-tested without a
+    live Actor instance (Actor.log is a read-only Cython property).
+
+    Parameters
+    ----------
+    pred_df : pd.DataFrame
+        Output of KronosPredictor.predict() — must have 'close', 'high', 'low' columns.
+    current_close : float
+        Current close price used to compute predicted return.
+    instrument_id : str
+        Instrument ID string (e.g. "BTCUSDT.BINANCE").
+    model_size : str
+        Model variant label stored on the signal.
+    bar_ts_event, bar_ts_init : int
+        Nanosecond timestamps from the source bar.
+
+    Returns
+    -------
+    KronosSignal or None if pred_df is empty / None or parsing fails.
+    """
+    if pred_df is None or pred_df.empty:
+        return None
+
+    try:
+        forecast_close = float(pred_df["close"].iloc[-1])
+        forecast_high = float(pred_df["high"].max())
+        forecast_low = float(pred_df["low"].min())
+
+        predicted_return_pct = (
+            (forecast_close - current_close) / current_close
+            if current_close > 0
+            else 0.0
+        )
+
+        # Confidence: magnitude of predicted move relative to forecast price range.
+        # Wider range (higher uncertainty) → lower confidence.
+        predicted_range = forecast_high - forecast_low
+        if predicted_range > 0 and current_close > 0:
+            move_magnitude = abs(forecast_close - current_close)
+            confidence = float(min(1.0, move_magnitude / (predicted_range * 0.5)))
+        else:
+            confidence = float(min(1.0, abs(predicted_return_pct) * 20))
+
+        direction = 1.0 if predicted_return_pct > 0 else (
+            -1.0 if predicted_return_pct < 0 else 0.0
+        )
+
+        return KronosSignal(
+            instrument_id=instrument_id,
+            direction=direction,
+            confidence=confidence,
+            predicted_return_pct=predicted_return_pct,
+            forecast_close=forecast_close,
+            forecast_high=forecast_high,
+            forecast_low=forecast_low,
+            model_size=model_size,
+            ts_event=bar_ts_event,
+            ts_init=bar_ts_init,
+        )
+    except Exception:
+        return None
 
 
 def _try_import_kronos(repo_path: str | None) -> bool:
@@ -181,8 +263,8 @@ class KronosActor(Actor):
     # -- Lifecycle ---------------------------------------------------------------
 
     def on_start(self) -> None:
-        self.subscribe_bars(self.config.bar_type)
         self._load_model()
+        self.subscribe_bars(self.config.bar_type)
         self.log.info(
             f"KronosActor started: model={self.config.model_size} "
             f"max_context={self._max_context} "
@@ -332,67 +414,14 @@ class KronosActor(Actor):
             self.log.warning(f"Kronos inference failed: {e}")
             return None
 
-        return self._build_signal(pred_df, current_close, bar)
-
-    def _build_signal(
-        self,
-        pred_df: pd.DataFrame,
-        current_close: float,
-        bar: Bar,
-    ) -> KronosSignal | None:
-        """Derive signal fields from the Kronos forecast DataFrame.
-
-        Parameters
-        ----------
-        pred_df : pd.DataFrame
-            Output of KronosPredictor.predict() — columns include 'close', 'high', 'low'.
-            Indexed by y_timestamp (future timestamps).
-        current_close : float
-            Current close price used to compute predicted return.
-        bar : Bar
-            Source bar (provides timestamps for the signal).
-        """
-        if pred_df is None or pred_df.empty:
-            return None
-
-        try:
-            # Terminal close = last bar of the forecast horizon
-            forecast_close = float(pred_df["close"].iloc[-1])
-            forecast_high = float(pred_df["high"].max())
-            forecast_low = float(pred_df["low"].min())
-
-            predicted_return_pct = (
-                (forecast_close - current_close) / current_close
-                if current_close > 0
-                else 0.0
-            )
-
-            # Confidence: how far the predicted return is from zero, relative
-            # to the predicted price range (wider range = lower confidence).
-            predicted_range = forecast_high - forecast_low
-            if predicted_range > 0 and current_close > 0:
-                # Magnitude of predicted move vs width of forecast range
-                move_magnitude = abs(forecast_close - current_close)
-                confidence = float(min(1.0, move_magnitude / (predicted_range * 0.5)))
-            else:
-                confidence = float(min(1.0, abs(predicted_return_pct) * 20))
-
-            direction = 1.0 if predicted_return_pct > 0 else (
-                -1.0 if predicted_return_pct < 0 else 0.0
-            )
-
-            return KronosSignal(
-                instrument_id=str(self.config.instrument_id),
-                direction=direction,
-                confidence=confidence,
-                predicted_return_pct=predicted_return_pct,
-                forecast_close=forecast_close,
-                forecast_high=forecast_high,
-                forecast_low=forecast_low,
-                model_size=self.config.model_size,
-                ts_event=bar.ts_event,
-                ts_init=bar.ts_init,
-            )
-        except Exception as e:
-            self.log.warning(f"Failed to build KronosSignal from forecast DataFrame: {e}")
-            return None
+        signal = build_kronos_signal(
+            pred_df=pred_df,
+            current_close=current_close,
+            instrument_id=str(self.config.instrument_id),
+            model_size=self.config.model_size,
+            bar_ts_event=bar.ts_event,
+            bar_ts_init=bar.ts_init,
+        )
+        if signal is None:
+            self.log.warning("build_kronos_signal returned None for non-empty forecast")
+        return signal

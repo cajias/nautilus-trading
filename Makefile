@@ -43,8 +43,9 @@ help:
 	@echo "  make backtest STRATEGY=forex.ema_cross     # backtest specific strategy"
 	@echo "  make backtest-crypto STRATEGY=crypto.grid_bot  # crypto with Binance data"
 	@echo "  make backtest-crypto STRATEGY=crypto.dca_bot   # DCA bot backtest"
-	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy
-  make backtest-kronos                               # Kronos backtest (mini model)"
+	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy"
+	@echo "  make backtest-kronos                               # Kronos backtest (mini model)"
+	@echo "  make paper-trade-kronos                            # Kronos paper trading (Binance Testnet)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove test artifacts and caches"
@@ -221,6 +222,13 @@ live:
 # Capital: KRONOS_INITIAL_CAPITAL=500 (default: 500 USDT)
 backtest-kronos:
 	cd nautilus && uv run python ../strategies/crypto/kronos/backtest.py
+
+# Run Kronos paper trading on Binance Testnet
+# Requires: BINANCE_TESTNET_API_KEY, BINANCE_TESTNET_API_SECRET, KRONOS_REPO_PATH
+# Model: KRONOS_MODEL_SIZE=mini|base  (default: mini)
+# Symbol: KRONOS_SYMBOL=BTCUSDT       (default: BTCUSDT)
+paper-trade-kronos:
+	cd nautilus && uv run python ../strategies/crypto/kronos/paper_trade.py
 
 # Launch Jupyter Lab with strategy notebooks
 jupyter:

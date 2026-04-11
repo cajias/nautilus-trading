@@ -17,9 +17,12 @@ See strategies/crypto/kronos/backtest.py for a complete runnable example.
 
 Model selection
 ---------------
-Set model_size="mini" (default) or model_size="base" in KronosActorConfig.
-Or override the HuggingFace repo ID:
-    KronosActorConfig(huggingface_repo_id="NeoQuasar/Kronos-mini")
+Set model_size="mini" (default), "small", or "base" in KronosActorConfig.
+Or override the HuggingFace model/tokenizer IDs:
+    KronosActorConfig(
+        huggingface_model_id="NeoQuasar/Kronos-mini",
+        huggingface_tokenizer_id="NeoQuasar/Kronos-Tokenizer-2k",
+    )
 
 Environment variable alternative:
     export KRONOS_MODEL_SIZE=mini   # read in backtest.py
