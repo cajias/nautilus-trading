@@ -24,6 +24,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
+
 try:
     import timesfm
 
@@ -48,7 +50,7 @@ class TimesFMSwingConfig(StrategyConfig, frozen=True):
     take_profit_pct: float = 0.04
 
 
-class TimesFMSwingStrategy(Strategy):
+class TimesFMSwingStrategy(RiskGuard, Strategy):
     """Swing trading strategy using TimesFM price forecasting with EMA trend filter.
 
     When TimesFM is available, generates signals from model forecasts filtered

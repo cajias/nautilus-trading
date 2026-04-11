@@ -19,6 +19,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
 from strategies.crypto.rvs_data import RVSSignal
 
 
@@ -53,7 +54,7 @@ class RVSSwingConfig(StrategyConfig, frozen=True):
     ema_period: int = 200
 
 
-class RVSSwingStrategy(Strategy):
+class RVSSwingStrategy(RiskGuard, Strategy):
     """RVS-driven swing trading strategy for crypto.
 
     Processes RVSSignal events and enters positions when:
