@@ -43,7 +43,8 @@ help:
 	@echo "  make backtest STRATEGY=forex.ema_cross     # backtest specific strategy"
 	@echo "  make backtest-crypto STRATEGY=crypto.grid_bot  # crypto with Binance data"
 	@echo "  make backtest-crypto STRATEGY=crypto.dca_bot   # DCA bot backtest"
-	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy"
+	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy
+  make backtest-kronos                               # Kronos backtest (mini model)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove test artifacts and caches"
@@ -78,6 +79,26 @@ install-ml:
 	@echo "v ML installation complete!"
 	@echo "  - timesfm (time series foundation model)"
 	@echo "  - torch (PyTorch backend)"
+
+# Install Kronos foundation model (financial OHLCV forecasting)
+# Kronos is not a PyPI package — clone and install requirements manually.
+# Sets KRONOS_REPO_PATH to ~/kronos by default; override with: KRONOS_DIR=/other/path make install-kronos
+KRONOS_DIR ?= $(HOME)/kronos
+install-kronos:
+	@echo "Installing Kronos foundation model..."
+	@if [ ! -d "$(KRONOS_DIR)" ]; then \
+		echo "-> Cloning Kronos from GitHub to $(KRONOS_DIR)..."; \
+		git clone https://github.com/shiyu-coder/Kronos.git $(KRONOS_DIR); \
+	else \
+		echo "-> Kronos repo already at $(KRONOS_DIR), skipping clone"; \
+	fi
+	@echo "-> Installing Kronos requirements..."
+	@cd nautilus && uv run pip install -r $(KRONOS_DIR)/requirements.txt
+	@echo ""
+	@echo "v Kronos installation complete!"
+	@echo "  Repo: $(KRONOS_DIR)"
+	@echo "  Run with: export KRONOS_REPO_PATH=$(KRONOS_DIR)"
+	@echo "  Weights will be downloaded from HuggingFace on first run"
 
 # Run all tests
 test: test-unit
@@ -190,6 +211,14 @@ live:
 		--bar-type $(BAR_TYPE) \
 		--trade-size $(TRADE_SIZE) \
 		$(LIVE_EXTRA_ARGS)
+
+# Run Kronos foundation model backtest
+# Model: KRONOS_MODEL_SIZE=mini|base  (default: mini, 4.1M params)
+# Symbol: KRONOS_SYMBOL=BTCUSDT       (default: BTCUSDT)
+# Interval: KRONOS_INTERVAL=1h        (default: 1h)
+# Capital: KRONOS_INITIAL_CAPITAL=500 (default: 500 USDT)
+backtest-kronos:
+	cd nautilus && uv run python ../strategies/crypto/kronos/backtest.py
 
 # Launch Jupyter Lab with strategy notebooks
 jupyter:

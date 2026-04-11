@@ -39,6 +39,19 @@ ml = [
     "numpy>=1.26.0",
     "pandas>=2.0.0",
 ]
+kronos = [
+    # Kronos is NOT a PyPI package. Installation requires cloning the repo:
+    #   git clone https://github.com/shiyu-coder/Kronos.git ~/kronos
+    #   pip install -r ~/kronos/requirements.txt
+    #   export KRONOS_REPO_PATH=~/kronos
+    # Use: make install-kronos  (handles clone + requirements install)
+    # These are the known Kronos dependencies (from its requirements.txt):
+    "torch>=2.0.0",
+    "numpy>=1.26.0",
+    "pandas>=2.0.0",
+    "transformers>=4.40.0",
+    "huggingface_hub>=0.20.0",
+]
 
 [project.scripts]
 nt = "nautilus_trading.cli:app"
