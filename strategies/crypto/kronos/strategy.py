@@ -32,7 +32,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
-from strategies.crypto.kronos.signal import KronosSignal
+from strategies.crypto.kronos.data import KronosSignal
 
 
 class KronosStrategyConfig(StrategyConfig, frozen=True):

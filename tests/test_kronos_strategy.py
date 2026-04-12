@@ -38,7 +38,7 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig, build_kronos_signal
-from strategies.crypto.kronos.signal import KronosSignal
+from strategies.crypto.kronos.data import KronosSignal
 from strategies.crypto.kronos.strategy import KronosStrategy, KronosStrategyConfig
 
 # ---------------------------------------------------------------------------

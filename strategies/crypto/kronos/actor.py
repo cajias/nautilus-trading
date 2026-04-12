@@ -47,7 +47,7 @@ from nautilus_trader.config import ActorConfig
 from nautilus_trader.model.data import Bar, BarType, DataType
 from nautilus_trader.model.identifiers import InstrumentId
 
-from strategies.crypto.kronos.signal import KronosSignal
+from strategies.crypto.kronos.data import KronosSignal
 
 # ---------------------------------------------------------------------------
 # Module-level availability flag

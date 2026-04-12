@@ -138,19 +138,30 @@ def _fetch_binance_klines(symbol: str, interval: str, start: str, end: str) -> p
     return df.set_index("timestamp").sort_index()
 
 
-def _build_bars(df: pd.DataFrame, bar_type: BarType) -> list[Bar]:
-    """Convert a Binance klines DataFrame into NautilusTrader Bar objects."""
+def _build_bars(
+    df: pd.DataFrame,
+    bar_type: BarType,
+    price_precision: int = 2,
+    size_precision: int = 6,
+) -> list[Bar]:
+    """Convert a Binance klines DataFrame into NautilusTrader Bar objects.
+
+    price_precision and size_precision must match the instrument definition —
+    NautilusTrader validates bar prices against instrument.price_precision.
+    """
+    price_fmt = f"{{:.{price_precision}f}}"
+    size_fmt = f"{{:.{size_precision}f}}"
     bars: list[Bar] = []
     for ts, row in df.iterrows():
         ts_ns = int(ts.timestamp() * 1_000_000_000)
         bars.append(
             Bar(
                 bar_type=bar_type,
-                open=Price.from_str(f"{row['open']:.8f}"),
-                high=Price.from_str(f"{row['high']:.8f}"),
-                low=Price.from_str(f"{row['low']:.8f}"),
-                close=Price.from_str(f"{row['close']:.8f}"),
-                volume=Quantity.from_str(f"{row['volume']:.8f}"),
+                open=Price.from_str(price_fmt.format(row["open"])),
+                high=Price.from_str(price_fmt.format(row["high"])),
+                low=Price.from_str(price_fmt.format(row["low"])),
+                close=Price.from_str(price_fmt.format(row["close"])),
+                volume=Quantity.from_str(size_fmt.format(row["volume"])),
                 ts_event=ts_ns,
                 ts_init=ts_ns,
             )
@@ -273,8 +284,13 @@ def run_backtest() -> dict[str, Any]:
     # 3. Build instrument
     instrument = _build_instrument(SYMBOL, VENUE)
 
-    # 4. Build bars
-    bars = _build_bars(df, bar_type)
+    # 4. Build bars (precision must match the instrument definition)
+    bars = _build_bars(
+        df,
+        bar_type,
+        price_precision=instrument.price_precision,
+        size_precision=instrument.size_precision,
+    )
 
     # 5. Build engine
     engine = BacktestEngine(

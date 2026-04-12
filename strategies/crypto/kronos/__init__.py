@@ -29,7 +29,7 @@ Environment variable alternative:
 """
 
 from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig
-from strategies.crypto.kronos.signal import KronosSignal
+from strategies.crypto.kronos.data import KronosSignal
 from strategies.crypto.kronos.strategy import KronosStrategy, KronosStrategyConfig
 
 __all__ = [

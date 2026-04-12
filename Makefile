@@ -9,7 +9,7 @@
 # Strategy module path (relative to strategies/), e.g. forex.ema_cross
 STRATEGY ?= forex.ema_cross
 
-.PHONY: help install install-ml test test-unit lint lint-fix validate backtest backtest-crypto strategies live jupyter clean
+.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos paper-trade-kronos strategies live jupyter clean
 
 # Default target
 help:
@@ -18,10 +18,12 @@ help:
 	@echo "Setup:"
 	@echo "  make install           - Install all dev dependencies and tools"
 	@echo "  make install-ml        - Install ML dependencies (TimesFM, PyTorch)"
+	@echo "  make install-kronos    - Install Kronos deps + clone model repo"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test              - Run all tests (pytest)"
 	@echo "  make test-unit         - Run pytest unit tests only"
+	@echo "  make test-kronos       - Run Kronos-specific unit tests"
 	@echo ""
 	@echo "Linting:"
 	@echo "  make lint              - Run all linters (ruff, mypy, vulture)"
@@ -31,6 +33,8 @@ help:
 	@echo "Running:"
 	@echo "  make backtest          - Run backtest (default: STRATEGY=$(STRATEGY))"
 	@echo "  make backtest-crypto   - Run crypto backtest with Binance data"
+	@echo "  make backtest-kronos   - Run Kronos foundation model backtest (fetches Binance data)"
+	@echo "  make paper-trade-kronos - Run Kronos paper trading on Binance Testnet"
 	@echo "  make strategies        - List all available strategies"
 	@echo "  make live              - Paper trade on Binance testnet"
 	@echo "  make jupyter           - Launch Jupyter Lab with strategy notebooks"
@@ -109,6 +113,10 @@ test: test-unit
 # Run pytest unit tests
 test-unit:
 	cd nautilus && uv run pytest ../tests/ -v
+
+# Run Kronos-specific unit tests only (no BacktestEngine or catalog required)
+test-kronos:
+	cd nautilus && uv run pytest ../tests/test_kronos_strategy.py -v
 
 # Linting targets
 
