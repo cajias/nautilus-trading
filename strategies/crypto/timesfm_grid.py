@@ -265,7 +265,7 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
         ]
 
         # Initialize grid order tracking
-        self.grid_orders = {i: None for i in range(n)}
+        self.grid_orders = dict.fromkeys(range(n))
 
     def _recalculate_grid_with_atr(self, current_price: Decimal) -> None:
         """Recalculate grid spacing using ATR for volatility adjustment.
@@ -299,7 +299,7 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
             self.grid_prices.append(round(next_price, precision))
         self.grid_prices.append(round(self.config.p90_ceiling, precision))
 
-        self.grid_orders = {i: None for i in range(len(self.grid_prices))}
+        self.grid_orders = dict.fromkeys(range(len(self.grid_prices)))
         self._order_to_level.clear()
 
     def _get_total_balance(self) -> Decimal | None:

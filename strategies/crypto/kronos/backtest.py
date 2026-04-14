@@ -46,7 +46,6 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-import numpy as np
 import pandas as pd
 import requests
 
@@ -62,11 +61,16 @@ from nautilus_trader.backtest.engine import BacktestEngine, BacktestEngineConfig
 from nautilus_trader.config import LoggingConfig
 from nautilus_trader.model.currencies import USDT
 from nautilus_trader.model.data import Bar, BarSpecification, BarType
-from nautilus_trader.model.enums import AccountType, AggregationSource, BarAggregation, OmsType, PriceType
+from nautilus_trader.model.enums import (
+    AccountType,
+    AggregationSource,
+    BarAggregation,
+    OmsType,
+    PriceType,
+)
 from nautilus_trader.model.identifiers import InstrumentId, Symbol, Venue
 from nautilus_trader.model.instruments import CurrencyPair
 from nautilus_trader.model.objects import Money, Price, Quantity
-from nautilus_trader.test_kit.providers import TestInstrumentProvider
 
 from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig
 from strategies.crypto.kronos.strategy import KronosStrategy, KronosStrategyConfig
@@ -175,8 +179,7 @@ def _build_bars(
 
 def _build_instrument(symbol: str, venue: Venue) -> CurrencyPair:
     """Build a minimal CurrencyPair instrument for the backtest engine."""
-    from nautilus_trader.model.currencies import BTC, ETH, BNB, SOL
-    from nautilus_trader.model.currencies import USD
+    from nautilus_trader.model.currencies import BNB, BTC, ETH, SOL
 
     _BASE_MAP = {
         "BTC": BTC,

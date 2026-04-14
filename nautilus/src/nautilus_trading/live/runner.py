@@ -105,7 +105,7 @@ def run_live(config: TradingNodeConfig) -> None:
     node.build()
 
     # Graceful shutdown on Ctrl+C
-    def _shutdown(signum, frame):
+    def _shutdown(_signum, _frame):
         print("\nShutting down trading node...")
         node.stop()
         node.dispose()
