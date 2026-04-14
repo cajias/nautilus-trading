@@ -19,6 +19,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
 from strategies.crypto.rvs_data import RVSSignal
 
 
@@ -53,7 +54,7 @@ class RVSSwingConfig(StrategyConfig, frozen=True):
     ema_period: int = 200
 
 
-class RVSSwingStrategy(Strategy):
+class RVSSwingStrategy(RiskGuard, Strategy):
     """RVS-driven swing trading strategy for crypto.
 
     Processes RVSSignal events and enters positions when:
@@ -258,7 +259,7 @@ class RVSSwingStrategy(Strategy):
             instrument_id=self.config.instrument_id,
             order_side=OrderSide.BUY,
             quantity=self.instrument.make_qty(self.config.trade_size),
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
         self._entry_price = price

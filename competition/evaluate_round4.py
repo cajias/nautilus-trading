@@ -9,6 +9,8 @@ import traceback
 import time
 from pathlib import Path
 
+_HERE = Path(__file__).parent
+
 EVAL_START = "2025-07-01"
 EVAL_END = "2025-09-30"
 INITIAL_CAPITAL = 1000.0
@@ -16,27 +18,27 @@ INITIAL_CAPITAL = 1000.0
 AGENTS = [
     {
         "name": "Agent 1 - Quant (RSI Dip-Buyer Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-1-quant/round4/strategy.py",
+        "path": str(_HERE / "agent-1-quant" / "round4" / "strategy.py"),
         "module": "agent1_r4",
     },
     {
         "name": "Agent 2 - Sentiment (RSI Reversion + Volume Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-2-sentiment/round4/strategy.py",
+        "path": str(_HERE / "agent-2-sentiment" / "round4" / "strategy.py"),
         "module": "agent2_r4",
     },
     {
         "name": "Agent 3 - Macro (50-SMA + RSI Momentum)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-3-macro/round4/strategy.py",
+        "path": str(_HERE / "agent-3-macro" / "round4" / "strategy.py"),
         "module": "agent3_r4",
     },
     {
         "name": "Agent 4 - ML (115-Variant Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-4-ml/round4/strategy.py",
+        "path": str(_HERE / "agent-4-ml" / "round4" / "strategy.py"),
         "module": "agent4_r4",
     },
     {
         "name": "Agent 5 - Hybrid (Momentum Breakout Tournament)",
-        "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-5-hybrid/round4/strategy.py",
+        "path": str(_HERE / "agent-5-hybrid" / "round4" / "strategy.py"),
         "module": "agent5_r4",
     },
 ]
@@ -162,7 +164,7 @@ def main():
         print("NO WINNER: No agent achieved a positive return.")
 
     # Save results
-    output_path = Path("/Users/rc/Projects/workspace/nautilus-trading/competition/round4_results.txt")
+    output_path = Path(str(_HERE / "round4_results.txt"))
     with open(output_path, "w") as f:
         f.write("ROUND 4 COMPETITION RESULTS\n")
         f.write(f"Evaluation Period: {EVAL_START} to {EVAL_END}\n")

@@ -10,6 +10,8 @@ from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
+
 
 class GridBotConfig(StrategyConfig, frozen=True):
     instrument_id: InstrumentId
@@ -27,7 +29,7 @@ class GridBotConfig(StrategyConfig, frozen=True):
     stop_loss_pct: float = 0.03  # 3% below lower_price
 
 
-class GridBotStrategy(Strategy):
+class GridBotStrategy(RiskGuard, Strategy):
     """Automated grid trading strategy for crypto markets.
 
     Places limit buy orders below and limit sell orders above the current price
@@ -103,6 +105,19 @@ class GridBotStrategy(Strategy):
             1 - Decimal(str(self.config.stop_loss_pct))
         )
 
+        # Portfolio-level risk guardrails (drawdown circuit breaker + order filters)
+        starting_equity = float(
+            self.portfolio.account(self.config.instrument_id.venue).balances_total().get(
+                self.cache.instrument(self.config.instrument_id).quote_currency,
+                0,
+            )
+        ) if self.portfolio.account(self.config.instrument_id.venue) else 1000.0
+        self._risk_guard_init(
+            starting_equity=starting_equity,
+            max_drawdown_pct=20.0,
+            max_position_pct=0.50,
+        )
+
         self.log.info(
             f"Grid initialized: {len(self.grid_prices)} levels "
             f"(requested {self.config.grid_levels}) "
@@ -112,6 +127,10 @@ class GridBotStrategy(Strategy):
         )
 
     def on_bar(self, bar: Bar) -> None:
+        # Portfolio drawdown circuit breaker — halt if max drawdown exceeded
+        if self._is_halted():
+            return
+
         current_price = Decimal(str(bar.close))
 
         # Hard stop-loss: close everything if price crashes below grid

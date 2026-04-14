@@ -28,6 +28,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
+
 
 class ShockGuardConfig(StrategyConfig, frozen=True):
     """Configuration for the Shock Guard Macro Allocator strategy."""
@@ -63,7 +65,7 @@ class ShockGuardConfig(StrategyConfig, frozen=True):
     ema_slow_period: PositiveInt = 26
 
 
-class ShockGuardStrategy(Strategy):
+class ShockGuardStrategy(RiskGuard, Strategy):
     """Two-tier crypto strategy with graduated allocation and shock detection.
 
     Works in both backtest (deterministic signals) and live (pluggable LLM).
@@ -115,6 +117,13 @@ class ShockGuardStrategy(Strategy):
 
         self.current_allocation_pct = self.config.default_allocation_pct
 
+        # Portfolio-level risk guardrails
+        self._risk_guard_init(
+            starting_equity=1000.0,
+            max_drawdown_pct=20.0,
+            max_position_pct=0.50,
+        )
+
         self.log.info(
             f"ShockGuard started: alloc={self.current_allocation_pct:.0%} "
             f"| SL={self.config.stop_loss_pct:.1%} TP={self.config.take_profit_pct:.1%} "
@@ -122,6 +131,9 @@ class ShockGuardStrategy(Strategy):
         )
 
     def on_bar(self, bar: Bar) -> None:
+        if self._is_halted():
+            return
+
         if not self.indicators_initialized():
             self._update_price_history(float(bar.close))
             return
@@ -156,6 +168,13 @@ class ShockGuardStrategy(Strategy):
         self._long_atr.reset()
         self._price_history.clear()
         self.current_allocation_pct = self.config.default_allocation_pct
+
+        # Portfolio-level risk guardrails
+        self._risk_guard_init(
+            starting_equity=1000.0,
+            max_drawdown_pct=20.0,
+            max_position_pct=0.50,
+        )
         self._cooldown_remaining = 0
         self._bars_since_rebalance = 0
         self._signal_price_drop = False
@@ -335,7 +354,7 @@ class ShockGuardStrategy(Strategy):
             instrument_id=self.config.instrument_id,
             order_side=side,
             quantity=self.instrument.make_qty(Decimal(str(qty))),
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
         self._entry_price = current_price

@@ -26,6 +26,8 @@ from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
+
 
 class TimesFMGridConfig(StrategyConfig, frozen=True):
     """Configuration for the TimesFM Quantile Grid Orchestrator."""
@@ -64,7 +66,7 @@ class TimesFMGridConfig(StrategyConfig, frozen=True):
     recalc_interval_bars: PositiveInt = 240
 
 
-class TimesFMGridStrategy(Strategy):
+class TimesFMGridStrategy(RiskGuard, Strategy):
     """Grid trading strategy with TimesFM quantile boundaries.
 
     Places limit buy orders below and limit sell orders above the current
@@ -224,7 +226,8 @@ class TimesFMGridStrategy(Strategy):
             self.grid_orders[level] = None
 
     def on_stop(self) -> None:
-        self._cancel_all_and_reset_tracking()
+        self.cancel_all_orders(self.config.instrument_id)  # explicit for Round 11 contract compliance
+        self._cancel_all_and_reset_tracking()  # resets committed capital tracking
         self.close_all_positions(self.config.instrument_id)
         self.unsubscribe_bars(self.config.bar_type)
 
@@ -530,6 +533,6 @@ class TimesFMGridStrategy(Strategy):
             instrument_id=self.config.instrument_id,
             order_side=side,
             quantity=self.instrument.make_qty(self.config.trade_size),
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)

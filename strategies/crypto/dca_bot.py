@@ -8,6 +8,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto.risk_guard import RiskGuard
+
 
 class DCABotConfig(StrategyConfig, frozen=True):
     instrument_id: InstrumentId
@@ -25,7 +27,7 @@ class DCABotConfig(StrategyConfig, frozen=True):
     partial_exit_pct: float = 0.5  # Sell this fraction on RSI exit (keep rest for DCA)
 
 
-class DCABotStrategy(Strategy):
+class DCABotStrategy(RiskGuard, Strategy):
     """Dollar Cost Averaging bot — periodically buys a fixed dollar amount.
 
     Optionally filters buys using RSI (skip when overbought) and supports
@@ -53,7 +55,17 @@ class DCABotStrategy(Strategy):
         self._last_rsi_exit_bar = -999
         self._reset_tracking()
 
+        # Portfolio-level risk guardrails
+        self._risk_guard_init(
+            starting_equity=float(self.config.buy_amount) * 20,  # rough estimate
+            max_drawdown_pct=20.0,
+            max_position_pct=0.50,
+        )
+
     def on_bar(self, bar: Bar) -> None:
+        if self._is_halted():
+            return
+
         if not self.indicators_initialized():
             self.log.info(
                 f"Warming up indicators [{self.cache.bar_count(self.config.bar_type)}]",
@@ -102,7 +114,7 @@ class DCABotStrategy(Strategy):
             instrument_id=self.config.instrument_id,
             order_side=OrderSide.BUY,
             quantity=quantity,
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
 
@@ -167,7 +179,7 @@ class DCABotStrategy(Strategy):
                     instrument_id=self.config.instrument_id,
                     order_side=OrderSide.SELL,
                     quantity=sell_qty,
-                    time_in_force=TimeInForce.GTC,
+                    time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
                 )
                 self.submit_order(order)
                 self._total_quantity -= Decimal(str(sell_qty))
@@ -193,8 +205,8 @@ class DCABotStrategy(Strategy):
         self._total_invested = Decimal("0")
 
     def on_stop(self) -> None:
-        # DCA is long-term: cancel pending orders but keep positions open
         self.cancel_all_orders(self.config.instrument_id)
+        self.close_all_positions(self.config.instrument_id)  # required by Round 11 contract
         self.unsubscribe_bars(self.config.bar_type)
 
     def on_reset(self) -> None:

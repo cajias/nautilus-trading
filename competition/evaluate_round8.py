@@ -10,16 +10,18 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+_HERE = Path(__file__).parent
+
 EVAL_START = "2025-10-01"
 EVAL_END = "2025-12-31"
 INITIAL_CAPITAL = 1000.0
 
 AGENTS = [
-    {"name": "Agent 1 - Quant", "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-1-quant/round8/strategy.py", "module": "agent1_r8"},
-    {"name": "Agent 2 - Sentiment", "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-2-sentiment/round8/strategy.py", "module": "agent2_r8"},
-    {"name": "Agent 3 - Macro", "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-3-macro/round8/strategy.py", "module": "agent3_r8"},
-    {"name": "Agent 4 - ML", "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-4-ml/round8/strategy.py", "module": "agent4_r8"},
-    {"name": "Agent 5 - Hybrid", "path": "/Users/rc/Projects/workspace/nautilus-trading/competition/agent-5-hybrid/round8/strategy.py", "module": "agent5_r8"},
+    {"name": "Agent 1 - Quant", "path": str(_HERE / "agent-1-quant" / "round8" / "strategy.py"), "module": "agent1_r8"},
+    {"name": "Agent 2 - Sentiment", "path": str(_HERE / "agent-2-sentiment" / "round8" / "strategy.py"), "module": "agent2_r8"},
+    {"name": "Agent 3 - Macro", "path": str(_HERE / "agent-3-macro" / "round8" / "strategy.py"), "module": "agent3_r8"},
+    {"name": "Agent 4 - ML", "path": str(_HERE / "agent-4-ml" / "round8" / "strategy.py"), "module": "agent4_r8"},
+    {"name": "Agent 5 - Hybrid", "path": str(_HERE / "agent-5-hybrid" / "round8" / "strategy.py"), "module": "agent5_r8"},
 ]
 
 
@@ -90,7 +92,7 @@ def main():
     else:
         print("NO WINNER: No agent achieved a positive return.")
 
-    output_path = Path("/Users/rc/Projects/workspace/nautilus-trading/competition/round8_results.txt")
+    output_path = Path(str(_HERE / "round8_results.txt"))
     with open(output_path, "w") as f:
         f.write("ROUND 8 COMPETITION RESULTS\n")
         f.write(f"Evaluation Period: {EVAL_START} to {EVAL_END}\n")
