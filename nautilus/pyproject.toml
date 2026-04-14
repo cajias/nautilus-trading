@@ -39,6 +39,21 @@ ml = [
     "numpy>=1.26.0",
     "pandas>=2.0.0",
 ]
+kronos = [
+    # Kronos is NOT a PyPI package — clone the repo and set KRONOS_REPO_PATH:
+    #   git clone https://github.com/shiyu-coder/Kronos.git ~/kronos
+    #   export KRONOS_REPO_PATH=~/kronos
+    # Use: make install-kronos  (runs uv sync + clones repo)
+    # Deps taken directly from Kronos requirements.txt:
+    "torch>=2.0.0",
+    "numpy>=1.26.0",
+    "pandas>=2.2.0",
+    "einops>=0.8.1",
+    "huggingface_hub>=0.33.0",
+    "safetensors>=0.6.0",
+    "tqdm>=4.67.0",
+    "matplotlib>=3.9.0",
+]
 
 [project.scripts]
 nt = "nautilus_trading.cli:app"

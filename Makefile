@@ -9,7 +9,7 @@
 # Strategy module path (relative to strategies/), e.g. forex.ema_cross
 STRATEGY ?= forex.ema_cross
 
-.PHONY: help install install-ml test test-unit lint lint-fix validate backtest backtest-crypto strategies live jupyter clean
+.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos paper-trade-kronos strategies live jupyter clean
 
 # Default target
 help:
@@ -18,10 +18,12 @@ help:
 	@echo "Setup:"
 	@echo "  make install           - Install all dev dependencies and tools"
 	@echo "  make install-ml        - Install ML dependencies (TimesFM, PyTorch)"
+	@echo "  make install-kronos    - Install Kronos deps + clone model repo"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test              - Run all tests (pytest)"
 	@echo "  make test-unit         - Run pytest unit tests only"
+	@echo "  make test-kronos       - Run Kronos-specific unit tests"
 	@echo ""
 	@echo "Linting:"
 	@echo "  make lint              - Run all linters (ruff, mypy, vulture)"
@@ -31,6 +33,8 @@ help:
 	@echo "Running:"
 	@echo "  make backtest          - Run backtest (default: STRATEGY=$(STRATEGY))"
 	@echo "  make backtest-crypto   - Run crypto backtest with Binance data"
+	@echo "  make backtest-kronos   - Run Kronos foundation model backtest (fetches Binance data)"
+	@echo "  make paper-trade-kronos - Run Kronos paper trading on Binance Testnet"
 	@echo "  make strategies        - List all available strategies"
 	@echo "  make live              - Paper trade on Binance testnet"
 	@echo "  make jupyter           - Launch Jupyter Lab with strategy notebooks"
@@ -44,6 +48,8 @@ help:
 	@echo "  make backtest-crypto STRATEGY=crypto.grid_bot  # crypto with Binance data"
 	@echo "  make backtest-crypto STRATEGY=crypto.dca_bot   # DCA bot backtest"
 	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy"
+	@echo "  make backtest-kronos                               # Kronos backtest (mini model)"
+	@echo "  make paper-trade-kronos                            # Kronos paper trading (Binance Testnet)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove test artifacts and caches"
@@ -79,12 +85,38 @@ install-ml:
 	@echo "  - timesfm (time series foundation model)"
 	@echo "  - torch (PyTorch backend)"
 
+# Install Kronos foundation model (financial OHLCV forecasting)
+# Kronos is not a PyPI package — its Python dependencies are declared in
+# pyproject.toml [kronos] and installed via uv sync. The repo itself is
+# cloned for its model/ source code, then pointed to via KRONOS_REPO_PATH.
+# Override clone dir: KRONOS_DIR=/other/path make install-kronos
+KRONOS_DIR ?= $(HOME)/kronos
+install-kronos:
+	@echo "Installing Kronos foundation model..."
+	@echo "-> Installing Python dependencies via uv..."
+	@cd nautilus && uv sync --extra kronos --extra dev
+	@if [ ! -d "$(KRONOS_DIR)" ]; then \
+		echo "-> Cloning Kronos model code to $(KRONOS_DIR)..."; \
+		git clone https://github.com/shiyu-coder/Kronos.git $(KRONOS_DIR); \
+	else \
+		echo "-> Kronos repo already at $(KRONOS_DIR), skipping clone"; \
+	fi
+	@echo ""
+	@echo "v Kronos installation complete!"
+	@echo "  Repo : $(KRONOS_DIR)"
+	@echo "  Usage: export KRONOS_REPO_PATH=$(KRONOS_DIR) && make backtest-kronos"
+	@echo "  HuggingFace model weights download on first run (~few GB)"
+
 # Run all tests
 test: test-unit
 
 # Run pytest unit tests
 test-unit:
 	cd nautilus && uv run pytest ../tests/ -v
+
+# Run Kronos-specific unit tests only (no BacktestEngine or catalog required)
+test-kronos:
+	cd nautilus && uv run pytest ../tests/test_kronos_strategy.py -v
 
 # Linting targets
 
@@ -190,6 +222,21 @@ live:
 		--bar-type $(BAR_TYPE) \
 		--trade-size $(TRADE_SIZE) \
 		$(LIVE_EXTRA_ARGS)
+
+# Run Kronos foundation model backtest
+# Model: KRONOS_MODEL_SIZE=mini|base  (default: mini, 4.1M params)
+# Symbol: KRONOS_SYMBOL=BTCUSDT       (default: BTCUSDT)
+# Interval: KRONOS_INTERVAL=1h        (default: 1h)
+# Capital: KRONOS_INITIAL_CAPITAL=500 (default: 500 USDT)
+backtest-kronos:
+	cd nautilus && uv run python ../strategies/crypto/kronos/backtest.py
+
+# Run Kronos paper trading on Binance Testnet
+# Requires: BINANCE_TESTNET_API_KEY, BINANCE_TESTNET_API_SECRET, KRONOS_REPO_PATH
+# Model: KRONOS_MODEL_SIZE=mini|base  (default: mini)
+# Symbol: KRONOS_SYMBOL=BTCUSDT       (default: BTCUSDT)
+paper-trade-kronos:
+	cd nautilus && uv run python ../strategies/crypto/kronos/paper_trade.py
 
 # Launch Jupyter Lab with strategy notebooks
 jupyter:
