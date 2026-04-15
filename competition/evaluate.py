@@ -99,6 +99,15 @@ class EvalDataError(RuntimeError):
     """
 
 
+class RoundConfigError(RuntimeError):
+    """The per-round config for ``--round N`` is missing or malformed.
+
+    Raised by ``_load_round_config``. Kept separate from ``SystemExit``
+    so library callers (tests, orchestrators) can catch it programma-
+    tically; ``main()`` converts it to a non-zero exit.
+    """
+
+
 # ---------------------------------------------------------------------------
 # Result dataclasses
 # ---------------------------------------------------------------------------
@@ -304,6 +313,31 @@ def read_manifest(module: ModuleType) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 
 
+# Cache of opened ParquetDataCatalog instances keyed by resolved path.
+# Rationale: a single evaluator run evaluates many submissions that typically
+# target the same instrument and thus read from the same catalog. Opening the
+# catalog per submission does redundant filesystem work. The cache is scoped
+# to the process so tests that spawn a fresh evaluator subprocess get a clean
+# slate automatically.
+_CATALOG_CACHE: dict[str, ParquetDataCatalog] = {}
+
+
+def _get_catalog(catalog_path: Path) -> ParquetDataCatalog:
+    """Return an opened ParquetDataCatalog for ``catalog_path``, cached."""
+    key = str(Path(catalog_path).resolve())
+    cached = _CATALOG_CACHE.get(key)
+    if cached is not None:
+        return cached
+    try:
+        catalog = ParquetDataCatalog(key)
+    except Exception as err:
+        raise EvalDataError(
+            f"Could not open ParquetDataCatalog at {catalog_path}: {err}"
+        ) from err
+    _CATALOG_CACHE[key] = catalog
+    return catalog
+
+
 def load_catalog_bars(
     catalog_path: Path,
     bar_type: BarType,
@@ -319,12 +353,7 @@ def load_catalog_bars(
     bars matching ``(instrument_id, bar_type)``, or any other lookup
     failure. Callers must NEVER substitute synthetic data on this path.
     """
-    try:
-        catalog = ParquetDataCatalog(str(catalog_path))
-    except Exception as err:
-        raise EvalDataError(
-            f"Could not open ParquetDataCatalog at {catalog_path}: {err}"
-        ) from err
+    catalog = _get_catalog(catalog_path)
 
     instrument = None
     try:
@@ -763,25 +792,21 @@ def _evaluate_pair(
         )
         return result
 
-    # --- Step 4: build engine, instrument, data ---
-    try:
-        engine = _build_engine(capital)
-    except Exception as err:
-        result.status = "ERROR"
-        result.error = f"engine build failed: {err}"
-        return result
-
+    # --- Step 4: build instrument + load real data, then build engine ---
+    # Build the (default) instrument first so load_bars_real knows what
+    # precisions to fall back to if the catalog doesn't stamp its own.
     try:
         instrument = _build_crypto_instrument(instrument_id.symbol.value, ts_now_ns=0)
     except Exception as err:
         result.status = "ERROR"
         result.error = f"instrument build failed: {err}"
-        engine.dispose()
         return result
 
-    # Real-data load. Raises EvalDataError on miss; never falls back to synthetic.
-    # If a catalog is supplied and exposes its own instrument with matching id,
-    # load_bars_real swaps it in so price/size precision lines up with the bars.
+    # Real-data load. Raises EvalDataError on miss; never falls back to
+    # synthetic. If a catalog is supplied and exposes its own instrument
+    # with matching id, load_bars_real swaps it in so price/size precision
+    # lines up with the bars. Done BEFORE building the engine so that a
+    # data-unavailable failure doesn't waste engine construction.
     try:
         bars, instrument = load_bars_real(
             ctx=ctx,
@@ -793,7 +818,13 @@ def _evaluate_pair(
         result.status = "ERROR"
         result.error = f"data unavailable: {err}"
         logger.error("Data load failed for %s: %s", agent_slug, err)
-        engine.dispose()
+        return result
+
+    try:
+        engine = _build_engine(capital)
+    except Exception as err:
+        result.status = "ERROR"
+        result.error = f"engine build failed: {err}"
         return result
 
     engine.add_instrument(instrument)
@@ -1154,7 +1185,7 @@ def _load_round_config(round_num: int) -> dict[str, Any]:
     try:
         module = importlib.import_module(module_name)
     except ImportError as err:
-        raise SystemExit(
+        raise RoundConfigError(
             f"No round config found at "
             f"competition/round_configs/round{round_num}.py "
             f"(tried to import {module_name!r}). "
@@ -1165,7 +1196,7 @@ def _load_round_config(round_num: int) -> dict[str, Any]:
         ) from err
     config = getattr(module, "ROUND_CONFIG", None)
     if not isinstance(config, dict):
-        raise SystemExit(
+        raise RoundConfigError(
             f"competition/round_configs/round{round_num}.py does not "
             f"expose a module-level ROUND_CONFIG dict."
         )
@@ -1212,7 +1243,11 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     args = parse_args(argv)
-    ctx = build_context(args)
+    try:
+        ctx = build_context(args)
+    except RoundConfigError as err:
+        logger.error("%s", err)
+        return 2
 
     competition_root = _REPO_ROOT / "competition"
     submissions: list[Path]
