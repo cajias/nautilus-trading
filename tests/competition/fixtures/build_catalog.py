@@ -12,8 +12,8 @@ Usage:
     cd nautilus && uv run python ../tests/competition/fixtures/build_catalog.py
 
 The helper is deliberately self-contained (logic copied, not imported, from
-competition/evaluate_round11.py) so it survives evaluator refactors. It raises
-on any failure — there is NO synthetic-data fallback.
+competition/evaluate.py) so it survives evaluator refactors. It raises on
+any failure — there is NO synthetic-data fallback.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
 
-# Repo-relative imports: evaluator lives at competition/evaluate_round11.py.
+# Repo-relative imports: evaluator lives at competition/evaluate.py.
 # We intentionally do NOT import from competition/ — keep this self-contained.
 _HERE = Path(__file__).resolve().parent
 _REPO_ROOT = _HERE.parents[3]  # tests/competition/fixtures → tests/competition → tests → repo

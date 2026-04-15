@@ -1,7 +1,7 @@
 """TiMi evolution-loop orchestrator (one competition round).
 
 Wires the four TiMi agents (A_ma → A_sa → A_be ↔ A_fr) together for a
-single competition round. Reads ``round<N>_config.py``, spawns each agent
+single competition round. Reads ``round_configs/round<N>.py``, spawns each agent
 in turn via ``claude -p`` (or a stub for tests), parses A_fr's refinement
 directives in the format defined by
 ``docs/research/timi/DIRECTIVE_FORMAT.md``, hands them back to A_be, and
@@ -41,7 +41,7 @@ from typing import Any
 import yaml
 
 # Make sibling competition modules + the nautilus src tree importable when
-# this file is run directly. Mirrors the pattern in evaluate_round11.py and
+# this file is run directly. Mirrors the pattern in evaluate.py and
 # validate_submission.py so the orchestrator stays runnable as a script.
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _NAUTILUS_SRC = _REPO_ROOT / "nautilus" / "src"
@@ -580,7 +580,7 @@ class StubInvoker(AgentInvoker):
 
 
 def _load_round_config(round_number: int) -> dict[str, Any]:
-    """Import ``competition/round<N>_config.py`` and return ROUND_CONFIG.
+    """Import ``competition/round_configs/round<N>.py`` and return ROUND_CONFIG.
 
     The config file is loaded by absolute path so the orchestrator works
     when invoked as a script (no implicit ``competition`` package on
@@ -652,12 +652,12 @@ def _run_validator(submission_dir: Path) -> tuple[bool, str]:
 def _run_backtest(submission_dir: Path, capital: Decimal) -> tuple[Decimal | None, str]:
     """Run the per-pair evaluator on ``submission_dir``.
 
-    Imports ``_evaluate_pair`` from ``evaluate_round11`` directly (the
+    Imports ``_evaluate_pair`` from ``competition.evaluate`` directly (the
     brief explicitly tells us not to subprocess out). Returns
     ``(total_return_pct, error_summary)``. ``total_return_pct`` is
     ``None`` on a non-OK status.
     """
-    from evaluate_round11 import EvalContext, _evaluate_pair  # noqa: PLC0415
+    from evaluate import EvalContext, _evaluate_pair  # noqa: PLC0415
 
     ctx = EvalContext(
         round_num=11,
@@ -1244,7 +1244,7 @@ def main(argv: list[str] | None = None) -> int:
         "--round",
         type=int,
         required=True,
-        help="Round number, e.g. 11. Must match a competition/round<N>_config.py",
+        help="Round number, e.g. 11. Must match a competition/round_configs/round<N>.py",
     )
     parser.add_argument(
         "--dry-run",

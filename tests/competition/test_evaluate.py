@@ -1,8 +1,8 @@
-"""Tests for ``competition/evaluate_round11.py``.
+"""Tests for ``competition/evaluate.py`` (parameterized R11+ evaluator).
 
 Covers:
 
-    * Happy path against the TEMPLATE fixture (synthetic data).
+    * Happy path against the TEMPLATE fixture (real-data catalog).
     * Rejecting a structurally broken submission.
     * Ranking multiple submissions into the same output file.
     * Respecting a CLI ``--initial-capital`` override.
@@ -11,7 +11,7 @@ Covers:
 
 Every test runs the evaluator as a subprocess, matching the pattern used
 by ``tests/competition/test_validate_submission.py``. Output is read from
-the ``round11_results.txt`` file the CLI writes (either at a default path
+the ``round{N}_results.txt`` file the CLI writes (either at a default path
 inside the repo's ``competition/`` directory, or at ``--output`` overrides
 when we want per-test isolation).
 """
@@ -28,7 +28,7 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _TEMPLATE_DIR = _REPO_ROOT / "competition" / "TEMPLATE"
-_EVALUATOR = _REPO_ROOT / "competition" / "evaluate_round11.py"
+_EVALUATOR = _REPO_ROOT / "competition" / "evaluate.py"
 
 
 def _run_evaluator(
@@ -222,7 +222,7 @@ def test_evaluator_ranks_multiple(tmp_path: Path, output_path: Path) -> None:
     from datetime import datetime, timezone
 
     sys.path.insert(0, str(_REPO_ROOT))
-    from competition.evaluate_round11 import (  # noqa: E402
+    from competition.evaluate import (  # noqa: E402
         EvalContext,
         SubmissionResult,
         render_results,
