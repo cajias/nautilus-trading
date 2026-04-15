@@ -93,10 +93,20 @@ exclude_lines = [
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+# Notebooks are exploratory research artifacts; their formatting and lint
+# concerns are handled separately (nbstripout, nbqa, or manual curation).
+# Ruff's --fix canonicalizes the source field and produces large, review-
+# unfriendly diffs, so we skip them entirely here.
+extend-exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "C4"]
 ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Runner scripts bootstrap sys.path before package imports -- E402 is structural.
+"../strategies/crypto/kronos/backtest.py" = ["E402"]
+"../strategies/crypto/kronos/paper_trade.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.12"
