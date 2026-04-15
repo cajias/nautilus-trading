@@ -1,23 +1,32 @@
-"""R11+ crypto competition evaluator.
+"""Parameterized R11+ crypto competition evaluator.
 
-Replaces the pre-R11 pandas-only evaluator (``evaluate_round10.py``). Each
-submission now ships a NautilusTrader ``Strategy`` subclass plus a
-``MANIFEST`` dict (see ``competition/COMPETITION.md``). This evaluator:
+Replaces the pre-R11 per-round pandas evaluators (now archived under
+``competition/archive/evaluate_round{1..10}.py``). Each submission ships a
+NautilusTrader ``Strategy`` subclass plus a ``MANIFEST`` dict (see
+``competition/COMPETITION.md`` and ``competition/ROUND11_CONTRACT.md``).
 
-    1. Discovers submissions in ``competition/agent-*/round11/`` (or uses
-       the ``--submission-dir`` override).
+The evaluator is round-agnostic: pass ``--round N`` and it will load
+``competition/round_configs/round{N}.py`` for the round-specific eval
+window, initial capital, and instrument allowlist. Create a new
+``round_configs/round{N}.py`` when a new round opens; the evaluator
+picks it up automatically.
+
+Steps:
+
+    1. Discovers submissions in ``competition/agent-*/round{N}/`` (or
+       uses the ``--submission-dir`` override).
     2. Validates each submission against the R11+ contract using
        ``competition/validate_submission.py``.
     3. Instantiates the submitted ``Strategy`` + ``StrategyConfig`` from
-       MANIFEST metadata and runs it through a ``BacktestEngine`` on the
-       round 11 hidden eval window.
-    4. Extracts final equity, return %, Sharpe, max drawdown, trade count,
-       and win rate from the portfolio analyzer.
-    5. Ranks submissions by return % and writes ``round11_results.txt``.
+       MANIFEST metadata and runs it through a ``BacktestEngine`` on
+       the round's hidden eval window.
+    4. Extracts final equity, return %, Sharpe, max drawdown, trade
+       count, and win rate from the portfolio analyzer.
+    5. Ranks submissions by return % and writes ``round{N}_results.txt``.
 
 Usage (smoke test against the template, hermetic)::
 
-    uv --project nautilus run python competition/evaluate_round11.py \\
+    uv --project nautilus run python competition/evaluate.py \\
         --round 11 --submission-dir competition/TEMPLATE \\
         --catalog-path tests/competition/fixtures/catalog --require-catalog
 
@@ -54,7 +63,7 @@ from typing import Any
 
 # Ensure the nautilus_trading src tree and the repo root are importable before
 # any NautilusTrader imports. Mirrors the pattern in validate_submission.py so
-# the evaluator can be run directly (``python competition/evaluate_round11.py``).
+# the evaluator can be run directly (``python competition/evaluate.py --round 11``).
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _NAUTILUS_SRC = _REPO_ROOT / "nautilus" / "src"
 if str(_NAUTILUS_SRC) not in sys.path:
@@ -62,7 +71,6 @@ if str(_NAUTILUS_SRC) not in sys.path:
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from competition.round11_config import ROUND_CONFIG  # noqa: E402
 from competition.validate_submission import REQUIRED_MANIFEST_KEYS, validate  # noqa: E402
 from nautilus_trader.backtest.engine import BacktestEngine, BacktestEngineConfig  # noqa: E402
 from nautilus_trader.config import LoggingConfig  # noqa: E402
@@ -1079,8 +1087,11 @@ def render_results(
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     """Parse CLI arguments for the evaluator."""
     parser = argparse.ArgumentParser(
-        prog="evaluate_round11",
-        description="Evaluate R11+ crypto competition submissions.",
+        prog="evaluate",
+        description=(
+            "Evaluate R11+ crypto competition submissions. "
+            "Dispatches by --round N to competition/round_configs/round{N}.py."
+        ),
     )
     parser.add_argument("--round", type=int, required=True, help="Round number (e.g. 11)")
     parser.add_argument(
@@ -1131,11 +1142,42 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
+def _load_round_config(round_num: int) -> dict[str, Any]:
+    """Dynamically load ``competition/round_configs/round{N}.py`` for this round.
+
+    The per-round config module must expose a module-level ``ROUND_CONFIG``
+    dict with ``eval_period``, ``initial_capital_usdt``, and (optionally)
+    ``instruments_allowlist`` keys. See ``round_configs/round11.py`` for the
+    canonical shape.
+    """
+    module_name = f"competition.round_configs.round{round_num}"
+    try:
+        module = importlib.import_module(module_name)
+    except ImportError as err:
+        raise SystemExit(
+            f"No round config found at "
+            f"competition/round_configs/round{round_num}.py "
+            f"(tried to import {module_name!r}). "
+            f"Create it with a ROUND_CONFIG dict matching the R11+ "
+            f"contract, or use the archived evaluator at "
+            f"competition/archive/evaluate_round{round_num}.py for "
+            f"historical pre-R11 rounds."
+        ) from err
+    config = getattr(module, "ROUND_CONFIG", None)
+    if not isinstance(config, dict):
+        raise SystemExit(
+            f"competition/round_configs/round{round_num}.py does not "
+            f"expose a module-level ROUND_CONFIG dict."
+        )
+    return config
+
+
 def build_context(args: argparse.Namespace) -> EvalContext:
-    """Translate CLI args + ROUND_CONFIG into an EvalContext."""
-    default_period = ROUND_CONFIG["eval_period"]
-    default_capital = ROUND_CONFIG["initial_capital_usdt"]
-    allowlist = tuple(ROUND_CONFIG.get("instruments_allowlist") or ())
+    """Translate CLI args + the per-round config into an EvalContext."""
+    round_config = _load_round_config(args.round)
+    default_period = round_config["eval_period"]
+    default_capital = round_config["initial_capital_usdt"]
+    allowlist = tuple(round_config.get("instruments_allowlist") or ())
 
     initial_capital = default_capital
     if args.initial_capital is not None:
