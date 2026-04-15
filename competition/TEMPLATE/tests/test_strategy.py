@@ -17,7 +17,6 @@ from nautilus_trader.model.data import BarType
 from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.trading.strategy import Strategy
 
-
 _TEMPLATE_DIR = Path(__file__).resolve().parents[1]
 _STRATEGY_PATH = _TEMPLATE_DIR / "strategy.py"
 

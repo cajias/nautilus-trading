@@ -39,7 +39,6 @@ if str(_COMPETITION_DIR) not in sys.path:
 
 from timi_laws import LawViolation, enforce_laws  # noqa: E402
 
-
 REQUIRED_MANIFEST_KEYS: frozenset[str] = frozenset(
     {
         "strategy_class_name",

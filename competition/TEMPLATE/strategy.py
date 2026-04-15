@@ -84,8 +84,8 @@ class TemplateStrategy(Strategy):
 MANIFEST: dict[str, Any] = {
     "strategy_class_name": "TemplateStrategy",
     "config_class_name": "TemplateConfig",
-    "instrument_id": "BNBUSDT.BINANCE",
-    "bar_type": "BNBUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+    "instrument_id": "BTCUSDT.BINANCE",
+    "bar_type": "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
     "default_config": {},
     "description": (
         "Trivial always-flat template showing the minimum submission shape"
