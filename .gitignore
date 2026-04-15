@@ -42,6 +42,8 @@ htmlcov/
 /data/
 *.parquet
 *.csv.gz
+# Test fixture catalogs ARE checked in (small, deterministic, hermetic CI)
+!tests/**/fixtures/**/*.parquet
 
 # Jupyter
 .ipynb_checkpoints/
