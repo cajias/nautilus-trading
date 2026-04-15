@@ -61,7 +61,7 @@ One markdown file per refinement iteration: `docs/research/timi/reflection/round
 | LP infeasible at the parameter layer | Automatic escalation to function layer. If no valid function swap exists, escalation to strategy layer. If strategy layer is already where we are, emit `diverged: true` and stop. |
 | `scipy` call produces a solution outside `ranges.yml` bounds | Agent must re-solve with the missing bounds added as explicit constraints, not clip silently. |
 | Agent proposes a non-numeric parameter change (e.g., "change the instrument") | Forbidden — not a parameter-layer change. Must be escalated and flagged as a strategy-layer modification. |
-| Agent's LP objective contradicts the competition evaluator (e.g., optimizes Sharpe when evaluator uses raw return) | Bug in the agent's spec; hard rule: objective MUST match the current round's `evaluate_roundN.py` scoring metric. |
+| Agent's LP objective contradicts the competition evaluator (e.g., optimizes Sharpe when evaluator uses raw return) | Bug in the agent's spec; hard rule: objective MUST match the current round's `evaluate.py` scoring metric. |
 | Agent loops without improvement (`J(π_Θ)` flat for K iterations) | Orchestrator enforces a hard stop at K=5. |
 | Live telemetry contradicts backtest result | Agent must weight live data higher; report a regime-shift hypothesis and escalate if warranted. |
 

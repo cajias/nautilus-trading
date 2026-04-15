@@ -69,7 +69,7 @@ on US equities, DJIA constituents, a handful of crypto assets, or S&P 500
 
 Not applicable -- survey paper. Its three-way taxonomy and metric
 checklist are already informally used in the repo's eval scripts
-(see `competition/evaluate_round*.py`).
+(see `competition/evaluate.py` and `competition/archive/evaluate_round*.py`).
 
 ## Effort estimate
 

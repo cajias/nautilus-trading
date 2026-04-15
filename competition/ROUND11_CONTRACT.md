@@ -126,7 +126,7 @@ exchange filters — do NOT hardcode precision.
 
 ## Evaluation Process (Round 11+)
 
-The evaluator (`evaluate_round11.py`) uses **NautilusTrader's `BacktestEngine`**, not a
+The evaluator (`evaluate.py --round 11`) uses **NautilusTrader's `BacktestEngine`**, not a
 custom pandas simulation. This means:
 
 1. Data is fetched from the ParquetDataCatalog (or downloaded once and cached)

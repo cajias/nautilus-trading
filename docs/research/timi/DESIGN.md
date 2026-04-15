@@ -118,7 +118,7 @@ TiMi's three layers map cleanly onto our existing file shape:
 
 ## Evolution loop — concrete flow
 
-1. **Trigger**: a new competition round opens (`round11_config.py` is the current baseline). Orchestrator spawns a `timi-macro-analyst` subagent.
+1. **Trigger**: a new competition round opens (`round_configs/round11.py` is the current baseline). Orchestrator spawns a `timi-macro-analyst` subagent.
 2. **A_ma** reads the TRAIN window from `catalog/`, detects regime, writes `docs/research/timi/macro/round<N>.md` with a short list of candidate strategy templates (EMA cross, VWAP pullback, Donchian breakout, etc.). One macro regime analysis per round, shared across pairs.
 3. **A_sa** spawns next. **For each pair in the round** (per Q18, per-pair strategies), it picks a template from `A_ma`'s output and writes initial `Θ_p`. Output: `docs/research/timi/adapted/round<N>__<PAIR>.md` (one file per pair, e.g., `round11__BTCUSDT.md`, `round11__ETHUSDT.md`, ...).
 4. **A_be** is invoked once per pair via the `crypto-competition` skill. For each pair it copies `competition/TEMPLATE/`, renames to `competition/agent-N-timi/round<N>/<PAIR>/`, and writes a `strategy.py` that reflects that pair's `A_sa` spec. Per pair it runs:
@@ -182,7 +182,7 @@ TiMi's optimization loop maps 1:1 onto our `BacktestEngine` flow:
 Once A_fr converges on a `B*` that passes `validate_submission.py` + backtest on the TRAIN+TEST windows:
 
 1. Submission is committed to `competition/agent-N-timi/roundX/`.
-2. `evaluate_roundX.py` scores it on the hidden eval window (this is the competition's evaluator, unchanged).
+2. `evaluate.py --round X` scores it on the hidden eval window (this is the competition's evaluator, unchanged).
 3. If it is round-winning, or we want to dry-run it, `nautilus/src/nautilus_trading/live/runner.py` reads the same `MANIFEST` and instantiates the identical class against Binance Spot **testnet**.
 4. Testnet runs on real-time WebSocket klines from Binance sandbox with Ed25519 auth (see memory: `project_live_trading_gotchas`). No real USDT at risk ever. The runner defaults to `testnet=True`; we do not expose a production toggle to any TiMi agent.
 5. Any live-trading state (fills, orphaned orders, price deviation alarms) is logged and fed back into `A_fr` on the next offline cycle as a new source of `F`.

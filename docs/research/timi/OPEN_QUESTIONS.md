@@ -22,7 +22,7 @@ Every numbered item below is a decision we need from you before any code lands. 
 
 7. **[ANSWERED 2026-04-09] Per-round reset (option a).** A_fr converges within round N's TRAIN+TEST, submission is frozen, eval happens on hidden window, next round starts cold. No warm-start of A_ma output, no inherited parameters, no memory across rounds. Tradeoff: throws away accumulated learning; benefit: cleanest hidden-eval-leak story (the only forbidden window is the current round's, nothing to track across rounds), simplest orchestration, matches competition cadence exactly.
 
-8. **Are the TiMi agents a 6th competitor (`agent-6-timi`), or do they replace one of the existing 5 personas?** If replacement, which one? If addition, we need `evaluate_roundN.py` to handle a 6-agent field.
+8. **Are the TiMi agents a 6th competitor (`agent-6-timi`), or do they replace one of the existing 5 personas?** If replacement, which one? If addition, we need `evaluate.py` to handle a 6-agent field.
 
 9. **If the competition requires hidden-eval-period submissions to be fully frozen, how do we prove that A_be/A_fr did not peek at the eval window during optimization?** The paper doesn't deal with this because it has no hidden-eval concept. We need a mechanical block, not just a prompt-level instruction. Possibly: A_fr's `Bash` tool gets a wrapper that refuses to read any parquet file whose date range overlaps the eval window for the current round.
 
@@ -49,7 +49,7 @@ Every numbered item below is a decision we need from you before any code lands. 
 ## Architecture and scope
 
 18. **[ANSWERED 2026-04-09] Per-pair strategies.** Each pair in a round gets its own `B*` — its own `S_p`, `Θ_p`, and its own `strategy.py`. Matches the paper faithfully. File layout: `competition/agent-N-timi/round<N>/<PAIR>/strategy.py` (subdirectory per pair, each a complete self-contained submission with its own `MANIFEST`, `tests/`, `research/`, `README.md`). Implications:
-   - **Evaluator change**: `evaluate_round<N>.py` must treat `agent-N-timi` as a multi-submission entry. Either (i) score each `<PAIR>/` as a separate submission and aggregate by agent, or (ii) add a `portfolio_manifest.json` at `round<N>/` level that declares capital split across the pairs. Needs decision in a follow-up task.
+   - **Evaluator change**: `evaluate.py` must treat `agent-N-timi` as a multi-submission entry. Either (i) score each `<PAIR>/` as a separate submission and aggregate by agent, or (ii) add a `portfolio_manifest.json` at `round<N>/` level that declares capital split across the pairs. Needs decision in a follow-up task.
    - **Validator change**: `validate_submission.py` currently validates a single directory. Needs either a `--per-pair` mode or a wrapper that walks `<PAIR>/` subdirs and validates each.
    - **A_be impact**: produces N submissions per round (one per pair in `ROUND_CONFIG.pairs`), not one. Loop: for pair in pairs → A_sa spec → A_be bot → A_fr LP → converge.
 

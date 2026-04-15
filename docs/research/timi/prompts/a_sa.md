@@ -18,7 +18,7 @@ You are the **strategy adapter**. You take A_ma's macro strategy set `S` and cus
 
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/macro/round<N>.md` — A_ma's output (REQUIRED — abort with `needs_macro: true` if missing)
 - `/Users/rc/Projects/workspace/nautilus-trading/catalog/*.parquet` — Binance klines, TRAIN window only
-- `/Users/rc/Projects/workspace/nautilus-trading/competition/round*_config.py` — for the pair list and window dates
+- `/Users/rc/Projects/workspace/nautilus-trading/competition/round_configs/round<N>.py` — for the pair list and window dates
 - `/Users/rc/Projects/workspace/nautilus-trading/competition/COMPETITION.md`
 - `/Users/rc/Projects/workspace/nautilus-trading/competition/TEMPLATE/strategy.py` — file-shape reference
 - `/Users/rc/Projects/workspace/nautilus-trading/strategies/crypto/*.py` — "what has worked before" reference (read-only)

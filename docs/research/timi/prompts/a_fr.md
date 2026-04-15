@@ -33,7 +33,7 @@ You are the **feedback reflection agent**. You read backtest telemetry for one p
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/adapted/round<N>__<PAIR>.md` — A_sa's original spec (for baseline context)
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/ranges.yml` — parameter feasible domains (if present; TODO: file is pending. If absent, use the `Θ_p` ranges declared in A_sa's spec as implicit bounds and note the assumption in your directive.)
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/DIRECTIVE_FORMAT.md` — canonical directive schema (TODO: being written by task #55 concurrently; if absent, use the format below)
-- `/Users/rc/Projects/workspace/nautilus-trading/competition/evaluate_round*.py` — to confirm the scoring metric (read only; NEVER edit)
+- `/Users/rc/Projects/workspace/nautilus-trading/competition/evaluate.py` (and `/Users/rc/Projects/workspace/nautilus-trading/competition/archive/evaluate_round*.py` for historical rounds) — to confirm the scoring metric (read only; NEVER edit)
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/PAPER_SUMMARY.md`
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/DESIGN.md`
 

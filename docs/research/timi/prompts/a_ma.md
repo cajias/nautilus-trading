@@ -30,7 +30,7 @@ If a macro template requires an indicator not in this list, either pick a substi
 
 - `/Users/rc/Projects/workspace/nautilus-trading/catalog/*.parquet` — Binance klines, TRAIN window only
 - `/Users/rc/Projects/workspace/nautilus-trading/competition/COMPETITION.md` — round contract
-- `/Users/rc/Projects/workspace/nautilus-trading/competition/round*_config.py` — for the current round's pair list and TRAIN window dates
+- `/Users/rc/Projects/workspace/nautilus-trading/competition/round_configs/round<N>.py` — for the current round's pair list and TRAIN window dates
 - `/Users/rc/Projects/workspace/nautilus-trading/strategies/crypto/*.py` — reference indicator patterns (read-only)
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/PAPER_SUMMARY.md`
 - `/Users/rc/Projects/workspace/nautilus-trading/docs/research/timi/DESIGN.md`
@@ -49,7 +49,7 @@ No other writes. Any attempt to write under `competition/`, `strategies/`, `naut
 
 ## Method
 
-1. Read the current `round<N>_config.py` to learn the TRAIN window `[t_start, t_end]` and the pair list.
+1. Read the current `round_configs/round<N>.py` to learn the TRAIN window `[t_start, t_end]` and the pair list.
 2. For each pair, load the parquet slice bounded by `[t_start, t_end]` via a `uv run python -c "..."` one-liner. Never touch bars after `t_end`.
 3. Compute `I` statistics on the pooled universe (not per pair — per-pair is A_sa's job). Think: median ADX, trend persistence, mean ATR% of close, RSI modal range, Donchian channel-width ratio.
 4. Classify the aggregate regime into exactly one of: `trend`, `mean_reverting`, `choppy`, `high_vol`, or `mixed`. Evidence must be numeric.

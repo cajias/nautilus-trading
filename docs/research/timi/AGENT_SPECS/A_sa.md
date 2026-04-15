@@ -8,7 +8,7 @@ The strategy adaptation agent "customizes macro strategies `S` into pair-specifi
 
 - `docs/research/timi/macro/round<N>.md` — A_ma's output for the current round.
 - `catalog/*.parquet` — per-pair statistics: realized volatility, mean amplitude, typical volume, bid-ask spread profile where available.
-- A list of in-round pairs from `competition/roundN_config.py` (for R11+) or `COMPETITION.md`.
+- A list of in-round pairs from `competition/round_configs/round<N>.py` (for R11+) or `COMPETITION.md`.
 - `competition/TEMPLATE/` as the file-shape reference.
 - The existing `strategies/crypto/*.py` library as a "what has worked before" reference.
 

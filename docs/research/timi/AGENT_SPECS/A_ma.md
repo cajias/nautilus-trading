@@ -44,7 +44,7 @@ A single markdown file per round: `docs/research/timi/macro/round<N>.md`. It mus
 ## Invocation trigger
 
 - **Manual:** `timi run macro --round N` (future CLI; for now, an orchestrator-dispatched task).
-- **Automatic:** when a new `roundN_config.py` lands in `competition/` and no `docs/research/timi/macro/round<N>.md` yet exists.
+- **Automatic:** when a new `round_configs/round<N>.py` lands in `competition/` and no `docs/research/timi/macro/round<N>.md` yet exists.
 - **Dependency:** none — this agent runs first in the pipeline.
 
 ## Failure modes

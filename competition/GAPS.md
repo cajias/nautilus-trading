@@ -77,7 +77,7 @@ any other location (or run from a git worktree).
 
 ### Gap 2 — Evaluator never uses NautilusTrader
 
-The `evaluate_roundN.py` files call `mod.run_backtest(start, end, capital)`. NautilusTrader
+The `evaluate.py` evaluator (and archived `archive/evaluate_round*.py` files) calls `mod.run_backtest(start, end, capital)`. NautilusTrader
 is never imported. The competition results are from a custom pandas simulation, not from
 the same engine that will run live.
 
@@ -88,7 +88,7 @@ via `TradingNode` due to:
 - Position sizing differences (pandas uses float equity; NT uses `Quantity` with precision)
 - Fee model differences
 
-**Fixed in this PR:** `evaluate_round11.py` uses `BacktestEngine` for NT-based evaluation.
+**Fixed in this PR:** `evaluate.py` uses `BacktestEngine` for NT-based evaluation.
 Round 11+ strategies must be NT subclasses (see `ROUND11_CONTRACT.md`).
 
 ### Gap 3 — No strategy interface contract documented
