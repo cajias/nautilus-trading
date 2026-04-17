@@ -224,6 +224,7 @@ def test_evaluator_ranks_multiple(tmp_path: Path, output_path: Path) -> None:
     sys.path.insert(0, str(_REPO_ROOT))
     from competition.evaluate import (  # noqa: E402
         EvalContext,
+        ResultStatus,
         SubmissionResult,
         render_results,
     )
@@ -239,7 +240,7 @@ def test_evaluator_ranks_multiple(tmp_path: Path, output_path: Path) -> None:
         SubmissionResult(
             agent_slug="agent8_beta",
             submission_dir=agent_b,
-            status="OK",
+            status=ResultStatus.OK,
             strategy_name="TemplateStrategy",
             description="beta",
             final_equity=Decimal("1200.00"),
@@ -252,7 +253,7 @@ def test_evaluator_ranks_multiple(tmp_path: Path, output_path: Path) -> None:
         SubmissionResult(
             agent_slug="agent9_alpha",
             submission_dir=agent_a,
-            status="OK",
+            status=ResultStatus.OK,
             strategy_name="TemplateStrategy",
             description="alpha",
             final_equity=Decimal("1500.00"),

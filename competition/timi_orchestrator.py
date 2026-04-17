@@ -657,7 +657,7 @@ def _run_backtest(submission_dir: Path, capital: Decimal) -> tuple[Decimal | Non
     ``(total_return_pct, error_summary)``. ``total_return_pct`` is
     ``None`` on a non-OK status.
     """
-    from evaluate import EvalContext, _evaluate_pair  # noqa: PLC0415
+    from evaluate import EvalContext, ResultStatus, _evaluate_pair  # noqa: PLC0415
 
     ctx = EvalContext(
         round_num=11,
@@ -673,7 +673,7 @@ def _run_backtest(submission_dir: Path, capital: Decimal) -> tuple[Decimal | Non
         capital=capital,
         agent_slug=submission_dir.parent.name + "::" + submission_dir.name,
     )
-    if result.status != "OK":
+    if result.status != ResultStatus.OK:
         return None, result.error or result.status
     return Decimal(str(result.total_return_pct)), ""
 
