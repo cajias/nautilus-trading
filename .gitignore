@@ -30,7 +30,12 @@ htmlcov/
 .ruff_cache/
 
 # Claude Code / local tooling state
-.claude/
+# Ignore .claude/* by default, but track the team-shared guardrail hooks
+# and their settings. Personal state (skills/, worktrees/) stays local.
+.claude/*
+!.claude/hooks/
+!.claude/hooks/**
+!.claude/settings.json
 .playwright-mcp/
 .remember/
 
