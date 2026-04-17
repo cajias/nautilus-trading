@@ -48,6 +48,7 @@ NEVER substitutes synthetic / generated data on the runtime path.
 from __future__ import annotations
 
 import argparse
+import enum
 import importlib.util
 import logging
 import math
@@ -80,7 +81,6 @@ from nautilus_trader.model.enums import AccountType, OmsType  # noqa: E402
 from nautilus_trader.model.identifiers import InstrumentId, Venue  # noqa: E402
 from nautilus_trader.model.objects import Money, Price, Quantity  # noqa: E402
 from nautilus_trader.persistence.catalog import ParquetDataCatalog  # noqa: E402
-
 from nautilus_trading.data.providers import _build_crypto_instrument  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -113,6 +113,14 @@ class RoundConfigError(RuntimeError):
 # ---------------------------------------------------------------------------
 
 
+class ResultStatus(enum.StrEnum):
+    """Outcome status for a single submission evaluation."""
+
+    OK = "OK"
+    ERROR = "ERROR"
+    INVALID = "INVALID"
+
+
 @dataclass
 class SubmissionResult:
     """Outcome of evaluating a single submission.
@@ -127,7 +135,7 @@ class SubmissionResult:
 
     agent_slug: str
     submission_dir: Path
-    status: str  # "OK" | "INVALID" | "ERROR"
+    status: ResultStatus
     strategy_name: str = ""
     description: str = ""
     final_equity: Decimal = Decimal("0")
@@ -662,7 +670,7 @@ def evaluate_submission(submission_dir: Path, ctx: EvalContext) -> SubmissionRes
         return SubmissionResult(
             agent_slug=agent_slug,
             submission_dir=submission_dir,
-            status="INVALID",
+            status=ResultStatus.INVALID,
             error=str(err),
             final_equity=ctx.initial_capital,
         )
@@ -681,7 +689,7 @@ def evaluate_submission(submission_dir: Path, ctx: EvalContext) -> SubmissionRes
         return SubmissionResult(
             agent_slug=agent_slug,
             submission_dir=submission_dir,
-            status="INVALID",
+            status=ResultStatus.INVALID,
             error="per-pair submission has no pair directories",
             final_equity=ctx.initial_capital,
         )
@@ -729,7 +737,7 @@ def _evaluate_pair(
     result = SubmissionResult(
         agent_slug=agent_slug,
         submission_dir=submission_dir,
-        status="ERROR",
+        status=ResultStatus.ERROR,
         final_equity=capital,
     )
 
@@ -737,7 +745,7 @@ def _evaluate_pair(
     try:
         report = validate(submission_dir)
     except Exception as err:
-        result.status = "INVALID"
+        result.status = ResultStatus.INVALID
         result.error = f"validator crashed: {err}"
         logger.error("Validator crashed on %s: %s", submission_dir, err)
         return result
@@ -746,7 +754,7 @@ def _evaluate_pair(
         failed_titles = [
             f"step{r.step} {r.title}" for r in report.results if r.status == "FAIL"
         ]
-        result.status = "INVALID"
+        result.status = ResultStatus.INVALID
         result.error = "; ".join(failed_titles) or "validation failed"
         logger.warning("Submission %s failed validation: %s", agent_slug, result.error)
         return result
@@ -757,7 +765,7 @@ def _evaluate_pair(
         module = load_strategy_module(strategy_path)
         manifest = read_manifest(module)
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"load/manifest: {err}"
         logger.error("Failed to load %s: %s", submission_dir, err)
         return result
@@ -770,7 +778,7 @@ def _evaluate_pair(
     strategy_cls = getattr(module, strategy_class_name, None)
     config_cls = getattr(module, config_class_name, None)
     if strategy_cls is None or config_cls is None:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = (
             f"classes not found in module: {strategy_class_name!r}, {config_class_name!r}"
         )
@@ -781,12 +789,12 @@ def _evaluate_pair(
         instrument_id = InstrumentId.from_str(str(manifest["instrument_id"]))
         bar_type = BarType.from_str(str(manifest["bar_type"]))
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"invalid instrument_id/bar_type: {err}"
         return result
 
     if ctx.allowlist and str(instrument_id) not in ctx.allowlist:
-        result.status = "INVALID"
+        result.status = ResultStatus.INVALID
         result.error = (
             f"instrument {instrument_id} not in round {ctx.round_num} allowlist"
         )
@@ -798,7 +806,7 @@ def _evaluate_pair(
     try:
         instrument = _build_crypto_instrument(instrument_id.symbol.value, ts_now_ns=0)
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"instrument build failed: {err}"
         return result
 
@@ -815,7 +823,7 @@ def _evaluate_pair(
             instrument=instrument,
         )
     except EvalDataError as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"data unavailable: {err}"
         logger.error("Data load failed for %s: %s", agent_slug, err)
         return result
@@ -823,7 +831,7 @@ def _evaluate_pair(
     try:
         engine = _build_engine(capital)
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"engine build failed: {err}"
         return result
 
@@ -842,7 +850,7 @@ def _evaluate_pair(
         )
         strategy = strategy_cls(config=config)
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"strategy instantiation failed: {err}"
         engine.dispose()
         return result
@@ -853,7 +861,7 @@ def _evaluate_pair(
     try:
         engine.run()
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"engine.run() raised: {err}"
         logger.error("engine.run() failed for %s:\n%s", agent_slug, traceback.format_exc())
         engine.dispose()
@@ -862,14 +870,14 @@ def _evaluate_pair(
     try:
         metrics = extract_metrics(engine, capital)
     except Exception as err:
-        result.status = "ERROR"
+        result.status = ResultStatus.ERROR
         result.error = f"metric extraction failed: {err}"
         engine.dispose()
         return result
 
     engine.dispose()
 
-    result.status = "OK"
+    result.status = ResultStatus.OK
     result.final_equity = metrics["final_equity"]
     result.total_return_pct = metrics["total_return_pct"]
     result.sharpe_ratio = metrics["sharpe_ratio"]
@@ -911,8 +919,8 @@ def _aggregate_pair_results(
     a single actionable failure instead of a confusing partial
     leaderboard row.
     """
-    ok_pairs = [r for r in pair_results if r.status == "OK"]
-    bad_pairs = [r for r in pair_results if r.status != "OK"]
+    ok_pairs = [r for r in pair_results if r.status == ResultStatus.OK]
+    bad_pairs = [r for r in pair_results if r.status != ResultStatus.OK]
 
     # Strategy label + description for the agent row: prefer the first
     # successful pair if any, else fall back to the first broken one so
@@ -926,7 +934,7 @@ def _aggregate_pair_results(
     aggregate = SubmissionResult(
         agent_slug=agent_slug,
         submission_dir=submission_dir,
-        status="OK",
+        status=ResultStatus.OK,
         strategy_name=first_any.strategy_name or "per-pair",
         description=description,
         final_equity=Decimal("0.00"),
@@ -934,7 +942,7 @@ def _aggregate_pair_results(
     )
 
     if bad_pairs:
-        aggregate.status = "INVALID"
+        aggregate.status = ResultStatus.INVALID
         errors = []
         for r in bad_pairs:
             label = r.submission_dir.name
@@ -944,7 +952,7 @@ def _aggregate_pair_results(
         return aggregate
 
     if not ok_pairs:  # pragma: no cover - bad_pairs covers this
-        aggregate.status = "INVALID"
+        aggregate.status = ResultStatus.INVALID
         aggregate.error = "no pairs evaluated"
         aggregate.final_equity = total_capital
         return aggregate
@@ -1011,8 +1019,8 @@ def render_results(
     generated_at: datetime,
 ) -> str:
     """Render the leaderboard table in a style similar to R10 output."""
-    ok_results = [r for r in results if r.status == "OK"]
-    invalid_results = [r for r in results if r.status != "OK"]
+    ok_results = [r for r in results if r.status == ResultStatus.OK]
+    invalid_results = [r for r in results if r.status != ResultStatus.OK]
     ok_results.sort(key=lambda r: r.total_return_pct, reverse=True)
 
     lines: list[str] = []
@@ -1081,7 +1089,7 @@ def render_results(
         lines.append(f"  submission_dir: {r.submission_dir}")
         if r.description:
             lines.append(f"  description: {r.description}")
-        if r.status == "OK":
+        if r.status == ResultStatus.OK:
             lines.append(f"  strategy: {r.strategy_name}")
             lines.append(f"  final_equity: {r.final_equity}")
             lines.append(f"  total_return_pct: {r.total_return_pct:+.4f}")
@@ -1095,7 +1103,7 @@ def render_results(
             lines.append("  per-pair:")
             for pair in r.per_pair_results:
                 pair_name = pair.submission_dir.name
-                if pair.status == "OK":
+                if pair.status == ResultStatus.OK:
                     lines.append(
                         f"    {pair_name}: return={pair.total_return_pct:+.2f}%, "
                         f"sharpe={pair.sharpe_ratio:.2f}, "
