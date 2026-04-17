@@ -91,7 +91,7 @@ ImportableStrategyConfig(
 ## Mandatory Risk Management
 
 All strategies must implement the following safety constraints. These are validated by
-`validate_strategy.py` before evaluation.
+`validate_submission.py` before evaluation.
 
 | Requirement | Minimum | Notes |
 |-------------|---------|-------|
@@ -126,7 +126,7 @@ exchange filters — do NOT hardcode precision.
 
 ## Evaluation Process (Round 11+)
 
-The evaluator (`evaluate_round11.py`) uses **NautilusTrader's `BacktestEngine`**, not a
+The evaluator (`evaluate.py --round 11`) uses **NautilusTrader's `BacktestEngine`**, not a
 custom pandas simulation. This means:
 
 1. Data is fetched from the ParquetDataCatalog (or downloaded once and cached)
@@ -148,8 +148,8 @@ Same as rounds 1–10:
 Before submitting, run:
 
 ```bash
-cd nautilus && uv run python ../competition/validate_strategy.py \
-    competition/agent-1-quant/round11/strategy.py
+cd nautilus && uv run python ../competition/validate_submission.py \
+    competition/agent-1-quant/round11
 ```
 
 All checks must pass for the submission to be accepted.

@@ -200,6 +200,10 @@ BUY_AMOUNT    ?=
 BUY_INTERVAL  ?=
 FAST_EMA      ?=
 SLOW_EMA      ?=
+SMA_FAST      ?=
+SMA_SLOW      ?=
+STOP_FAST     ?=
+STOP_SLOW     ?=
 
 # Build optional CLI args only when the corresponding variable is non-empty
 LIVE_EXTRA_ARGS := \
@@ -209,7 +213,11 @@ LIVE_EXTRA_ARGS := \
 	$(if $(BUY_AMOUNT),--buy-amount $(BUY_AMOUNT)) \
 	$(if $(BUY_INTERVAL),--buy-interval $(BUY_INTERVAL)) \
 	$(if $(FAST_EMA),--fast-ema $(FAST_EMA)) \
-	$(if $(SLOW_EMA),--slow-ema $(SLOW_EMA))
+	$(if $(SLOW_EMA),--slow-ema $(SLOW_EMA)) \
+	$(if $(SMA_FAST),--sma-fast $(SMA_FAST)) \
+	$(if $(SMA_SLOW),--sma-slow $(SMA_SLOW)) \
+	$(if $(STOP_FAST),--stop-fast $(STOP_FAST)) \
+	$(if $(STOP_SLOW),--stop-slow $(STOP_SLOW))
 
 live:
 	@if [ -z "$(STRATEGY)" ]; then \

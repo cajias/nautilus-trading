@@ -76,6 +76,23 @@ def live(
         int,
         typer.Option("--slow-ema", help="Slow EMA period."),
     ] = 200,
+    # Hybrid SMA R10 ensemble specific
+    sma_fast: Annotated[
+        int,
+        typer.Option("--sma-fast", help="Hybrid SMA R10: fast SMA period."),
+    ] = 20,
+    sma_slow: Annotated[
+        int,
+        typer.Option("--sma-slow", help="Hybrid SMA R10: slow SMA period."),
+    ] = 30,
+    stop_fast: Annotated[
+        float,
+        typer.Option("--stop-fast", help="Hybrid SMA R10: fast trailing stop pct."),
+    ] = 0.07,
+    stop_slow: Annotated[
+        float,
+        typer.Option("--stop-slow", help="Hybrid SMA R10: slow trailing stop pct."),
+    ] = 0.08,
 ) -> None:
     """Run a strategy on Binance (testnet by default, --live for production).
 
@@ -101,11 +118,15 @@ def live(
     strat_config: dict = {
         "instrument_id": instrument_id,
         "bar_type": bar_type,
-        "trade_size": trade_size,
     }
 
     # Strategy-specific params
     module_name = strategy_path.rsplit(".", 1)[-1].split(":")[0]
+
+    # The Hybrid SMA ensemble sizes positions from equity, so it does NOT
+    # take a fixed `trade_size`. All other strategies still need it.
+    if module_name != "hybrid_sma_r10":
+        strat_config["trade_size"] = trade_size
 
     if module_name == "grid_bot":
         if not upper_price or not lower_price:
@@ -127,6 +148,13 @@ def live(
         elif module_name == "ema_cross":
             strat_config["fast_ema_period"] = fast_ema
             strat_config["slow_ema_period"] = slow_ema
+
+    elif module_name == "hybrid_sma_r10":
+        strat_config["sma_fast"] = sma_fast
+        strat_config["sma_slow"] = sma_slow
+        # Decimal fields go through msgspec as strings.
+        strat_config["stop_fast"] = str(stop_fast)
+        strat_config["stop_slow"] = str(stop_slow)
 
     env_label = "TESTNET" if testnet else "PRODUCTION"
     typer.echo(f"Starting {module_name} on {instrument_id} ({env_label})")
