@@ -486,6 +486,26 @@ def _find_float_monetary(tree: ast.AST) -> list[tuple[str, int]]:
     return warnings
 
 
+def _find_hardcoded_api_calls(source: str) -> list[str]:
+    """Return forbidden HTTP/API patterns found in source text.
+
+    Strategies must not make direct HTTP calls -- they should use the
+    NautilusTrader data client abstraction instead.
+    """
+    forbidden = ("import requests", "urllib.request", "requests.get", "requests.post")
+    return [f for f in forbidden if f in source]
+
+
+def _has_pandas_backtest(source: str) -> bool:
+    """Return True if source defines a ``run_backtest()`` function.
+
+    The ``def run_backtest(`` signature is the hallmark of the old
+    pandas-only simulation pattern that is not compatible with NT
+    live trading.
+    """
+    return "def run_backtest(" in source
+
+
 def check_static_constraints(strategy_path: Path, report: Report) -> None:
     """Run AST/regex-level safety checks on the strategy source file."""
     source = strategy_path.read_text(encoding="utf-8")
@@ -500,7 +520,34 @@ def check_static_constraints(strategy_path: Path, report: Report) -> None:
         )
         return
 
-    # 5a. print() calls
+    # 5a. No hardcoded HTTP/API calls
+    api_hits = _find_hardcoded_api_calls(source)
+    if api_hits:
+        report.add(
+            5,
+            "No hardcoded API/HTTP calls",
+            "FAIL",
+            f"Strategy makes external HTTP calls (not allowed): {api_hits}",
+        )
+    else:
+        report.add(5, "No hardcoded API/HTTP calls", "OK")
+
+    # 5b. No pandas-only run_backtest() pattern
+    if _has_pandas_backtest(source):
+        report.add(
+            5,
+            "No run_backtest() function",
+            "FAIL",
+            (
+                "Strategy contains run_backtest() -- this is the pandas-only "
+                "simulation pattern. Remove it and implement the NautilusTrader "
+                "Strategy subclass instead."
+            ),
+        )
+    else:
+        report.add(5, "No run_backtest() function", "OK")
+
+    # 5c. print() calls
     print_lines = _find_print_calls(tree)
     if print_lines:
         line_str = ", ".join(str(line) for line in print_lines)
@@ -513,7 +560,7 @@ def check_static_constraints(strategy_path: Path, report: Report) -> None:
     else:
         report.add(5, "No print() calls", "OK")
 
-    # 5b. Prohibited identifiers
+    # 5d. Prohibited identifiers
     cleaned = _strip_comments_and_docstrings(source, tree)
     prohibited_hits = _find_prohibited_identifiers(cleaned)
     if prohibited_hits:
@@ -533,7 +580,7 @@ def check_static_constraints(strategy_path: Path, report: Report) -> None:
             "OK",
         )
 
-    # 5c. round() on price
+    # 5e. round() on price
     round_lines = _find_round_on_price(tree)
     if round_lines:
         line_str = ", ".join(str(line) for line in round_lines)
@@ -549,7 +596,7 @@ def check_static_constraints(strategy_path: Path, report: Report) -> None:
     else:
         report.add(5, "No round() on price variables", "OK")
 
-    # 5d. make_price / make_qty presence if order APIs used
+    # 5f. make_price / make_qty presence if order APIs used
     if _uses_order_apis(tree):
         if _uses_make_price_or_qty(tree):
             report.add(5, "make_qty/make_price usage present", "OK")
@@ -572,7 +619,7 @@ def check_static_constraints(strategy_path: Path, report: Report) -> None:
             "Skipped: strategy places no orders.",
         )
 
-    # 5e. Soft warnings: float() on monetary variables
+    # 5g. Soft warnings: float() on monetary variables
     float_hits = _find_float_monetary(tree)
     if float_hits:
         detail = "float() used on monetary-looking variables:\n" + "\n".join(
