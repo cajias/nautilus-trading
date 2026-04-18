@@ -1388,7 +1388,7 @@ EOF
 - Modify: `Makefile` (if any target references it)
 - Modify: `vulture_whitelist.py` (if it whitelists anything in that file)
 
-- [ ] **Step 1: Confirm no runtime code imports it**
+- [x] **Step 1: Confirm no runtime code imports it**
 
 ```bash
 grep -rn "backtest_demo" strategies/ nautilus/ tests/ Makefile 2>/dev/null
@@ -1396,7 +1396,7 @@ grep -rn "backtest_demo" strategies/ nautilus/ tests/ Makefile 2>/dev/null
 
 Expected: matches only in `Makefile` (if any) and this file itself. Any imports from strategies/tests/production code are blockers — stop and ask the team-lead.
 
-- [ ] **Step 2: Delete the file and any Makefile references**
+- [x] **Step 2: Delete the file and any Makefile references**
 
 ```bash
 git rm strategies/crypto/backtest_demo.py
@@ -1404,7 +1404,7 @@ git rm strategies/crypto/backtest_demo.py
 
 If `grep` in step 1 found Makefile targets (e.g. `backtest-demo:`), remove those targets with `Edit` on `Makefile`. Audit says none exist, but verify.
 
-- [ ] **Step 3: Run the full test suite**
+- [x] **Step 3: Run the full test suite**
 
 ```bash
 cd nautilus && uv run pytest -q 2>&1 | tail -10
@@ -1412,7 +1412,7 @@ cd nautilus && uv run pytest -q 2>&1 | tail -10
 
 Expected: same pass count as end of PR 1 (no test referenced `backtest_demo`).
 
-- [ ] **Step 4: Run `make lint`**
+- [x] **Step 4: Run `make lint`**
 
 ```bash
 make lint 2>&1 | tail -20
@@ -1420,13 +1420,13 @@ make lint 2>&1 | tail -20
 
 Expected: clean. Vulture should not flag anything — the file is gone.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git commit -m "chore: delete strategies/crypto/backtest_demo.py (dead code per audit)"
 ```
 
-- [ ] **Step 6: Push and open PR**
+- [x] **Step 6: Push and open PR**
 
 ```bash
 git push -u origin subproject-a/pr2-delete-backtest-demo
