@@ -6,7 +6,7 @@ from typing import Annotated
 
 import typer
 
-from nautilus_trading.cli.backtest import _ensure_project_root_on_path, _resolve_strategy_paths
+from nautilus_trading.cli._common import _ensure_project_root_on_path, _resolve_strategy_paths
 
 
 def live(
