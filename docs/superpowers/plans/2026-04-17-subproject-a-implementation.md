@@ -1631,7 +1631,7 @@ gh pr create --title "PR 3 — Extract cli/_common.py" --body "Removes cross-mod
 - Create: `strategies/crypto/kronos/backtest_config.py`
 - Create: `nautilus/tests/test_kronos_backtest_config.py`
 
-- [ ] **Step 1: Write failing tests for the builder surface**
+- [x] **Step 1: Write failing tests for the builder surface**
 
 ```python
 """Tests for strategies.crypto.kronos.backtest_config builders."""
@@ -1678,7 +1678,7 @@ def test_build_bar_type_hourly():
     assert str(bar_type).endswith("-1-HOUR-LAST-EXTERNAL")
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
@@ -1686,7 +1686,7 @@ cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
 
 Expected: 4 FAILED — module not found.
 
-- [ ] **Step 3: Create `kronos/backtest_config.py` by lifting the builders out of `backtest.py`**
+- [x] **Step 3: Create `kronos/backtest_config.py` by lifting the builders out of `backtest.py`**
 
 Read `strategies/crypto/kronos/backtest.py` and identify four logical blocks:
 1. `BacktestEngineConfig` construction → becomes `build_engine_config(*, log_level)`.
@@ -1786,7 +1786,7 @@ def build_bar_type(instrument: CurrencyPair, *, interval: str = "1h") -> BarType
     )
 ```
 
-- [ ] **Step 4: Run the builder tests**
+- [x] **Step 4: Run the builder tests**
 
 ```bash
 cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
@@ -1794,7 +1794,7 @@ cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
 
 Expected: 4 PASSED.
 
-- [ ] **Step 5: Commit the builder + tests**
+- [x] **Step 5: Commit the builder + tests**
 
 ```bash
 git add strategies/crypto/kronos/backtest_config.py nautilus/tests/test_kronos_backtest_config.py
