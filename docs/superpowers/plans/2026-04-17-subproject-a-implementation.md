@@ -147,7 +147,7 @@ git commit -m "refactor: lazy-import heavy Nautilus symbols so pytest collection
 - Create: `tests/fixtures/crypto/__init__.py`
 - Create: `tests/fixtures/__init__.py`
 
-- [ ] **Step 1: Write the failing integration test for the builder**
+- [x] **Step 1: Write the failing integration test for the builder**
 
 Create `nautilus/tests/test_fixture_catalog.py` (new file):
 
@@ -179,7 +179,7 @@ def test_fixture_catalog_exists_and_has_instruments() -> None:
     assert str(instruments[0].id) == "BTCUSDT.BINANCE"
 ```
 
-- [ ] **Step 2: Run the test and confirm it fails**
+- [x] **Step 2: Run the test and confirm it fails**
 
 ```bash
 cd nautilus && uv run pytest tests/test_fixture_catalog.py -v
@@ -187,7 +187,7 @@ cd nautilus && uv run pytest tests/test_fixture_catalog.py -v
 
 Expected: FAIL — catalog directory does not yet exist.
 
-- [ ] **Step 3: Create the fixture builder mirroring `tests/competition/fixtures/build_catalog.py` style**
+- [x] **Step 3: Create the fixture builder mirroring `tests/competition/fixtures/build_catalog.py` style**
 
 Create `tests/fixtures/crypto/build_catalog.py`:
 
@@ -343,7 +343,7 @@ Create empty init files:
 touch tests/fixtures/__init__.py tests/fixtures/crypto/__init__.py
 ```
 
-- [ ] **Step 4: Run the builder once to produce the fixture**
+- [x] **Step 4: Run the builder once to produce the fixture**
 
 ```bash
 cd nautilus && uv run python ../tests/fixtures/crypto/build_catalog.py
@@ -351,7 +351,7 @@ cd nautilus && uv run python ../tests/fixtures/crypto/build_catalog.py
 
 Expected: `Wrote fixture catalog to .../tests/fixtures/crypto/catalog` and `336 bars, 1 instrument (BTCUSDT.BINANCE)`. If Binance rate-limits, wait 60s and retry.
 
-- [ ] **Step 5: Rerun the test and confirm it passes**
+- [x] **Step 5: Rerun the test and confirm it passes**
 
 ```bash
 cd nautilus && uv run pytest tests/test_fixture_catalog.py -v
@@ -359,7 +359,7 @@ cd nautilus && uv run pytest tests/test_fixture_catalog.py -v
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit fixture + builder + test**
+- [x] **Step 6: Commit fixture + builder + test**
 
 ```bash
 git add tests/fixtures/ nautilus/tests/test_fixture_catalog.py
