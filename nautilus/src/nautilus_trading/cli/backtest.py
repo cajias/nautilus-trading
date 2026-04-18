@@ -8,9 +8,6 @@ from typing import Annotated
 
 import typer
 
-from nautilus_trading.backtest.runner import build_backtest_config, print_results, run_backtest
-from nautilus_trading.data.download import ensure_catalog
-
 
 def _ensure_project_root_on_path() -> None:
     """Add the project root (parent of the ``nautilus/`` package dir) to sys.path.
@@ -62,7 +59,8 @@ def backtest(
     strategy_path: Annotated[
         str,
         typer.Option(
-            "--strategy", "-s",
+            "--strategy",
+            "-s",
             help="Strategy module path (e.g. strategies.crypto.grid_bot) or full import path.",
         ),
     ] = "strategies.forex.ema_cross:EMACrossStrategy",
@@ -120,6 +118,10 @@ def backtest(
     ] = "INFO",
 ) -> None:
     """Run a strategy backtest on historical data."""
+    # Lazy imports so `import nautilus_trading.cli` stays cheap at test-collection time.
+    from nautilus_trading.backtest.runner import build_backtest_config, print_results, run_backtest
+    from nautilus_trading.data.download import ensure_catalog
+
     _ensure_project_root_on_path()
 
     # Auto-resolve strategy/config paths if not explicitly provided

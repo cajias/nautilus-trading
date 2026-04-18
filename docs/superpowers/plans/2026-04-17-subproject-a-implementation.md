@@ -33,7 +33,7 @@
 - Modify: `nautilus/src/nautilus_trading/__main__.py` (if it exists)
 - Modify: `nautilus/src/nautilus_trading/backtest/runner.py` (top-of-file `nautilus_trader.backtest.node` import)
 
-- [ ] **Step 1: Capture the baseline failure**
+- [x] **Step 1: Capture the baseline failure**
 
 ```bash
 cd nautilus && timeout 30 uv run pytest --collect-only -q 2>&1 | tail -20
@@ -41,7 +41,7 @@ cd nautilus && timeout 30 uv run pytest --collect-only -q 2>&1 | tail -20
 
 Expected: either `collected 0 items` after ~20s, or a timeout. Save the output to a note — you'll use it in the commit message.
 
-- [ ] **Step 2: Identify the heavy imports triggered at collection time**
+- [x] **Step 2: Identify the heavy imports triggered at collection time**
 
 Run the following and note modules that account for >1s of import time:
 
@@ -51,7 +51,7 @@ cd nautilus && uv run python -X importtime -c "import nautilus_trading.cli" 2>&1
 
 Expected culprits (from audit): `nautilus_trader.backtest.node`, `nautilus_trader.live.node`, `nautilus_trader.adapters.binance`. Record which files import them at module level.
 
-- [ ] **Step 3: Move heavy third-party imports inside functions**
+- [x] **Step 3: Move heavy third-party imports inside functions**
 
 In `nautilus/src/nautilus_trading/cli/backtest.py`, move these out of module scope and into the body of `backtest()`:
 
@@ -117,7 +117,7 @@ def _node_imports() -> tuple[type, type, type, type, type, type]:
 
 Then inside `build_backtest_config` / `run_backtest` / `print_results`, call `_node_imports()` to obtain the symbols. Preserve the existing public signatures exactly — only the import sites move.
 
-- [ ] **Step 4: Run collection and confirm it's fast and non-zero**
+- [x] **Step 4: Run collection and confirm it's fast and non-zero**
 
 ```bash
 cd nautilus && time uv run pytest --collect-only -q 2>&1 | tail -5
@@ -125,7 +125,7 @@ cd nautilus && time uv run pytest --collect-only -q 2>&1 | tail -5
 
 Expected: `389 tests collected in X.XXs` where `X.XX < 5.00`. If collection still hangs, run step 2 again against `cli.live` and `backtest.runner` and escalate to team-lead — do **not** fall back to `addopts` shortcut; the user rejected that approach.
 
-- [ ] **Step 5: Run the full existing test suite to confirm no regressions**
+- [x] **Step 5: Run the full existing test suite to confirm no regressions**
 
 ```bash
 cd nautilus && uv run pytest -x 2>&1 | tail -20
@@ -133,7 +133,7 @@ cd nautilus && uv run pytest -x 2>&1 | tail -20
 
 Expected: same pass/fail ratio as before the refactor (the suite was passing via AST counting; anything new that fails is a regression).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add nautilus/src/nautilus_trading/cli/backtest.py nautilus/src/nautilus_trading/backtest/runner.py
