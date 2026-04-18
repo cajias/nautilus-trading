@@ -526,7 +526,7 @@ git commit -m "test: characterization tests for data.providers (abstract ABC, na
 **Files:**
 - Create: `nautilus/tests/test_data_download.py`
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
 
 ```python
 """Characterization tests for nautilus_trading.data.download."""
@@ -572,7 +572,7 @@ def test_ensure_catalog_dispatches_to_provider(
     assert calls == [tmp_path / "cat"]
 ```
 
-- [ ] **Step 2: Run and confirm pass**
+- [x] **Step 2: Run and confirm pass**
 
 ```bash
 cd nautilus && uv run pytest tests/test_data_download.py -v
@@ -580,7 +580,7 @@ cd nautilus && uv run pytest tests/test_data_download.py -v
 
 Expected: 4 PASSED.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add nautilus/tests/test_data_download.py
