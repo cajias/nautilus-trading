@@ -2,16 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from nautilus_trader.backtest.node import (
-    BacktestDataConfig,
-    BacktestEngineConfig,
-    BacktestNode,
-    BacktestRunConfig,
-    BacktestVenueConfig,
-)
-from nautilus_trader.config import ImportableStrategyConfig, LoggingConfig
+if TYPE_CHECKING:
+    from nautilus_trader.backtest.node import BacktestRunConfig
+
 from nautilus_trader.model import QuoteTick
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 
@@ -42,6 +37,15 @@ def build_backtest_config(
     are also included. Pass ``strategy_config_overrides`` to supply or
     override arbitrary keys for any strategy type.
     """
+    # Lazy imports so `import nautilus_trading.backtest.runner` stays cheap at collection time.
+    from nautilus_trader.backtest.node import (
+        BacktestDataConfig,
+        BacktestEngineConfig,
+        BacktestRunConfig,
+        BacktestVenueConfig,
+    )
+    from nautilus_trader.config import ImportableStrategyConfig, LoggingConfig
+
     instruments = catalog.instruments()
     if not instruments:
         raise RuntimeError(f"No instruments found in catalog at {catalog.path}")
@@ -105,6 +109,8 @@ def run_backtest(
     config: BacktestRunConfig,
 ) -> list:
     """Execute a backtest and return the results list."""
+    from nautilus_trader.backtest.node import BacktestNode
+
     node = BacktestNode(configs=[config])
     return node.run()
 

@@ -62,5 +62,12 @@ build/
 dist/
 *.egg-info/
 
-# Ralph agent state
-.agent/
+# SWE iterative team runtime state (per-worktree, never committed)
+# Replaces the previous broad `.agent/` ignore — we need `.agent/roles/*.md`
+# and `.agent/team-state.template.md` to be committed, so we ignore specific
+# runtime files instead of the whole directory.
+.agent/team-state.md
+.agent/history/*
+!.agent/history/.gitkeep
+# Keep Ralph's scratchpad ignored (previously covered by broad .agent/ ignore):
+.agent/scratchpad.md
