@@ -472,7 +472,7 @@ git commit -m "test: shared conftest fixtures (crypto_catalog_path, cli_runner, 
 **Files:**
 - Create: `nautilus/tests/test_data_providers.py`
 
-- [ ] **Step 1: Write three failing tests**
+- [x] **Step 1: Write three failing tests**
 
 Create `nautilus/tests/test_data_providers.py`:
 
@@ -506,7 +506,7 @@ def test_test_provider_ensure_catalog_idempotent(tmp_path: Path) -> None:
     assert [str(i.id) for i in catalog2.instruments()] == [str(i.id) for i in catalog.instruments()]
 ```
 
-- [ ] **Step 2: Run and confirm all pass (characterization captures current behavior)**
+- [x] **Step 2: Run and confirm all pass (characterization captures current behavior)**
 
 ```bash
 cd nautilus && uv run pytest tests/test_data_providers.py -v
@@ -514,7 +514,7 @@ cd nautilus && uv run pytest tests/test_data_providers.py -v
 
 Expected: 3 PASSED. If `test_test_provider_ensure_catalog_idempotent` is slow (>30s) because of network, mark it `@pytest.mark.integration` and add `--runintegration` wiring later; do not mock it.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add nautilus/tests/test_data_providers.py
