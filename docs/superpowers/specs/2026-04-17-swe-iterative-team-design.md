@@ -115,9 +115,12 @@ If anything goes sideways during the dry-run, the team is torn down and this spe
 ## 10. Files created by this design
 
 - `.agent/team-state.md` — live scratchpad (gitignored; per-worktree).
+- `.agent/team-state.template.md` — seed shape for new scratchpad (committed).
 - `.agent/history/task-<id>.md` — rotated task records (gitignored).
 - `.agent/roles/{planner,worker,reviewer,integrator}.md` — per-role briefs (committed; versioned).
-- `scripts/team-spawn.sh` — one-shot `TeamCreate` invocation wrapper (committed).
+- `scripts/team-init.sh` — idempotent scratchpad bootstrap; copies template → `.agent/team-state.md` (committed).
+- `scripts/team-check.sh` — validates the scaffold is complete; RED→GREEN gate for the implementation plan (committed).
+- `docs/superpowers/runbooks/2026-04-18-team-spawn.md` — the `TeamCreate` invocation recipe a human main session follows to spawn the four teammates. `TeamCreate` is a Claude Code tool, not a shell command, so spawn cannot be a shell script (committed).
 
 ## 11. Open items (resolved before implementation plan)
 
