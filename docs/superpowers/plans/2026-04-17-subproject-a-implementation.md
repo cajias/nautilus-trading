@@ -1447,7 +1447,7 @@ gh pr create --title "PR 2 — Delete strategies/crypto/backtest_demo.py" --body
 - Modify: `nautilus/src/nautilus_trading/cli/live.py`
 - Create: `nautilus/tests/test_cli_common.py`
 
-- [ ] **Step 1: Write the failing test for `_common`**
+- [x] **Step 1: Write the failing test for `_common`**
 
 Create `nautilus/tests/test_cli_common.py`:
 
@@ -1494,7 +1494,7 @@ def test_resolve_strategy_paths_pascal_case_fallback():
     assert cfg == "strategies.crypto.some_new_thing:SomeNewThingConfig"
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 cd nautilus && uv run pytest tests/test_cli_common.py -v
@@ -1502,7 +1502,7 @@ cd nautilus && uv run pytest tests/test_cli_common.py -v
 
 Expected: 4 FAILED, module `nautilus_trading.cli._common` not found.
 
-- [ ] **Step 3: Create `cli/_common.py`**
+- [x] **Step 3: Create `cli/_common.py`**
 
 ```python
 """Shared helpers for nautilus_trading.cli.*. No strategy-specific logic lives here."""
@@ -1557,7 +1557,7 @@ def _resolve_strategy_paths(module_path: str) -> tuple[str, str]:
     return f"{module_path}:{strategy_cls}", f"{module_path}:{config_cls}"
 ```
 
-- [ ] **Step 4: Run the common tests and confirm pass**
+- [x] **Step 4: Run the common tests and confirm pass**
 
 ```bash
 cd nautilus && uv run pytest tests/test_cli_common.py -v
@@ -1565,7 +1565,7 @@ cd nautilus && uv run pytest tests/test_cli_common.py -v
 
 Expected: 4 PASSED.
 
-- [ ] **Step 5: Update `cli/backtest.py` — remove the duplicated helpers, import from `_common`**
+- [x] **Step 5: Update `cli/backtest.py` — remove the duplicated helpers, import from `_common`**
 
 In `nautilus/src/nautilus_trading/cli/backtest.py`:
 
@@ -1578,7 +1578,7 @@ from nautilus_trading.cli._common import _ensure_project_root_on_path, _resolve_
 
 3. Leave the call sites untouched — the names are unchanged.
 
-- [ ] **Step 6: Update `cli/live.py` — change the import source**
+- [x] **Step 6: Update `cli/live.py` — change the import source**
 
 Replace:
 
@@ -1592,7 +1592,7 @@ with:
 from nautilus_trading.cli._common import _ensure_project_root_on_path, _resolve_strategy_paths
 ```
 
-- [ ] **Step 7: Run the full suite**
+- [x] **Step 7: Run the full suite**
 
 ```bash
 cd nautilus && uv run pytest -q 2>&1 | tail -10
@@ -1600,7 +1600,7 @@ cd nautilus && uv run pytest -q 2>&1 | tail -10
 
 Expected: all PR 1 characterization tests still pass. Specifically `tests/test_cli_live.py` and `tests/test_backtest_runner.py` exercise the moved helpers indirectly.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add nautilus/src/nautilus_trading/cli/_common.py \
@@ -1610,7 +1610,7 @@ git add nautilus/src/nautilus_trading/cli/_common.py \
 git commit -m "refactor: extract cli._common for shared project-root and strategy-path helpers"
 ```
 
-- [ ] **Step 9: Push and open PR**
+- [x] **Step 9: Push and open PR**
 
 ```bash
 git push -u origin subproject-a/pr3-cli-common
