@@ -592,7 +592,7 @@ git commit -m "test: characterization tests for data.download registry + dispatc
 **Files:**
 - Modify: `nautilus/tests/test_backtest_runner.py` (existing file — append, don't overwrite)
 
-- [ ] **Step 1: Read the existing file to match style**
+- [x] **Step 1: Read the existing file to match style**
 
 ```bash
 cat nautilus/tests/test_backtest_runner.py
@@ -600,7 +600,7 @@ cat nautilus/tests/test_backtest_runner.py
 
 Note the existing 3 tests and their import/fixture conventions.
 
-- [ ] **Step 2: Append 5 new characterization tests — one per string-match branch in the runner plus a run smoke**
+- [x] **Step 2: Append 5 new characterization tests — one per string-match branch in the runner plus a run smoke**
 
 Append to `nautilus/tests/test_backtest_runner.py`:
 
@@ -705,7 +705,7 @@ def test_run_backtest_end_to_end_ema_cross(crypto_catalog_path):
     assert results[0].elapsed_time >= 0
 ```
 
-- [ ] **Step 3: Run and confirm pass**
+- [x] **Step 3: Run and confirm pass**
 
 ```bash
 cd nautilus && uv run pytest tests/test_backtest_runner.py -v
@@ -713,7 +713,7 @@ cd nautilus && uv run pytest tests/test_backtest_runner.py -v
 
 Expected: 3 original + 5 new = 8 PASSED. The `@pytest.mark.integration` test may be >5s; that is acceptable.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add nautilus/tests/test_backtest_runner.py
