@@ -372,7 +372,7 @@ git commit -m "test: add parquet fixture catalog builder and integrity test for 
 - Create: `nautilus/tests/conftest_subproject_a.py` (imported by `nautilus/tests/conftest.py`)
 - Modify: `nautilus/tests/conftest.py`
 
-- [ ] **Step 1: Write a failing test that imports the new helpers**
+- [x] **Step 1: Write a failing test that imports the new helpers**
 
 Append to `nautilus/tests/test_fixture_catalog.py`:
 
@@ -382,7 +382,7 @@ def test_conftest_exposes_crypto_catalog_path(crypto_catalog_path: Path) -> None
     assert crypto_catalog_path.exists()
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 cd nautilus && uv run pytest tests/test_fixture_catalog.py::test_conftest_exposes_crypto_catalog_path -v
@@ -390,7 +390,7 @@ cd nautilus && uv run pytest tests/test_fixture_catalog.py::test_conftest_expose
 
 Expected: FAIL with `fixture 'crypto_catalog_path' not found`.
 
-- [ ] **Step 3: Add the fixture**
+- [x] **Step 3: Add the fixture**
 
 Create `nautilus/tests/conftest_subproject_a.py`:
 
@@ -452,7 +452,7 @@ pytest_plugins = ["tests.conftest_subproject_a"]
 
 Pick whichever matches the existing style of `conftest.py`.
 
-- [ ] **Step 4: Rerun the failing test**
+- [x] **Step 4: Rerun the failing test**
 
 ```bash
 cd nautilus && uv run pytest tests/test_fixture_catalog.py -v

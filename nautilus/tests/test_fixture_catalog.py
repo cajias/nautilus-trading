@@ -23,3 +23,8 @@ def test_fixture_catalog_exists_and_has_instruments() -> None:
     instruments = catalog.instruments()
     assert len(instruments) >= 1, f"no instruments in {CATALOG_DIR}"
     assert str(instruments[0].id) == "BTCUSDT.BINANCE"
+
+
+def test_conftest_exposes_crypto_catalog_path(crypto_catalog_path: Path) -> None:
+    assert crypto_catalog_path == CATALOG_DIR
+    assert crypto_catalog_path.exists()
