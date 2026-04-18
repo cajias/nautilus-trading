@@ -18,7 +18,7 @@ scripts/team-init.sh
 
 ## 2. Spawn via `TeamCreate`
 
-From the main Claude session, call `TeamCreate` with the four teammates below. For each, the `prompt` is the contents of the corresponding `.agent/roles/<role>.md` file plus the two lines below prepended (which orient the teammate to its environment):
+From the main Claude session, call `TeamCreate` with **`backend: "tmux"`** (user preference — not iterm2) and the four teammates below. For each, the `prompt` is the contents of the corresponding `.agent/roles/<role>.md` file plus the two lines below prepended (which orient the teammate to its environment):
 
 ```
 You are running in tmux team mode. The authoritative state is `.agent/team-state.md` in the repo root. You communicate with teammates only via `SendMessage(to=<role>, body="...")`. Start by reading `.agent/team-state.md` and waiting for your first ping, unless you are Planner — in which case, begin immediately.
@@ -32,6 +32,8 @@ You are running in tmux team mode. The authoritative state is `.agent/team-state
 | `integrator` | haiku   | `.agent/roles/integrator.md` |
 
 **Integrator validation mode.** For the initial dry-run, set `INTEGRATOR_DRY_RUN=1` in Integrator's prompt (append a line: `Environment: INTEGRATOR_DRY_RUN=1`). After validation passes (see §4), tear down and re-spawn Integrator without that line, or update its scratchpad-addressable state to indicate live mode.
+
+**Prior dry-run failure (2026-04-18).** The first validation attempt failed because Worker self-committed three times. See `docs/superpowers/audits/2026-04-18-team-dryrun-FAILED.md`. Planner and Worker briefs have since been hardened (commit `222b446`); verify both `.agent/roles/planner.md` and `.agent/roles/worker.md` carry the `git commit` / `Commit-directive` language before respawning.
 
 ## 3. Kick off the loop
 
