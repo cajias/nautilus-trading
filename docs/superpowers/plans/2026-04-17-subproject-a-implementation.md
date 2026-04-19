@@ -1631,7 +1631,7 @@ gh pr create --title "PR 3 — Extract cli/_common.py" --body "Removes cross-mod
 - Create: `strategies/crypto/kronos/backtest_config.py`
 - Create: `nautilus/tests/test_kronos_backtest_config.py`
 
-- [ ] **Step 1: Write failing tests for the builder surface**
+- [x] **Step 1: Write failing tests for the builder surface**
 
 ```python
 """Tests for strategies.crypto.kronos.backtest_config builders."""
@@ -1678,7 +1678,7 @@ def test_build_bar_type_hourly():
     assert str(bar_type).endswith("-1-HOUR-LAST-EXTERNAL")
 ```
 
-- [ ] **Step 2: Run and confirm failure**
+- [x] **Step 2: Run and confirm failure**
 
 ```bash
 cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
@@ -1686,7 +1686,7 @@ cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
 
 Expected: 4 FAILED — module not found.
 
-- [ ] **Step 3: Create `kronos/backtest_config.py` by lifting the builders out of `backtest.py`**
+- [x] **Step 3: Create `kronos/backtest_config.py` by lifting the builders out of `backtest.py`**
 
 Read `strategies/crypto/kronos/backtest.py` and identify four logical blocks:
 1. `BacktestEngineConfig` construction → becomes `build_engine_config(*, log_level)`.
@@ -1786,7 +1786,7 @@ def build_bar_type(instrument: CurrencyPair, *, interval: str = "1h") -> BarType
     )
 ```
 
-- [ ] **Step 4: Run the builder tests**
+- [x] **Step 4: Run the builder tests**
 
 ```bash
 cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
@@ -1794,7 +1794,7 @@ cd nautilus && uv run pytest tests/test_kronos_backtest_config.py -v
 
 Expected: 4 PASSED.
 
-- [ ] **Step 5: Commit the builder + tests**
+- [x] **Step 5: Commit the builder + tests**
 
 ```bash
 git add strategies/crypto/kronos/backtest_config.py nautilus/tests/test_kronos_backtest_config.py
@@ -1806,7 +1806,7 @@ git commit -m "refactor: extract kronos/backtest_config.py pure builders from kr
 **Files:**
 - Modify: `strategies/crypto/kronos/backtest.py`
 
-- [ ] **Step 1: Replace the body of `kronos/backtest.py` with a thin runner**
+- [x] **Step 1: Replace the body of `kronos/backtest.py` with a thin runner**
 
 The new file composes the builders from `backtest_config.py` plus the existing Binance REST data fetch + `KronosActor` + `KronosStrategy` wiring. Target ≤80 LOC.
 
@@ -1896,7 +1896,7 @@ if __name__ == "__main__":
 
 **If** the old `backtest.py` had the Binance REST fetch inline, extract it to `strategies/crypto/kronos/_fetch_binance.py` (pure function, no side effects at import) — the line budget requires it. If the old file imported the fetch from elsewhere, just keep that import.
 
-- [ ] **Step 2: Verify the new file is ≤80 LOC**
+- [x] **Step 2: Verify the new file is ≤80 LOC**
 
 ```bash
 wc -l strategies/crypto/kronos/backtest.py
@@ -1904,7 +1904,7 @@ wc -l strategies/crypto/kronos/backtest.py
 
 Expected: `<= 80`. If over, move the REST-fetch helper into its own file.
 
-- [ ] **Step 3: Run the kronos strategy unit tests (no network)**
+- [x] **Step 3: Run the kronos strategy unit tests (no network)**
 
 ```bash
 cd nautilus && uv run pytest tests/test_kronos_strategy.py -q 2>&1 | tail -10
@@ -1912,7 +1912,7 @@ cd nautilus && uv run pytest tests/test_kronos_strategy.py -q 2>&1 | tail -10
 
 Expected: all 46 still PASS.
 
-- [ ] **Step 4: Smoke-run the script against the fixture catalog (short path)**
+- [x] **Step 4: Smoke-run the script against the fixture catalog (short path)**
 
 Run for a single iteration using the fixture catalog instead of live Binance — add a `--dry-run` guard only if necessary. If the REST fetch is unavoidable in the script, skip this step and rely on the unit tests; add an integration-marked test in a follow-up.
 
@@ -1923,14 +1923,14 @@ cd nautilus && KRONOS_N_SAMPLES=2 KRONOS_FORECAST_BARS=4 timeout 60 uv run pytho
 
 Expected: exits 0 or skipped if dependencies missing. Do not let this step block the PR — the unit tests are the contract.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add strategies/crypto/kronos/backtest.py strategies/crypto/kronos/_fetch_binance.py
 git commit -m "refactor: shrink kronos/backtest.py to ≤80 LOC thin runner composing build_engine/venue/instrument/bar_type"
 ```
 
-- [ ] **Step 6: Push and open PR**
+- [x] **Step 6: Push and open PR**
 
 ```bash
 git push -u origin subproject-a/pr4-kronos-split
