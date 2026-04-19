@@ -114,47 +114,39 @@ def live(
     if config_path is not None:
         resolved_config = config_path
 
-    # Build strategy config dict from CLI args
-    strat_config: dict = {
+    # Build strategy config dict via STRATEGY_BUILDERS registry.
+    from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
+
+    module_name = strategy_path.rsplit(".", 1)[-1].split(":")[0]
+    builder = STRATEGY_BUILDERS.get(module_name)
+
+    builder_args = {
         "instrument_id": instrument_id,
         "bar_type": bar_type,
+        "trade_size": trade_size,
+        "upper_price": upper_price,
+        "lower_price": lower_price,
+        "grid_levels": grid_levels,
+        "buy_amount": buy_amount,
+        "buy_interval_bars": buy_interval_bars,
+        "fast_ema": fast_ema,
+        "slow_ema": slow_ema,
+        "sma_fast": sma_fast,
+        "sma_slow": sma_slow,
+        "stop_fast": stop_fast,
+        "stop_slow": stop_slow,
+        "module_name": module_name,
     }
 
-    # Strategy-specific params
-    module_name = strategy_path.rsplit(".", 1)[-1].split(":")[0]
-
-    # The Hybrid SMA ensemble sizes positions from equity, so it does NOT
-    # take a fixed `trade_size`. All other strategies still need it.
-    if module_name != "hybrid_sma_r10":
-        strat_config["trade_size"] = trade_size
-
-    if module_name == "grid_bot":
-        if not upper_price or not lower_price:
-            typer.echo("ERROR: Grid Bot requires --upper-price and --lower-price", err=True)
-            raise typer.Exit(1)
-        strat_config["upper_price"] = upper_price
-        strat_config["lower_price"] = lower_price
-        strat_config["grid_levels"] = grid_levels
-
-    elif module_name == "dca_bot":
-        if buy_amount:
-            strat_config["buy_amount"] = buy_amount
-        strat_config["buy_interval_bars"] = buy_interval_bars
-
-    elif module_name in ("timesfm_swing", "ema_cross"):
-        strat_config["ema_period"] = slow_ema
-        if module_name == "timesfm_swing":
-            strat_config["fallback_fast_ema_period"] = fast_ema
-        elif module_name == "ema_cross":
-            strat_config["fast_ema_period"] = fast_ema
-            strat_config["slow_ema_period"] = slow_ema
-
-    elif module_name == "hybrid_sma_r10":
-        strat_config["sma_fast"] = sma_fast
-        strat_config["sma_slow"] = sma_slow
-        # Decimal fields go through msgspec as strings.
-        strat_config["stop_fast"] = str(stop_fast)
-        strat_config["stop_slow"] = str(stop_slow)
+    if builder is None:
+        # Unknown strategy — fall back to the minimal base dict (preserves old behavior).
+        strat_config: dict = {"instrument_id": instrument_id, "bar_type": bar_type, "trade_size": trade_size}
+    else:
+        try:
+            strat_config = builder.build(builder_args)
+        except ValueError as exc:
+            typer.echo(f"ERROR: {exc}", err=True)
+            raise typer.Exit(1) from exc
 
     env_label = "TESTNET" if testnet else "PRODUCTION"
     typer.echo(f"Starting {module_name} on {instrument_id} ({env_label})")
