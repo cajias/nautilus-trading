@@ -186,6 +186,6 @@ class EMABacktestRunner(BacktestRunner):
 
     def main(self) -> None:
         """Override base main(): skip engine creation — BacktestNode owns it."""
-        config = self.build_config()
-        results = run_backtest(config)
-        print_results(results)
+        self.build_config()  # caches self._run_config
+        results = self.run(None)
+        self.print_results(results)
