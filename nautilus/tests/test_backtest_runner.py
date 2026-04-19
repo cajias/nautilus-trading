@@ -76,3 +76,75 @@ def test_build_backtest_config_raises_on_bad_instrument_index(crypto_catalog_pat
     catalog = ParquetDataCatalog(str(crypto_catalog_path))
     with pytest.raises(RuntimeError, match="instrument_index 99 out of range"):
         build_backtest_config(catalog, instrument_index=99)
+
+
+# ---------------------------------------------------------------------------
+# EMABacktestRunner — BacktestRunner ABC conformance
+# ---------------------------------------------------------------------------
+
+
+def test_ema_backtest_runner_matches_function_output(crypto_catalog_path):
+    """EMABacktestRunner.build_config() must equal build_backtest_config()
+    output for the same kwargs — the wrapper adds no behavioral drift."""
+    from nautilus_trader.persistence.catalog import ParquetDataCatalog
+
+    from nautilus_trading.backtest.runner import EMABacktestRunner
+
+    catalog = ParquetDataCatalog(str(crypto_catalog_path))
+    kwargs = {
+        "strategy_path": "strategies.forex.ema_cross:EMACrossStrategy",
+        "config_path": "strategies.forex.ema_cross:EMACrossConfig",
+        "bar_interval": "1-HOUR-LAST-EXTERNAL",
+        "trade_size": "0.01",
+        "fast_ema_period": 5,
+        "slow_ema_period": 15,
+        "venue_name": "BINANCE",
+        "base_currency": "USDT",
+        "starting_balance": "10_000 USDT",
+        "end_time": None,
+    }
+    runner = EMABacktestRunner(catalog, **kwargs)
+    assert runner.build_config() == build_backtest_config(catalog, **kwargs)
+
+
+def test_ema_backtest_runner_main_skips_engine_creation(crypto_catalog_path, monkeypatch):
+    """EMABacktestRunner.main() must NOT construct a BacktestEngine (the
+    BacktestNode owns its own engine). If the default BacktestRunner.main()
+    ever fires for this subclass, this test catches it."""
+    from nautilus_trader.persistence.catalog import ParquetDataCatalog
+
+    from nautilus_trading.backtest import runner as runner_module
+
+    def _boom(*args, **kwargs):
+        raise AssertionError(
+            "EMABacktestRunner.main() must not construct BacktestEngine"
+        )
+
+    import nautilus_trader.backtest.engine as nt_engine
+
+    monkeypatch.setattr(nt_engine, "BacktestEngine", _boom)
+
+    call_log: list[str] = []
+    monkeypatch.setattr(
+        runner_module, "run_backtest", lambda cfg: (call_log.append("run"), [])[1]
+    )
+    monkeypatch.setattr(
+        runner_module, "print_results", lambda r: call_log.append("print")
+    )
+
+    catalog = ParquetDataCatalog(str(crypto_catalog_path))
+    runner = runner_module.EMABacktestRunner(
+        catalog,
+        strategy_path="strategies.forex.ema_cross:EMACrossStrategy",
+        config_path="strategies.forex.ema_cross:EMACrossConfig",
+        bar_interval="1-HOUR-LAST-EXTERNAL",
+        trade_size="0.01",
+        fast_ema_period=5,
+        slow_ema_period=15,
+        venue_name="BINANCE",
+        base_currency="USDT",
+        starting_balance="10_000 USDT",
+        end_time=None,
+    )
+    runner.main()
+    assert call_log == ["run", "print"]

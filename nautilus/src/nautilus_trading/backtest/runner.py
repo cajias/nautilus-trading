@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 from nautilus_trader.model import QuoteTick
 from nautilus_trader.persistence.catalog import ParquetDataCatalog
 
+from nautilus_trading.backtest.runner_base import BacktestRunner
+
 
 def build_backtest_config(
     catalog: ParquetDataCatalog,
@@ -150,3 +152,40 @@ def print_results(results: list) -> None:
     print("=" * 60)
     for result in results:
         print(result)
+
+
+class EMABacktestRunner(BacktestRunner):
+    """Wrap the function-based EMA/BacktestNode flow behind the BacktestRunner ABC.
+
+    Unlike KronosBacktestRunner (which drives a BacktestEngine directly), this
+    runner's run_backtest() constructs a BacktestNode internally — the engine
+    lives inside the node, not in this class. The ``engine`` parameter on
+    ``add_data()`` / ``run()`` is therefore unused; ``main()`` is overridden
+    to skip the default engine-creation step entirely.
+    """
+
+    def __init__(self, catalog: ParquetDataCatalog, **kwargs: Any) -> None:
+        self._catalog = catalog
+        self._kwargs = kwargs
+        self._run_config: Any = None
+
+    def build_config(self) -> Any:
+        self._run_config = build_backtest_config(self._catalog, **self._kwargs)
+        return self._run_config
+
+    def add_data(self, engine: Any, config: Any) -> None:
+        """No-op — BacktestNode wires data from BacktestDataConfig internally."""
+        return
+
+    def run(self, engine: Any) -> Any:
+        """Run via BacktestNode; ``engine`` is unused (node owns its own engine)."""
+        return run_backtest(self._run_config)
+
+    def print_results(self, results: Any) -> None:
+        print_results(results)
+
+    def main(self) -> None:
+        """Override base main(): skip engine creation — BacktestNode owns it."""
+        config = self.build_config()
+        results = run_backtest(config)
+        print_results(results)
