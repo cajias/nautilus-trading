@@ -11,14 +11,20 @@ from decimal import Decimal
 from nautilus_trader.backtest.engine import BacktestEngineConfig
 from nautilus_trader.backtest.node import BacktestVenueConfig
 from nautilus_trader.config import LoggingConfig
-from nautilus_trader.model.currencies import BTC, ETH, SOL, USDT
+from nautilus_trader.model.currencies import BNB, BTC, ETH, SOL, USDT, Currency
 from nautilus_trader.model.data import BarSpecification, BarType
-from nautilus_trader.model.enums import AccountType, AggregationSource, BarAggregation, OmsType, PriceType
+from nautilus_trader.model.enums import (
+    AccountType,
+    AggregationSource,
+    BarAggregation,
+    OmsType,
+    PriceType,
+)
 from nautilus_trader.model.identifiers import InstrumentId, Symbol, Venue
 from nautilus_trader.model.instruments import CurrencyPair
 from nautilus_trader.model.objects import Money, Price, Quantity
 
-_BASE_CURRENCIES = {"BTCUSDT": BTC, "ETHUSDT": ETH, "SOLUSDT": SOL}
+_BASE_MAP = {"BTC": BTC, "ETH": ETH, "BNB": BNB, "SOL": SOL}
 
 
 def build_engine_config(*, log_level: str = "ERROR") -> BacktestEngineConfig:
@@ -39,9 +45,8 @@ def build_venue_spec(*, initial_capital: Decimal = Decimal("500")) -> BacktestVe
 
 def build_instrument(*, symbol: str = "BTCUSDT") -> CurrencyPair:
     """Build a Binance CurrencyPair instrument for the given spot symbol."""
-    base = _BASE_CURRENCIES.get(symbol)
-    if base is None:
-        raise ValueError(f"unsupported Kronos symbol: {symbol}")
+    base_str = symbol.replace("USDT", "").replace("BUSD", "")
+    base = _BASE_MAP.get(base_str) or Currency.from_str(base_str)
     instrument_id = InstrumentId(Symbol(symbol), Venue("BINANCE"))
     return CurrencyPair(
         instrument_id=instrument_id,
@@ -54,7 +59,7 @@ def build_instrument(*, symbol: str = "BTCUSDT") -> CurrencyPair:
         size_increment=Quantity.from_str("0.000001"),
         lot_size=None,
         max_quantity=None,
-        min_quantity=Quantity.from_str("0.00001"),
+        min_quantity=Quantity.from_str("0.000001"),
         max_notional=None,
         min_notional=None,
         max_price=None,

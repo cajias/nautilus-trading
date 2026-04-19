@@ -40,3 +40,27 @@ def test_build_bar_type_hourly():
     inst = build_instrument(symbol="BTCUSDT")
     bar_type = build_bar_type(inst, interval="1h")
     assert str(bar_type).endswith("-1-HOUR-LAST-EXTERNAL")
+
+
+def test_build_instrument_accepts_non_registered_symbol():
+    from strategies.crypto.kronos.backtest_config import build_instrument
+
+    inst = build_instrument(symbol="DOGEUSDT")
+    assert str(inst.id) == "DOGEUSDT.BINANCE"
+    assert inst.base_currency.code == "DOGE"
+
+
+def test_build_instrument_min_quantity_is_1e_minus_6():
+    from strategies.crypto.kronos.backtest_config import build_instrument
+
+    inst = build_instrument(symbol="BTCUSDT")
+    assert str(inst.min_quantity) == "0.000001"
+
+
+def test_build_bar_type_rejects_unsupported_interval():
+    import pytest
+    from strategies.crypto.kronos.backtest_config import build_bar_type, build_instrument
+
+    inst = build_instrument(symbol="BTCUSDT")
+    with pytest.raises(ValueError):
+        build_bar_type(inst, interval="2h")
