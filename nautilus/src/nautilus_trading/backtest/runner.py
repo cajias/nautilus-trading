@@ -66,10 +66,37 @@ def build_backtest_config(
         "trade_size": trade_size,
     }
 
-    # Include EMA params only for EMA-based strategies
-    if "ema_cross" in strategy_path:
-        strat_config["fast_ema_period"] = fast_ema_period
-        strat_config["slow_ema_period"] = slow_ema_period
+    # Dispatch to a registered builder when one exists; else keep the base dict.
+    from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
+
+    module_name = strategy_path.rsplit(".", 1)[-1].split(":")[0]
+    builder = STRATEGY_BUILDERS.get(module_name)
+    if builder is not None:
+        try:
+            strat_config = builder.build({
+                "instrument_id": strat_config["instrument_id"],
+                "bar_type": strat_config["bar_type"],
+                "trade_size": strat_config["trade_size"],
+                "fast_ema": fast_ema_period,
+                "slow_ema": slow_ema_period,
+                # The rest are not surfaced by the backtest CLI; overrides fill gaps.
+                "upper_price": None,
+                "lower_price": None,
+                "grid_levels": None,
+                "buy_amount": None,
+                "buy_interval_bars": None,
+                "sma_fast": None,
+                "sma_slow": None,
+                "stop_fast": None,
+                "stop_slow": None,
+                "module_name": module_name,
+            })
+        except ValueError:
+            # Builder needs optional fields not available in backtest CLI;
+            # keep base dict so --strategy-config-override (merged below) can
+            # complete it. Strategy construction still fails loudly downstream
+            # if required fields remain missing.
+            pass
 
     if strategy_config_overrides:
         strat_config.update(strategy_config_overrides)
