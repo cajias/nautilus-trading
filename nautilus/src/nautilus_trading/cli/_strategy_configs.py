@@ -20,7 +20,7 @@ class StrategyConfigBuilder(Protocol):
 class GridBotConfigBuilder:
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
         if not args.get("upper_price") or not args.get("lower_price"):
-            raise ValueError("grid_bot requires upper_price and lower_price")
+            raise ValueError("grid_bot requires --upper-price and --lower-price")
         return {
             "instrument_id": args["instrument_id"],
             "bar_type": args["bar_type"],

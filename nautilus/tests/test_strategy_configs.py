@@ -38,7 +38,7 @@ def test_grid_bot_builder_raises_when_prices_missing():
     from nautilus_trading.cli._strategy_configs import GridBotConfigBuilder
 
     builder = GridBotConfigBuilder()
-    with pytest.raises(ValueError, match="upper_price"):
+    with pytest.raises(ValueError, match="upper-price"):
         builder.build({
             "instrument_id": "BTCUSDT.BINANCE",
             "bar_type": "X",
