@@ -40,3 +40,38 @@ def test_concrete_subclass_runs():
     engine = {}
     r.add_data(engine, cfg)
     assert r.run(engine) == {"ok": True, "engine": {"data": [{"built": True}]}}
+
+
+def test_main_calls_lifecycle_in_order(monkeypatch):
+    """main() default implementation invokes build_config, add_data, run, print_results in order."""
+    from nautilus_trading.backtest.runner_base import BacktestRunner
+
+    events = []
+
+    class _R(BacktestRunner):
+        def build_config(self):
+            events.append("build")
+            return {}
+
+        def add_data(self, engine, config):
+            events.append("add_data")
+
+        def run(self, engine):
+            events.append("run")
+            return "results"
+
+        def print_results(self, results):
+            events.append(("print", results))
+
+    class _StubEngine:
+        def __init__(self, config=None):  # noqa: ARG002
+            pass
+
+        def add_venue(self, **_kwargs):
+            events.append("add_venue")
+
+    import nautilus_trader.backtest.engine as _engine_mod
+    monkeypatch.setattr(_engine_mod, "BacktestEngine", _StubEngine)
+
+    _R().main()
+    assert events == ["build", "add_data", "run", ("print", "results")]
