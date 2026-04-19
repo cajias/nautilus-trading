@@ -43,6 +43,8 @@ def _base(args: dict[str, Any], *, include_trade_size: bool = True) -> dict[str,
 
 class DCABotConfigBuilder:
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        if not args.get("buy_interval_bars"):
+            raise ValueError("dca_bot requires buy_interval_bars")
         out = _base(args)
         if args.get("buy_amount"):
             out["buy_amount"] = args["buy_amount"]
@@ -75,6 +77,10 @@ class HybridSMAConfigBuilder:
     """Hybrid SMA ensemble: sizes from equity, so NO trade_size. Decimal fields as strings."""
 
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        if not args.get("sma_fast") or not args.get("sma_slow"):
+            raise ValueError("hybrid_sma_r10 requires sma_fast and sma_slow")
+        if args.get("stop_fast") is None or args.get("stop_slow") is None:
+            raise ValueError("hybrid_sma_r10 requires stop_fast and stop_slow")
         out = _base(args, include_trade_size=False)
         out["sma_fast"] = args["sma_fast"]
         out["sma_slow"] = args["sma_slow"]

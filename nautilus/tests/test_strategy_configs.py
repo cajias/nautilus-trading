@@ -121,3 +121,49 @@ def test_hybrid_sma_builder_omits_trade_size_and_decimalizes():
     assert out["sma_fast"] == 10
     assert out["stop_fast"] == "0.5"
     assert isinstance(out["stop_fast"], str)
+
+
+def test_dca_bot_builder_raises_when_interval_missing():
+    from nautilus_trading.cli._strategy_configs import DCABotConfigBuilder
+
+    builder = DCABotConfigBuilder()
+    with pytest.raises(ValueError, match="buy_interval_bars"):
+        builder.build({
+            "instrument_id": "BTCUSDT.BINANCE",
+            "bar_type": "X",
+            "trade_size": "0.001",
+            "buy_amount": "5.0",
+            "buy_interval_bars": None,
+        })
+
+
+def test_hybrid_sma_builder_raises_when_sma_periods_missing():
+    from nautilus_trading.cli._strategy_configs import HybridSMAConfigBuilder
+
+    builder = HybridSMAConfigBuilder()
+    with pytest.raises(ValueError, match="sma_fast"):
+        builder.build({
+            "instrument_id": "BTCUSDT.BINANCE",
+            "bar_type": "X",
+            "trade_size": "0.01",
+            "sma_fast": None,
+            "sma_slow": None,
+            "stop_fast": "0.5",
+            "stop_slow": "1.0",
+        })
+
+
+def test_hybrid_sma_builder_raises_when_stop_periods_missing():
+    from nautilus_trading.cli._strategy_configs import HybridSMAConfigBuilder
+
+    builder = HybridSMAConfigBuilder()
+    with pytest.raises(ValueError, match="stop_fast"):
+        builder.build({
+            "instrument_id": "BTCUSDT.BINANCE",
+            "bar_type": "X",
+            "trade_size": "0.01",
+            "sma_fast": 10,
+            "sma_slow": 30,
+            "stop_fast": None,
+            "stop_slow": None,
+        })
