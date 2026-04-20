@@ -96,13 +96,8 @@ def _make_quote_tick(price: str, ts_ns: int) -> QuoteTick:
     )
 
 
-def _generate_flat_ticks(
-    price: str, count: int, start_ns: int = 1_000_000_000
-) -> list[QuoteTick]:
-    return [
-        _make_quote_tick(price, start_ns + i * 60_000_000_000)
-        for i in range(count)
-    ]
+def _generate_flat_ticks(price: str, count: int, start_ns: int = 1_000_000_000) -> list[QuoteTick]:
+    return [_make_quote_tick(price, start_ns + i * 60_000_000_000) for i in range(count)]
 
 
 def _generate_linear_ticks(
@@ -350,7 +345,7 @@ class TestCircuitBreakers:
         config = _make_config(
             inventory_limit_pct=0.70,
         )
-        strategy = TimesFMGridStrategy(config=config)
+        TimesFMGridStrategy(config=config)
 
         # The inventory check is internal logic -- we verify the flag
         # by directly testing the method
@@ -403,7 +398,7 @@ class TestCircuitBreakers:
             price_deviation_pct=0.02,
             price_deviation_halt_seconds=900,
         )
-        strategy = TimesFMGridStrategy(config=config)
+        TimesFMGridStrategy(config=config)
         # Just validate config is set correctly
         assert config.price_deviation_pct == 0.02
         assert config.price_deviation_halt_seconds == 900
@@ -427,9 +422,7 @@ class TestKellySizing:
         strategy = TimesFMGridStrategy(config=config)
 
         max_per_level = float(config.total_capital) / config.grid_levels
-        kelly_size = strategy.compute_kelly_size(
-            p10=1.09, p90=1.13, current_price=1.11
-        )
+        kelly_size = strategy.compute_kelly_size(p10=1.09, p90=1.13, current_price=1.11)
         assert kelly_size <= max_per_level
 
     def test_kelly_size_positive(self):
@@ -437,9 +430,7 @@ class TestKellySizing:
         config = _make_config(kelly_fraction=0.5)
         strategy = TimesFMGridStrategy(config=config)
 
-        kelly_size = strategy.compute_kelly_size(
-            p10=1.09, p90=1.13, current_price=1.11
-        )
+        kelly_size = strategy.compute_kelly_size(p10=1.09, p90=1.13, current_price=1.11)
         assert kelly_size > 0
 
     def test_kelly_size_zero_when_no_spread(self):
@@ -447,9 +438,7 @@ class TestKellySizing:
         config = _make_config(kelly_fraction=0.5)
         strategy = TimesFMGridStrategy(config=config)
 
-        kelly_size = strategy.compute_kelly_size(
-            p10=1.11, p90=1.11, current_price=1.11
-        )
+        kelly_size = strategy.compute_kelly_size(p10=1.11, p90=1.11, current_price=1.11)
         assert kelly_size == 0.0
 
 

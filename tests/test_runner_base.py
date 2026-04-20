@@ -15,7 +15,7 @@ def test_backtest_runner_is_abstract():
 def test_backtest_runner_has_required_methods():
     from nautilus_trading.backtest.runner_base import BacktestRunner
 
-    for name in ("build_config", "add_data", "run", "print_results"):
+    for name in ("build_config", "add_data", "run", "print_results", "main"):
         assert hasattr(BacktestRunner, name), f"missing method: {name}"
 
 
@@ -35,6 +35,9 @@ def test_concrete_subclass_runs():
         def print_results(self, results):
             return str(results)
 
+        def main(self):
+            pass
+
     r = _StubRunner()
     cfg = r.build_config()
     engine = {}
@@ -42,36 +45,24 @@ def test_concrete_subclass_runs():
     assert r.run(engine) == {"ok": True, "engine": {"data": [{"built": True}]}}
 
 
-def test_main_calls_lifecycle_in_order(monkeypatch):
-    """main() default implementation invokes build_config, add_data, run, print_results in order."""
+def test_main_is_abstract():
+    """main() is abstract — concrete subclasses must provide their own implementation."""
     from nautilus_trading.backtest.runner_base import BacktestRunner
 
-    events = []
-
-    class _R(BacktestRunner):
+    class _PartialRunner(BacktestRunner):
         def build_config(self):
-            events.append("build")
             return {}
 
         def add_data(self, engine, config):
-            events.append("add_data")
-
-        def run(self, engine):
-            events.append("run")
-            return "results"
-
-        def print_results(self, results):
-            events.append(("print", results))
-
-    class _StubEngine:
-        def __init__(self, config=None):  # noqa: ARG002
             pass
 
-        def add_venue(self, **_kwargs):
-            events.append("add_venue")
+        def run(self, engine):
+            return None
 
-    import nautilus_trader.backtest.engine as _engine_mod
-    monkeypatch.setattr(_engine_mod, "BacktestEngine", _StubEngine)
+        def print_results(self, results):
+            pass
 
-    _R().main()
-    assert events == ["build", "add_data", "run", ("print", "results")]
+        # Deliberately no main() override — instantiation must fail.
+
+    with pytest.raises(TypeError):
+        _PartialRunner()  # type: ignore[abstract]

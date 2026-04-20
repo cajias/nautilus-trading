@@ -2926,10 +2926,10 @@ At the top of `timesfm_grid.py`:
 
 ```python
 from strategies.crypto._grid_math import (
-    bucket_price_into_level,
-    calibration_coverage,
-    compute_grid_levels,
-    half_kelly_fraction,
+    compute_atr_adjusted_step,
+    compute_calibration_coverage,
+    compute_kelly_size,
+    compute_uniform_grid_levels,
 )
 ```
 
@@ -2949,7 +2949,7 @@ Expected: all 50 PASSED.
 wc -l strategies/crypto/timesfm_grid.py
 ```
 
-Expected: < 400. If not, review whether any additional pure function can be extracted — but don't force it.
+Record `wc -l`. Expected range: ~515-525 after lifting the 4 helpers (538 baseline minus ~15-20 LOC). The original `<400` target was aspirational; achieving it would require structural changes beyond PR 7's scope and is deferred to a future LOC-reduction task if/when a clean extraction seam emerges.
 
 - [ ] **Step 5: Commit**
 

@@ -1,8 +1,4 @@
-"""Kronos backtest runner — thin composition of kronos/backtest_config.py builders.
-
-Migrated to subclass nautilus_trading.backtest.runner_base.BacktestRunner so
-kronos shares lifecycle contracts with backtest/runner.py.
-"""
+"""Runner script that composes kronos/backtest_config.py builders into a BacktestEngine invocation."""
 
 from __future__ import annotations
 
@@ -80,19 +76,27 @@ class KronosBacktestRunner(BacktestRunner):
             size_precision=instrument.size_precision,
         )
         engine.add_data(bars)
-        engine.add_actor(KronosActor(KronosActorConfig(
-            instrument_id=instrument.id,
-            bar_type=bar_type,
-            model_size=self.model_size,
-            forecast_horizon=self.forecast_bars,
-            n_samples=self.n_samples,
-            inference_interval_bars=self.inference_interval,
-        )))
-        engine.add_strategy(KronosStrategy(KronosStrategyConfig(
-            instrument_id=instrument.id,
-            bar_type=bar_type,
-            trade_size=self.trade_size,
-        )))
+        engine.add_actor(
+            KronosActor(
+                KronosActorConfig(
+                    instrument_id=instrument.id,
+                    bar_type=bar_type,
+                    model_size=self.model_size,
+                    forecast_horizon=self.forecast_bars,
+                    n_samples=self.n_samples,
+                    inference_interval_bars=self.inference_interval,
+                )
+            )
+        )
+        engine.add_strategy(
+            KronosStrategy(
+                KronosStrategyConfig(
+                    instrument_id=instrument.id,
+                    bar_type=bar_type,
+                    trade_size=self.trade_size,
+                )
+            )
+        )
 
     def run(self, engine: BacktestEngine) -> BacktestEngine:
         engine.run()
@@ -121,8 +125,11 @@ class KronosBacktestRunner(BacktestRunner):
             starting_balances=[Money.from_str(b) for b in spec.starting_balances],
         )
         self.add_data(engine, config)
-        results = self.run(engine)
-        self.print_results(results)
+        try:
+            results = self.run(engine)
+            self.print_results(results)
+        finally:
+            engine.dispose()
 
 
 def main() -> None:

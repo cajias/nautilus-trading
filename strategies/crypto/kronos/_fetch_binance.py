@@ -1,4 +1,4 @@
-"""Binance REST kline fetcher — pure conversion helper for the Kronos backtest."""
+"""Fetches OHLCV data from the Binance public REST API and converts it to NautilusTrader Bar objects."""
 
 from __future__ import annotations
 
@@ -45,8 +45,20 @@ def fetch_bars_from_binance(
         current = rows[-1][0] + 1
         time.sleep(0.12)
 
-    cols = ["open_time", "open", "high", "low", "close", "volume",
-            "close_time", "qv", "trades", "tbb", "tbq", "ignore"]
+    cols = [
+        "open_time",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "close_time",
+        "qv",
+        "trades",
+        "tbb",
+        "tbq",
+        "ignore",
+    ]
     df = pd.DataFrame(all_rows, columns=cols)
     for c in ["open", "high", "low", "close", "volume"]:
         df[c] = df[c].astype(float)
