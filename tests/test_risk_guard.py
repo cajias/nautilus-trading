@@ -16,10 +16,9 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from strategies.crypto.risk_guard import RiskGuard
-from nautilus_trader.trading.strategy import Strategy
 from nautilus_trader.config import StrategyConfig
-
+from nautilus_trader.trading.strategy import Strategy
+from strategies.crypto.risk_guard import RiskGuard
 
 # ---------------------------------------------------------------------------
 # Minimal strategy using RiskGuard for testing
@@ -156,7 +155,6 @@ class TestCircuitBreaker:
 
     def test_halted_beyond_threshold(self):
         rg = self._make_rg(1000.0)
-        # 30% drawdown
         rg._rg_current_equity = lambda: 700.0
         assert rg._is_halted() is True
 

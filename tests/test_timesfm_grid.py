@@ -25,7 +25,6 @@ if PROJECT_ROOT not in sys.path:
 
 from strategies.crypto.timesfm_grid import TimesFMGridConfig, TimesFMGridStrategy
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -42,26 +41,26 @@ def _fmt_price(value) -> str:
 
 def _make_config(**overrides) -> TimesFMGridConfig:
     """Create a TimesFMGridConfig with sensible test defaults."""
-    defaults = dict(
-        instrument_id=INSTRUMENT_ID,
-        bar_type=BAR_TYPE,
-        trade_size=Decimal("100"),
-        total_capital=Decimal("500"),
-        grid_levels=8,
-        p10_floor=Decimal("1.09000"),
-        p90_ceiling=Decimal("1.13000"),
-        calibration_min_coverage=0.75,
-        atr_period=14,
-        price_deviation_pct=0.02,
-        price_deviation_halt_seconds=900,
-        drawdown_floor=Decimal("425"),
-        trend_override_ratio=1.02,
-        inventory_limit_pct=0.70,
-        kelly_fraction=0.5,
-        fast_ema_period=20,
-        slow_ema_period=50,
-        recalc_interval_bars=240,
-    )
+    defaults = {
+        "instrument_id": INSTRUMENT_ID,
+        "bar_type": BAR_TYPE,
+        "trade_size": Decimal("100"),
+        "total_capital": Decimal("500"),
+        "grid_levels": 8,
+        "p10_floor": Decimal("1.09000"),
+        "p90_ceiling": Decimal("1.13000"),
+        "calibration_min_coverage": 0.75,
+        "atr_period": 14,
+        "price_deviation_pct": 0.02,
+        "price_deviation_halt_seconds": 900,
+        "drawdown_floor": Decimal("425"),
+        "trend_override_ratio": 1.02,
+        "inventory_limit_pct": 0.70,
+        "kelly_fraction": 0.5,
+        "fast_ema_period": 20,
+        "slow_ema_period": 50,
+        "recalc_interval_bars": 240,
+    }
     defaults.update(overrides)
     return TimesFMGridConfig(**defaults)
 

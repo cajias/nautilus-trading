@@ -97,14 +97,14 @@ def build_bars(instrument: CurrencyPair, klines: list[list]) -> list[Bar]:
     )
     bars: list[Bar] = []
     for k in klines:
-        _open_ms, o, h, l, c, v, close_ms = k[0], k[1], k[2], k[3], k[4], k[5], k[6]
+        _open_ms, o, h, low, c, v, close_ms = k[0], k[1], k[2], k[3], k[4], k[5], k[6]
         ts_event_ns = int(close_ms) * 1_000_000
         bars.append(
             Bar(
                 bar_type=bar_type,
                 open=Price.from_str(str(o)),
                 high=Price.from_str(str(h)),
-                low=Price.from_str(str(l)),
+                low=Price.from_str(str(low)),
                 close=Price.from_str(str(c)),
                 volume=Quantity.from_str(str(v)),
                 ts_event=ts_event_ns,
