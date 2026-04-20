@@ -21,6 +21,8 @@ venv/
 
 # Testing
 .pytest_cache/
+.pytest-tmp/
+pytest-of-*/
 .coverage
 .coverage.*
 htmlcov/
