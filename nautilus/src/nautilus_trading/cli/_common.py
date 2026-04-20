@@ -11,6 +11,10 @@ _STRATEGY_CLASSES: dict[str, tuple[str, str]] = {
     "grid_bot": ("GridBotStrategy", "GridBotConfig"),
     "dca_bot": ("DCABotStrategy", "DCABotConfig"),
     "timesfm_swing": ("TimesFMSwingStrategy", "TimesFMSwingConfig"),
+    "hybrid_sma_r10": ("HybridSMAR10Strategy", "HybridSMAR10Config"),
+    "timesfm_grid": ("TimesFMGridStrategy", "TimesFMGridConfig"),
+    "rvs_swing": ("RVSSwingStrategy", "RVSSwingConfig"),
+    "shock_guard": ("ShockGuardStrategy", "ShockGuardConfig"),
 }
 
 
