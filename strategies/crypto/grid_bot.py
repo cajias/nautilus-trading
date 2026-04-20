@@ -10,6 +10,7 @@ from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto._grid_math import compute_uniform_grid_levels
 from strategies.crypto.risk_guard import RiskGuard
 
 
@@ -74,12 +75,11 @@ class GridBotStrategy(RiskGuard, Strategy):
         # NautilusTrader-idiomatic way to align prices with the venue's
         # PRICE_FILTER rules -- a plain decimal round() can still leave sub-tick
         # residue for instruments where tick size != 10^-price_precision.
-        step = (self.config.upper_price - self.config.lower_price) / (
-            self.config.grid_levels - 1
+        raw_levels = compute_uniform_grid_levels(
+            lower=self.config.lower_price,
+            upper=self.config.upper_price,
+            n_levels=self.config.grid_levels,
         )
-        raw_levels = [
-            self.config.lower_price + step * i for i in range(self.config.grid_levels)
-        ]
 
         snapped: list[Price] = []
         for raw in raw_levels:

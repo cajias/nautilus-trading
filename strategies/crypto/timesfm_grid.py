@@ -26,6 +26,14 @@ from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
+from strategies.crypto._grid_math import (
+    compute_atr_adjusted_step,
+    compute_calibration_coverage,
+    compute_uniform_grid_levels,
+)
+from strategies.crypto._grid_math import (
+    compute_kelly_size as _kelly_size,
+)
 from strategies.crypto.risk_guard import RiskGuard
 
 
@@ -226,7 +234,9 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
             self.grid_orders[level] = None
 
     def on_stop(self) -> None:
-        self.cancel_all_orders(self.config.instrument_id)  # explicit for Round 11 contract compliance
+        self.cancel_all_orders(
+            self.config.instrument_id
+        )  # explicit for Round 11 contract compliance
         self._cancel_all_and_reset_tracking()  # resets committed capital tracking
         self.close_all_positions(self.config.instrument_id)
         self.unsubscribe_bars(self.config.bar_type)
@@ -258,11 +268,12 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
         n = self.config.grid_levels
 
         # Base uniform spacing
-        step = (self.config.p90_ceiling - self.config.p10_floor) / (n - 1)
-        self.grid_prices = [
-            round(self.config.p10_floor + step * i, precision)
-            for i in range(n)
-        ]
+        raw_levels = compute_uniform_grid_levels(
+            lower=self.config.p10_floor,
+            upper=self.config.p90_ceiling,
+            n_levels=n,
+        )
+        self.grid_prices = [round(p, precision) for p in raw_levels]
 
         # Initialize grid order tracking
         self.grid_orders = dict.fromkeys(range(n))
@@ -286,8 +297,11 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
 
         # ATR-weighted spacing: scale step by ATR relative to range
         # Higher ATR -> wider spacing (fewer levels near current price)
-        base_step = total_range / (n - 1)
-        adjusted_step = base_step * (Decimal("1") + (atr_value / total_range) * Decimal("0.5"))
+        adjusted_step = compute_atr_adjusted_step(
+            total_range=total_range,
+            atr_value=atr_value,
+            n_levels=n,
+        )
 
         # Cancel existing orders before recalculating
         self._cancel_all_and_reset_tracking()
@@ -325,7 +339,10 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
             return True
 
         quantile_range = float(self.config.p90_ceiling - self.config.p10_floor)
-        coverage = quantile_range / recent_range
+        coverage = compute_calibration_coverage(
+            quantile_range=quantile_range,
+            recent_range=recent_range,
+        )
         self._calibration_passed = coverage >= self.config.calibration_min_coverage
 
         if not self._calibration_passed:
@@ -361,7 +378,11 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
 
     def _check_trend_override(self) -> None:
         """Check EMA(fast)/EMA(slow) ratio for trend override."""
-        if not self._fast_ema.initialized or not self._slow_ema.initialized or self._slow_ema.value == 0:
+        if (
+            not self._fast_ema.initialized
+            or not self._slow_ema.initialized
+            or self._slow_ema.value == 0
+        ):
             self.trend_override_active = False
             return
 
@@ -371,8 +392,7 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
 
         if self.trend_override_active and not was_active:
             self.log.info(
-                f"TREND OVERRIDE: EMA ratio={ratio:.4f}. "
-                f"Pausing grid, switching to trend-follow."
+                f"TREND OVERRIDE: EMA ratio={ratio:.4f}. Pausing grid, switching to trend-follow."
             )
             self._cancel_all_and_reset_tracking()
 
@@ -439,23 +459,21 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
 
     # -- Kelly sizing ------------------------------------------------------------
 
-    def compute_kelly_size(
-        self, p10: float, p90: float, current_price: float
-    ) -> float:
+    def compute_kelly_size(self, p10: float, p90: float, current_price: float) -> float:
         """Compute Half-Kelly position size from P10-P90 spread.
 
-        Kelly fraction = edge / odds, capped at kelly_fraction config.
-        Returns dollar amount per grid level.
+        Delegates math to strategies.crypto._grid_math.compute_kelly_size; this
+        method stays on the class so existing callers (self.compute_kelly_size(...))
+        don't need to touch config plumbing.
         """
-        if p10 >= p90 or current_price <= 0:
-            return 0.0
-
-        spread = p90 - p10
-        edge = spread / current_price  # Expected range as fraction
-        # Simplified Kelly: fraction of capital = edge * kelly_cap
-        kelly_raw = edge * self.config.kelly_fraction
-        max_per_level = float(self.config.total_capital) / self.config.grid_levels
-        return min(kelly_raw * float(self.config.total_capital), max_per_level)
+        return _kelly_size(
+            p10=p10,
+            p90=p90,
+            current_price=current_price,
+            kelly_fraction=self.config.kelly_fraction,
+            total_capital=float(self.config.total_capital),
+            grid_levels=self.config.grid_levels,
+        )
 
     # -- Order placement ---------------------------------------------------------
 
