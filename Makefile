@@ -127,7 +127,7 @@ lint:
 	@echo "-> Mypy (type checking)..."
 	@cd nautilus && uv run mypy src/
 	@echo "-> Vulture (dead code detection)..."
-	@cd nautilus && uv run vulture src/ ../strategies/ ../vulture_whitelist.py --min-confidence 80
+	@cd nautilus && uv run vulture src/ ../strategies/ --min-confidence 80
 	@echo "v All linting checks passed!"
 
 lint-fix:

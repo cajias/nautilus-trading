@@ -21,7 +21,6 @@ if PROJECT_ROOT not in sys.path:
 
 from strategies.crypto.grid_bot import GridBotConfig, GridBotStrategy
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -145,7 +144,7 @@ class TestGridPriceCalculation:
         engine.run()
 
         assert len(strategy.grid_prices) == 5
-        for actual, exp in zip(strategy.grid_prices, expected):
+        for actual, exp in zip(strategy.grid_prices, expected, strict=False):
             assert actual == exp, f"Expected {exp}, got {actual}"
         engine.dispose()
 
@@ -261,12 +260,12 @@ class TestTrendFilter:
     def test_trend_filter_pauses_grid(self):
         """With trend filter ON and strongly trending data, fewer orders should be placed."""
         # Use 5 levels (clean step = 0.01000) over a wider range
-        grid_kwargs = dict(
-            lower_price=Decimal("1.10000"),
-            upper_price=Decimal("1.14000"),
-            grid_levels=5,
-            ema_period=3,
-        )
+        grid_kwargs = {
+            "lower_price": Decimal("1.10000"),
+            "upper_price": Decimal("1.14000"),
+            "grid_levels": 5,
+            "ema_period": 3,
+        }
 
         # --- Run 1: filter OFF ---
         config_off = _make_config(use_trend_filter=False, **grid_kwargs)

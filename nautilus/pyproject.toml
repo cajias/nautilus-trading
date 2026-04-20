@@ -107,6 +107,12 @@ ignore = ["E501"]
 # Runner scripts bootstrap sys.path before package imports -- E402 is structural.
 "../strategies/crypto/kronos/backtest.py" = ["E402"]
 "../strategies/crypto/kronos/paper_trade.py" = ["E402"]
+# Test files bootstrap sys.path before package imports (justified E402).
+"../tests/**" = ["E402"]
+
+[tool.vulture]
+# Names used by NautilusTrader framework callbacks that appear unused to static analysis.
+ignore_names = ["bar"]
 
 [tool.mypy]
 python_version = "3.12"
