@@ -37,7 +37,7 @@ PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig, build_kronos_signal
+from strategies.crypto.kronos.actor import KronosActorConfig, build_kronos_signal
 from strategies.crypto.kronos.data import KronosSignal
 from strategies.crypto.kronos.strategy import KronosStrategy, KronosStrategyConfig
 
@@ -226,14 +226,9 @@ class TestKronosStrategyConfig:
         with pytest.raises(AttributeError):
             default_strategy_config.stop_loss_pct = 0.05  # type: ignore[misc]
 
-    def test_risk_reward_ratio_default(
-        self, default_strategy_config: KronosStrategyConfig
-    ) -> None:
+    def test_risk_reward_ratio_default(self, default_strategy_config: KronosStrategyConfig) -> None:
         """Default TP/SL = 4%/2% = 2:1 reward:risk."""
-        rr = (
-            default_strategy_config.take_profit_pct
-            / default_strategy_config.stop_loss_pct
-        )
+        rr = default_strategy_config.take_profit_pct / default_strategy_config.stop_loss_pct
         assert rr == pytest.approx(2.0)
 
 
@@ -256,9 +251,7 @@ class TestKronosActorBuildSignal:
     _MODEL = "mini"
     _TS = 1_000_000_000
 
-    def _make_pred_df(
-        self, horizon: int = 10, direction: str = "up"
-    ) -> pd.DataFrame:
+    def _make_pred_df(self, horizon: int = 10, direction: str = "up") -> pd.DataFrame:
         """Build a fake Kronos forecast DataFrame."""
         base_close = 50000.0
         delta = 500.0 if direction == "up" else -500.0

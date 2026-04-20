@@ -8,18 +8,9 @@ other tests (RiskGuard is instrument-agnostic).
 from __future__ import annotations
 
 import sys
-from decimal import Decimal
 from pathlib import Path
 
-import pytest
-from nautilus_trader.backtest.engine import BacktestEngine, BacktestEngineConfig
-from nautilus_trader.config import LoggingConfig
-from nautilus_trader.model.currencies import USD
-from nautilus_trader.model.data import Bar, BarType
-from nautilus_trader.model.enums import AccountType, OmsType, OrderSide, TimeInForce
-from nautilus_trader.model.identifiers import Venue
-from nautilus_trader.model.objects import Money, Price, Quantity
-from nautilus_trader.test_kit.providers import TestInstrumentProvider
+from nautilus_trader.model.data import Bar
 
 PROJECT_ROOT = str(Path(__file__).resolve().parents[1])
 if PROJECT_ROOT not in sys.path:
@@ -33,6 +24,7 @@ from nautilus_trader.config import StrategyConfig
 # ---------------------------------------------------------------------------
 # Minimal strategy using RiskGuard for testing
 # ---------------------------------------------------------------------------
+
 
 class _MinimalConfig(StrategyConfig, frozen=True):
     instrument_id: str
@@ -54,6 +46,7 @@ class _TestStrategyWithRiskGuard(RiskGuard, Strategy):
 
     def on_start(self) -> None:
         from nautilus_trader.model.data import BarType as _BarType
+
         bar_type = _BarType.from_str(self.config.bar_type)
         self.subscribe_bars(bar_type)
         self._risk_guard_init(
@@ -77,6 +70,7 @@ class _TestStrategyWithRiskGuard(RiskGuard, Strategy):
 # ---------------------------------------------------------------------------
 # Helpers — isolated test of RiskGuard logic without NT engine
 # ---------------------------------------------------------------------------
+
 
 class _StubLogger:
     def __init__(self):
@@ -108,6 +102,7 @@ class _StubRiskGuard(RiskGuard):
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestRiskGuardInit:
     def test_init_sets_defaults(self):
@@ -247,24 +242,30 @@ class TestRiskGuardImportedByStrategies:
 
     def test_grid_bot_has_risk_guard(self):
         from strategies.crypto.grid_bot import GridBotStrategy
+
         assert issubclass(GridBotStrategy, RiskGuard)
 
     def test_dca_bot_has_risk_guard(self):
         from strategies.crypto.dca_bot import DCABotStrategy
+
         assert issubclass(DCABotStrategy, RiskGuard)
 
     def test_shock_guard_has_risk_guard(self):
         from strategies.crypto.shock_guard import ShockGuardStrategy
+
         assert issubclass(ShockGuardStrategy, RiskGuard)
 
     def test_timesfm_swing_has_risk_guard(self):
         from strategies.crypto.timesfm_swing import TimesFMSwingStrategy
+
         assert issubclass(TimesFMSwingStrategy, RiskGuard)
 
     def test_timesfm_grid_has_risk_guard(self):
         from strategies.crypto.timesfm_grid import TimesFMGridStrategy
+
         assert issubclass(TimesFMGridStrategy, RiskGuard)
 
     def test_rvs_swing_has_risk_guard(self):
         from strategies.crypto.rvs_swing import RVSSwingStrategy
+
         assert issubclass(RVSSwingStrategy, RiskGuard)
