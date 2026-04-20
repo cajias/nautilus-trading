@@ -7,13 +7,15 @@ from typing import Annotated
 import typer
 
 from nautilus_trading.cli._common import _ensure_project_root_on_path, _resolve_strategy_paths
+from nautilus_trading.live.runner import build_live_config, run_live
 
 
 def live(
     strategy_path: Annotated[
         str,
         typer.Option(
-            "--strategy", "-s",
+            "--strategy",
+            "-s",
             help="Strategy module path (e.g. strategies.crypto.grid_bot) or full import path.",
         ),
     ],
@@ -108,8 +110,6 @@ def live(
     """
     _ensure_project_root_on_path()
 
-    from nautilus_trading.live.runner import build_live_config, run_live
-
     resolved_strategy, resolved_config = _resolve_strategy_paths(strategy_path)
     if config_path is not None:
         resolved_config = config_path
@@ -140,7 +140,11 @@ def live(
 
     if builder is None:
         # Unknown strategy — fall back to the minimal base dict (preserves old behavior).
-        strat_config: dict = {"instrument_id": instrument_id, "bar_type": bar_type, "trade_size": trade_size}
+        strat_config: dict = {
+            "instrument_id": instrument_id,
+            "bar_type": bar_type,
+            "trade_size": trade_size,
+        }
     else:
         try:
             strat_config = builder.build(builder_args)

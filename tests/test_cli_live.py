@@ -37,8 +37,11 @@ def capture_live(monkeypatch):
     def fake_run_live(config):  # noqa: ARG001
         return None
 
-    monkeypatch.setattr("nautilus_trading.live.runner.build_live_config", fake_build_live_config)
-    monkeypatch.setattr("nautilus_trading.live.runner.run_live", fake_run_live)
+    import importlib
+
+    _live_mod = importlib.import_module("nautilus_trading.cli.live")
+    monkeypatch.setattr(_live_mod, "build_live_config", fake_build_live_config)
+    monkeypatch.setattr(_live_mod, "run_live", fake_run_live)
     return captured
 
 
@@ -47,13 +50,20 @@ def test_live_grid_bot_config(cli_runner, nt_app, capture_live):
         nt_app,
         [
             "live",
-            "-s", "strategies.crypto.grid_bot",
-            "-i", "BTCUSDT.BINANCE",
-            "--bar-type", "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-            "--trade-size", "0.001",
-            "--upper-price", "50000",
-            "--lower-price", "40000",
-            "--grid-levels", "8",
+            "-s",
+            "strategies.crypto.grid_bot",
+            "-i",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--upper-price",
+            "50000",
+            "--lower-price",
+            "40000",
+            "--grid-levels",
+            "8",
             "--testnet",
         ],
     )
@@ -71,10 +81,14 @@ def test_live_grid_bot_requires_prices(cli_runner, nt_app, capture_live):
         nt_app,
         [
             "live",
-            "-s", "strategies.crypto.grid_bot",
-            "-i", "BTCUSDT.BINANCE",
-            "--bar-type", "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-            "--trade-size", "0.001",
+            "-s",
+            "strategies.crypto.grid_bot",
+            "-i",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
         ],
     )
     assert result.exit_code != 0
@@ -86,12 +100,18 @@ def test_live_dca_bot_config(cli_runner, nt_app, capture_live):
         nt_app,
         [
             "live",
-            "-s", "strategies.crypto.dca_bot",
-            "-i", "BTCUSDT.BINANCE",
-            "--bar-type", "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-            "--trade-size", "0.001",
-            "--buy-amount", "5.0",
-            "--buy-interval", "60",
+            "-s",
+            "strategies.crypto.dca_bot",
+            "-i",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--buy-amount",
+            "5.0",
+            "--buy-interval",
+            "60",
         ],
     )
     assert result.exit_code == 0, result.output
@@ -105,12 +125,18 @@ def test_live_ema_cross_config(cli_runner, nt_app, capture_live):
         nt_app,
         [
             "live",
-            "-s", "strategies.forex.ema_cross",
-            "-i", "BTCUSDT.BINANCE",
-            "--bar-type", "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-            "--trade-size", "0.001",
-            "--fast-ema", "20",
-            "--slow-ema", "50",
+            "-s",
+            "strategies.forex.ema_cross",
+            "-i",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--fast-ema",
+            "20",
+            "--slow-ema",
+            "50",
         ],
     )
     assert result.exit_code == 0, result.output
@@ -125,12 +151,18 @@ def test_live_timesfm_swing_fallback(cli_runner, nt_app, capture_live):
         nt_app,
         [
             "live",
-            "-s", "strategies.crypto.timesfm_swing",
-            "-i", "BTCUSDT.BINANCE",
-            "--bar-type", "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-            "--trade-size", "0.01",
-            "--fast-ema", "20",
-            "--slow-ema", "100",
+            "-s",
+            "strategies.crypto.timesfm_swing",
+            "-i",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+            "--trade-size",
+            "0.01",
+            "--fast-ema",
+            "20",
+            "--slow-ema",
+            "100",
         ],
     )
     assert result.exit_code == 0, result.output
@@ -144,10 +176,14 @@ def test_live_hybrid_sma_skips_trade_size_and_decimalizes(cli_runner, nt_app, ca
         nt_app,
         [
             "live",
-            "-s", "strategies.crypto.hybrid_sma_r10",
-            "-i", "BTCUSDT.BINANCE",
-            "--bar-type", "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-            "--trade-size", "0.01",
+            "-s",
+            "strategies.crypto.hybrid_sma_r10",
+            "-i",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
+            "--trade-size",
+            "0.01",
         ],
     )
     assert result.exit_code == 0, result.output
@@ -155,3 +191,20 @@ def test_live_hybrid_sma_skips_trade_size_and_decimalizes(cli_runner, nt_app, ca
     assert "trade_size" not in cfg, "hybrid_sma_r10 must not receive trade_size"
     assert "sma_fast" in cfg and isinstance(cfg["sma_fast"], int)
     assert "stop_fast" in cfg and isinstance(cfg["stop_fast"], str)  # Decimal-as-string
+
+
+def test_cli_live_module_imports_run_live_at_module_level():
+    """Regression guard: run_live must be a module-level import of cli.live."""
+    import importlib
+
+    live_mod = importlib.import_module("nautilus_trading.cli.live")
+    assert hasattr(live_mod, "run_live")
+    assert callable(live_mod.run_live)
+
+
+def test_cli_live_module_imports_build_live_config_at_module_level():
+    import importlib
+
+    live_mod = importlib.import_module("nautilus_trading.cli.live")
+    assert hasattr(live_mod, "build_live_config")
+    assert callable(live_mod.build_live_config)
