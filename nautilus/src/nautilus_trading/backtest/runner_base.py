@@ -34,21 +34,12 @@ class BacktestRunner(ABC):
     def print_results(self, results: Any) -> None:
         """Pretty-print results."""
 
+    @abstractmethod
     def main(self) -> None:
-        """Default composition: build → create engine → add data → run → print.
+        """Run the backtest end-to-end.
 
-        Subclasses may override this when engine creation needs type-aware venue
-        wiring (see KronosBacktestRunner for an example). The default is
-        sufficient for dict-config subclasses that don't need type wrapping.
+        Subclasses own engine construction, venue/Money wrapping, data loading,
+        execution, and result printing. No default composition — Option D (see
+        PR #16 Copilot thread). Both known subclasses (EMABacktestRunner,
+        KronosBacktestRunner) already provide a concrete `main()`.
         """
-        from nautilus_trader.backtest.engine import BacktestEngine
-
-        config = self.build_config()
-        engine_cfg = config.get("engine_cfg") if isinstance(config, dict) else None
-        engine = BacktestEngine(config=engine_cfg) if engine_cfg else BacktestEngine()
-        venue = config.get("venue") if isinstance(config, dict) else None
-        if venue is not None:
-            engine.add_venue(**venue.__dict__)
-        self.add_data(engine, config)
-        results = self.run(engine)
-        self.print_results(results)
