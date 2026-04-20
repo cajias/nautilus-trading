@@ -1,6 +1,0 @@
-Strategy: Multi-Factor Momentum + Mean Reversion
-Description: Dual-signal approach combining 7-day momentum ROC and 20-day Bollinger z-score mean reversion, with volatility-based regime switching and 30-day trend filter. Long-only, daily rebalance across BTC/ETH/SOL with 3% stop-losses, 6% take-profits, and 70% max exposure cap.
-Pairs: BTCUSDT, ETHUSDT, SOLUSDT
-TRAIN Return: -0.89%  |  TEST Return: +5.90%
-TEST Sharpe: 1.51  |  TEST Max DD: -5.87%  |  TEST Win Rate: 50.0%
-TEST Trades: 35
