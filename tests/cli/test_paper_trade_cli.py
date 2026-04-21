@@ -48,14 +48,7 @@ def test_paper_trade_ema_cross_dispatches_to_runner(monkeypatch):
     """Invoking `nt paper-trade --strategy ema_cross ...` builds an EMACross runner
     and calls .main(). We swap .main() for a recorder double so we don't hit Testnet.
     """
-    # Ensure project root is on sys.path so `strategies.*` is importable here.
-    import sys
-    from pathlib import Path
-
-    project_root = str(Path(__file__).resolve().parents[2])
-    if project_root not in sys.path:
-        sys.path.insert(0, project_root)
-
+    # `strategies.*` is importable because tests/conftest.py adds the repo root to sys.path.
     calls = []
 
     def _recording_main(self):
