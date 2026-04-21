@@ -37,6 +37,9 @@ def _load_runners() -> None:
     from strategies.crypto.hybrid_sma_r10_paper import (  # type: ignore[import-not-found]
         HybridSMAR10PaperTradeRunner,
     )
+    from strategies.crypto.timesfm_grid_paper import (  # type: ignore[import-not-found]
+        TimesFMGridPaperTradeRunner,
+    )
     from strategies.crypto.timesfm_swing_paper import (  # type: ignore[import-not-found]
         TimesFMSwingPaperTradeRunner,
     )
@@ -46,6 +49,7 @@ def _load_runners() -> None:
     _RUNNERS["dca_bot"] = DCABotPaperTradeRunner
     _RUNNERS["timesfm_swing"] = TimesFMSwingPaperTradeRunner
     _RUNNERS["hybrid_sma_r10"] = HybridSMAR10PaperTradeRunner
+    _RUNNERS["timesfm_grid"] = TimesFMGridPaperTradeRunner
 
 
 def paper_trade(
@@ -134,6 +138,9 @@ def paper_trade(
             "stop_fast": stop_fast,
             "stop_slow": stop_slow,
         }
+    elif strategy == "timesfm_grid":
+        # TimesFMGrid: base fields only — all ML/grid/stop params default.
+        kwargs = base_kwargs
     else:
         kwargs = base_kwargs
 

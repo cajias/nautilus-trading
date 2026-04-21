@@ -295,3 +295,42 @@ def test_paper_trade_hybrid_sma_r10_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("hybrid_sma_r10", "BTCUSDT.BINANCE", 10, 30, "0.05", "0.10")]
+
+
+def test_paper_trade_timesfm_grid_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy timesfm_grid ...` builds a TimesFMGrid
+    runner and calls .main(). TimesFMGrid uses only base args — all ML/grid
+    parameters have Config defaults, so no new Typer options are needed.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "timesfm_grid",
+                self.instrument_id,
+                self.trade_size,
+            )
+        )
+
+    from strategies.crypto.timesfm_grid_paper import TimesFMGridPaperTradeRunner
+
+    monkeypatch.setattr(TimesFMGridPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "timesfm_grid",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("timesfm_grid", "BTCUSDT.BINANCE", "0.001")]
