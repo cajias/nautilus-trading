@@ -34,6 +34,9 @@ def _load_runners() -> None:
     from strategies.crypto.grid_bot_paper import (  # type: ignore[import-not-found]
         GridBotPaperTradeRunner,
     )
+    from strategies.crypto.hybrid_sma_r10_paper import (  # type: ignore[import-not-found]
+        HybridSMAR10PaperTradeRunner,
+    )
     from strategies.crypto.timesfm_swing_paper import (  # type: ignore[import-not-found]
         TimesFMSwingPaperTradeRunner,
     )
@@ -42,6 +45,7 @@ def _load_runners() -> None:
     _RUNNERS["grid_bot"] = GridBotPaperTradeRunner
     _RUNNERS["dca_bot"] = DCABotPaperTradeRunner
     _RUNNERS["timesfm_swing"] = TimesFMSwingPaperTradeRunner
+    _RUNNERS["hybrid_sma_r10"] = HybridSMAR10PaperTradeRunner
 
 
 def paper_trade(
@@ -68,6 +72,10 @@ def paper_trade(
     grid_levels: int | None = typer.Option(None, "--grid-levels"),
     buy_interval_bars: int | None = typer.Option(None, "--buy-interval-bars"),
     buy_amount: str | None = typer.Option(None, "--buy-amount"),
+    sma_fast: int | None = typer.Option(None, "--sma-fast"),
+    sma_slow: int | None = typer.Option(None, "--sma-slow"),
+    stop_fast: str | None = typer.Option(None, "--stop-fast"),
+    stop_slow: str | None = typer.Option(None, "--stop-slow"),
     duration: str | None = typer.Option(
         None,
         "--duration",
@@ -115,6 +123,17 @@ def paper_trade(
         kwargs = {**base_kwargs, "buy_interval_bars": buy_interval_bars}
         if buy_amount is not None:
             kwargs["buy_amount"] = buy_amount
+    elif strategy == "hybrid_sma_r10":
+        # HybridSMA sizes from equity; intentionally omit trade_size.
+        kwargs = {
+            "instrument_id": instrument_id,
+            "bar_type": bar_type,
+            "log_level": log_level,
+            "sma_fast": sma_fast,
+            "sma_slow": sma_slow,
+            "stop_fast": stop_fast,
+            "stop_slow": stop_slow,
+        }
     else:
         kwargs = base_kwargs
 

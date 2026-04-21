@@ -244,3 +244,54 @@ def test_paper_trade_timesfm_swing_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("timesfm_swing", "BTCUSDT.BINANCE", 5, 30)]
+
+
+def test_paper_trade_hybrid_sma_r10_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy hybrid_sma_r10 ...` builds a HybridSMA
+    runner and calls .main(). Hybrid SMA uses --sma-fast/--sma-slow/--stop-fast/
+    --stop-slow and does NOT propagate --trade-size into the runner (strategy
+    sizes from equity).
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "hybrid_sma_r10",
+                self.instrument_id,
+                self.sma_fast,
+                self.sma_slow,
+                self.stop_fast,
+                self.stop_slow,
+            )
+        )
+
+    from strategies.crypto.hybrid_sma_r10_paper import HybridSMAR10PaperTradeRunner
+
+    monkeypatch.setattr(HybridSMAR10PaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "hybrid_sma_r10",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--sma-fast",
+            "10",
+            "--sma-slow",
+            "30",
+            "--stop-fast",
+            "0.05",
+            "--stop-slow",
+            "0.10",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("hybrid_sma_r10", "BTCUSDT.BINANCE", 10, 30, "0.05", "0.10")]
