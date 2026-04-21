@@ -1,5 +1,9 @@
 # SWE Iterative Team Implementation Plan
 
+> **Status (retro-ticked 2026-04-21):** This plan was executed ad-hoc without ticking boxes in real time. Checkboxes below have been verified against HEAD and updated to reflect actual on-disk state. See `.agent/` directory + `.agent/roles/*.md` for the scaffold.
+>
+> Tasks 1–9 (scaffold) are fully executed and verified (`scripts/team-check.sh` exits 0; all 4 role briefs, template, init script, and runbook present). Task 10 (dry-run validation) ran through Steps 1–5 but the dry-run **FAILED** — see `docs/superpowers/audits/2026-04-18-team-dryrun-FAILED.md`; the "validated" marker (Step 6) and Integrator flip-to-live (Step 7) never landed as prescribed. Task 11 (one-atomic-PR for the scaffold) was never opened; scaffold instead shipped across the sub-project A PR chain.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Scaffold a four-role tmux-backed agent team (Planner/Worker/Reviewer/Integrator) that autonomously executes sub-project A's 8-PR implementation plan via Google's iterative multi-agent pattern.
@@ -23,13 +27,13 @@
 - Create: `.agent/roles/.gitkeep`
 - Create: `.agent/history/.gitkeep`
 
-- [ ] **Step 1: Read the current `.gitignore`**
+- [x] **Step 1: Read the current `.gitignore`**
 
 Run: `cat .gitignore`
 
 Note what patterns already exist. We will append; do not clobber.
 
-- [ ] **Step 2: Append team-state patterns**
+- [x] **Step 2: Append team-state patterns**
 
 Append these lines to `.gitignore` (preserve any trailing newline):
 
@@ -40,14 +44,14 @@ Append these lines to `.gitignore` (preserve any trailing newline):
 .agent/history/
 ```
 
-- [ ] **Step 3: Create empty tracked directories**
+- [x] **Step 3: Create empty tracked directories**
 
 ```bash
 mkdir -p .agent/roles .agent/history
 touch .agent/roles/.gitkeep .agent/history/.gitkeep
 ```
 
-- [ ] **Step 4: Verify gitignore patterns match what we'll create**
+- [x] **Step 4: Verify gitignore patterns match what we'll create**
 
 Run:
 ```bash
@@ -61,7 +65,7 @@ git check-ignore -v .agent/roles/planner.md .agent/roles/.gitkeep .agent/history
 ```
 Expected: **none of these** are ignored (exits non-zero with no output). `.gitkeep` inside `.agent/history/` is allowed because `git check-ignore` honors that directories can have tracked files even under a trailing-slash pattern — but belt-and-braces: if this fails, add `!.agent/history/.gitkeep` as a negation line.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add .gitignore .agent/roles/.gitkeep .agent/history/.gitkeep
@@ -77,7 +81,7 @@ git commit -m "chore: add .agent/ layout and gitignore for team runtime state"
 
 This script exits non-zero until every scaffold piece is in place. It is written first so subsequent tasks have a mechanical gate.
 
-- [ ] **Step 1: Create the script**
+- [x] **Step 1: Create the script**
 
 ```bash
 mkdir -p scripts
@@ -155,19 +159,19 @@ fi
 echo "team-check: OK"
 ```
 
-- [ ] **Step 2: Make it executable**
+- [x] **Step 2: Make it executable**
 
 ```bash
 chmod +x scripts/team-check.sh
 ```
 
-- [ ] **Step 3: Run it — expect FAIL**
+- [x] **Step 3: Run it — expect FAIL**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: multiple `FAIL:` lines (template missing, all 4 role briefs missing, team-init.sh missing, runbook missing) and final `team-check: FAIL`. The `|| true` is only so set-e in your shell doesn't interrupt; the script itself exits 1.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add scripts/team-check.sh
@@ -181,7 +185,7 @@ git commit -m "chore: add team-check.sh scaffold validator (RED)"
 **Files:**
 - Create: `.agent/team-state.template.md`
 
-- [ ] **Step 1: Write the template**
+- [x] **Step 1: Write the template**
 
 Create `.agent/team-state.template.md` with exactly this content:
 
@@ -202,13 +206,13 @@ _Reviewer writes `ACCEPT` or `REJECT` here with reasons. On REJECT with Attempt 
 _Integrator appends a one-line record after each ACCEPT rotation: `- <task-id> — ACCEPT on attempt <N> — commit <short-sha>`._
 ```
 
-- [ ] **Step 2: Run team-check — expect progress**
+- [x] **Step 2: Run team-check — expect progress**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: `ok: .agent/team-state.template.md exists` plus all five section matches; still FAILs on role briefs and team-init.sh.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .agent/team-state.template.md
@@ -222,7 +226,7 @@ git commit -m "feat: add team scratchpad template"
 **Files:**
 - Create: `.agent/roles/planner.md`
 
-- [ ] **Step 1: Write the brief**
+- [x] **Step 1: Write the brief**
 
 Create `.agent/roles/planner.md` with exactly this content:
 
@@ -255,13 +259,13 @@ You are the Planner for the SWE iterative team executing
 7. Stop. Wait for next ping (escalation or PR-boundary nudge).
 ```
 
-- [ ] **Step 2: Run team-check — expect progress**
+- [x] **Step 2: Run team-check — expect progress**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: `ok` lines for `.agent/roles/planner.md` and its five sections; still FAILs on the other three role briefs + team-init.sh + runbook.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .agent/roles/planner.md
@@ -275,7 +279,7 @@ git commit -m "feat: add Planner role brief"
 **Files:**
 - Create: `.agent/roles/worker.md`
 
-- [ ] **Step 1: Write the brief**
+- [x] **Step 1: Write the brief**
 
 Create `.agent/roles/worker.md` with exactly this content:
 
@@ -306,13 +310,13 @@ You are the Worker for the SWE iterative team. You implement one task at a time,
 6. Stop. Wait for next ping (REJECT → retry, or next Brief from Planner).
 ```
 
-- [ ] **Step 2: Run team-check — expect progress**
+- [x] **Step 2: Run team-check — expect progress**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: `ok` for `planner.md` and `worker.md`; FAILs remain for reviewer/integrator briefs + team-init.sh + runbook.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .agent/roles/worker.md
@@ -326,7 +330,7 @@ git commit -m "feat: add Worker role brief"
 **Files:**
 - Create: `.agent/roles/reviewer.md`
 
-- [ ] **Step 1: Write the brief**
+- [x] **Step 1: Write the brief**
 
 Create `.agent/roles/reviewer.md` with exactly this content:
 
@@ -356,13 +360,13 @@ You are the Reviewer. You are the critic in the iterative loop. You do not edit 
 5. Stop.
 ```
 
-- [ ] **Step 2: Run team-check — expect progress**
+- [x] **Step 2: Run team-check — expect progress**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: `ok` for planner/worker/reviewer; FAILs on integrator + team-init.sh + runbook.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .agent/roles/reviewer.md
@@ -376,7 +380,7 @@ git commit -m "feat: add Reviewer role brief"
 **Files:**
 - Create: `.agent/roles/integrator.md`
 
-- [ ] **Step 1: Write the brief**
+- [x] **Step 1: Write the brief**
 
 Create `.agent/roles/integrator.md` with exactly this content:
 
@@ -419,13 +423,13 @@ You are the Integrator. You are mechanical — you do not judge correctness; you
 - The runbook documents how to toggle this between validation and live runs.
 ```
 
-- [ ] **Step 2: Run team-check — expect progress**
+- [x] **Step 2: Run team-check — expect progress**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: all four role briefs `ok`; FAILs only on `scripts/team-init.sh` + runbook.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .agent/roles/integrator.md
@@ -439,7 +443,7 @@ git commit -m "feat: add Integrator role brief"
 **Files:**
 - Create: `scripts/team-init.sh`
 
-- [ ] **Step 1: Create the script**
+- [x] **Step 1: Create the script**
 
 Create `scripts/team-init.sh` with exactly this content:
 
@@ -472,19 +476,19 @@ echo "team-init: initialized $STATE from template."
 echo "team-init: history dir: $HISTORY/"
 ```
 
-- [ ] **Step 2: Make it executable**
+- [x] **Step 2: Make it executable**
 
 ```bash
 chmod +x scripts/team-init.sh
 ```
 
-- [ ] **Step 3: Run team-check — expect all ok except runbook**
+- [x] **Step 3: Run team-check — expect all ok except runbook**
 
 Run: `scripts/team-check.sh || true`
 
 Expected: every check passes except the runbook file and its `INTEGRATOR_DRY_RUN` section.
 
-- [ ] **Step 4: Run the init script and verify behavior**
+- [x] **Step 4: Run the init script and verify behavior**
 
 ```bash
 scripts/team-init.sh
@@ -502,7 +506,7 @@ rm .agent/team-state.md
 ```
 (`.agent/team-state.md` is gitignored so nothing to un-stage.)
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/team-init.sh
@@ -516,7 +520,7 @@ git commit -m "feat: add team-init.sh scratchpad bootstrap"
 **Files:**
 - Create: `docs/superpowers/runbooks/2026-04-18-team-spawn.md`
 
-- [ ] **Step 1: Create the runbook**
+- [x] **Step 1: Create the runbook**
 
 ```bash
 mkdir -p docs/superpowers/runbooks
@@ -605,13 +609,13 @@ When Integrator opens PR N and pauses:
 `/team delete` (via main Claude session). `.agent/team-state.md` is gitignored so it can stay or be archived into `.agent/history/`; role briefs are committed and survive.
 ```
 
-- [ ] **Step 2: Run team-check — expect all green**
+- [x] **Step 2: Run team-check — expect all green**
 
 Run: `scripts/team-check.sh`
 
 Expected: every line `ok:`, final `team-check: OK`, exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/superpowers/runbooks/2026-04-18-team-spawn.md
@@ -628,7 +632,7 @@ git commit -m "docs: add team-spawn runbook with dry-run validation gate"
 - Read-only reference: `.agent/team-state.md`, `.agent/history/task-1.1.md`
 - Maybe create (only if validation fails): `docs/superpowers/audits/2026-04-18-team-dryrun-<outcome>.md`
 
-- [ ] **Step 1: Pre-flight**
+- [x] **Step 1: Pre-flight**
 
 ```bash
 scripts/team-check.sh
@@ -637,15 +641,15 @@ scripts/team-init.sh
 
 Both must exit 0. `.agent/team-state.md` now exists with the template shape.
 
-- [ ] **Step 2: Spawn the team per runbook §2**
+- [x] **Step 2: Spawn the team per runbook §2**
 
 Follow `docs/superpowers/runbooks/2026-04-18-team-spawn.md` §2 exactly. Confirm `INTEGRATOR_DRY_RUN=1` is set in Integrator's prompt.
 
-- [ ] **Step 3: Kick off the loop per runbook §3**
+- [x] **Step 3: Kick off the loop per runbook §3**
 
 `SendMessage(to=planner, body="begin — pick the next unchecked task in docs/superpowers/plans/2026-04-17-subproject-a-implementation.md")`
 
-- [ ] **Step 4: Observe end-to-end**
+- [x] **Step 4: Observe end-to-end**
 
 Tail the scratchpad from a separate shell:
 ```bash
@@ -654,7 +658,7 @@ watch -n 2 cat .agent/team-state.md
 
 Expected arc: Planner Brief → Worker Attempt 1 → Reviewer Verdict → Integrator dry-run entry → scratchpad rotated to `.agent/history/task-1.1.md`.
 
-- [ ] **Step 5: Run the runbook §4 checklist**
+- [x] **Step 5: Run the runbook §4 checklist**
 
 Go through every check in runbook §4. Every box must be ticked before proceeding.
 
