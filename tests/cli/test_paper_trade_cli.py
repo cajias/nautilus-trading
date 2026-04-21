@@ -334,3 +334,42 @@ def test_paper_trade_timesfm_grid_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("timesfm_grid", "BTCUSDT.BINANCE", "0.001")]
+
+
+def test_paper_trade_rvs_swing_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy rvs_swing ...` builds an RVSSwing
+    runner and calls .main(). RVSSwing uses only base args — all anomaly/stop/
+    EMA parameters have Config defaults, so no new Typer options are needed.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "rvs_swing",
+                self.instrument_id,
+                self.trade_size,
+            )
+        )
+
+    from strategies.crypto.rvs_swing_paper import RVSSwingPaperTradeRunner
+
+    monkeypatch.setattr(RVSSwingPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "rvs_swing",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("rvs_swing", "BTCUSDT.BINANCE", "0.001")]
