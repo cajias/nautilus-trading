@@ -13,6 +13,7 @@ from __future__ import annotations
 import os
 import signal
 import sys
+from decimal import ROUND_FLOOR, Decimal
 from typing import Any
 
 from nautilus_trader.adapters.binance import (
@@ -34,6 +35,24 @@ from nautilus_trader.config import (
 )
 from nautilus_trader.live.node import TradingNode
 from nautilus_trader.model.identifiers import InstrumentId
+from nautilus_trader.model.objects import Price
+
+
+def round_to_tick(price: Decimal, instrument: Any) -> Price:
+    """Floor `price` to the instrument's tick grid.
+
+    Binance rejects LIMIT orders whose price is not on the tick grid (2026-04-08
+    incident with grid_bot). Strategies that construct LIMIT prices arithmetically
+    must call this helper before submit_order().
+
+    Floor (not round-half-even) is chosen for two reasons:
+      1. Symmetry with Binance's own validator, which truncates.
+      2. A floored BUY-limit price can never overshoot the user's ceiling;
+         the SELL side is handled by callers mirroring the offset.
+    """
+    tick = Decimal(str(instrument.price_increment))
+    floored = (price / tick).quantize(Decimal("1"), rounding=ROUND_FLOOR) * tick
+    return Price(floored, precision=instrument.price_precision)
 
 
 def build_paper_trade_node_config(
