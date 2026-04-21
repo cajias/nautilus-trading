@@ -34,10 +34,14 @@ def _load_runners() -> None:
     from strategies.crypto.grid_bot_paper import (  # type: ignore[import-not-found]
         GridBotPaperTradeRunner,
     )
+    from strategies.crypto.timesfm_swing_paper import (  # type: ignore[import-not-found]
+        TimesFMSwingPaperTradeRunner,
+    )
 
     _RUNNERS["ema_cross"] = EMACrossPaperTradeRunner
     _RUNNERS["grid_bot"] = GridBotPaperTradeRunner
     _RUNNERS["dca_bot"] = DCABotPaperTradeRunner
+    _RUNNERS["timesfm_swing"] = TimesFMSwingPaperTradeRunner
 
 
 def paper_trade(
@@ -97,6 +101,8 @@ def paper_trade(
         "log_level": log_level,
     }
     if strategy == "ema_cross":
+        kwargs = {**base_kwargs, "fast_ema": fast_ema, "slow_ema": slow_ema}
+    elif strategy == "timesfm_swing":
         kwargs = {**base_kwargs, "fast_ema": fast_ema, "slow_ema": slow_ema}
     elif strategy == "grid_bot":
         kwargs = {

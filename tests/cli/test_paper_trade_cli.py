@@ -168,3 +168,46 @@ def test_paper_trade_dca_bot_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("dca_bot", "BTCUSDT.BINANCE", 60, "10")]
+
+
+def test_paper_trade_timesfm_swing_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy timesfm_swing ...` builds a TimesFMSwing
+    runner and calls .main(). TimesFM reuses --fast-ema/--slow-ema (no new options).
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "timesfm_swing",
+                self.instrument_id,
+                self.fast_ema,
+                self.slow_ema,
+            )
+        )
+
+    from strategies.crypto.timesfm_swing_paper import TimesFMSwingPaperTradeRunner
+
+    monkeypatch.setattr(TimesFMSwingPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "timesfm_swing",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--fast-ema",
+            "5",
+            "--slow-ema",
+            "30",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("timesfm_swing", "BTCUSDT.BINANCE", 5, 30)]
