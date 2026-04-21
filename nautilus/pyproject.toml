@@ -113,7 +113,8 @@ ignore = ["E501"]
 
 [tool.vulture]
 # Names used by NautilusTrader framework callbacks that appear unused to static analysis.
-ignore_names = ["bar"]
+# `duration` is a placeholder CLI arg on `nt paper-trade` (time-boxed runs land in a later PR).
+ignore_names = ["bar", "duration"]
 
 [tool.mypy]
 python_version = "3.12"

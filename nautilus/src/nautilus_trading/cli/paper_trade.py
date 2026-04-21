@@ -1,25 +1,40 @@
 """`nt paper-trade` — Binance Spot Testnet paper-trade entry point.
 
-This module is intentionally slim: it parses the args shared with `nt backtest`,
-loads secrets, resolves the strategy builder, and delegates to a concrete
-PaperTradeRunner implementation (wired in PR 3 and onward).
+This module parses args shared across strategies, loads secrets, resolves the
+strategy-name to a concrete PaperTradeRunner class, instantiates it, and
+delegates to `runner.main()`.
 """
 
 from __future__ import annotations
 
 import typer
 
-from nautilus_trading.cli._common import (
-    _ensure_project_root_on_path,
-    _resolve_strategy_paths,
-)
+from nautilus_trading.cli._common import _ensure_project_root_on_path
+
+# Strategy-name → runner class, populated lazily to keep CLI import cheap.
+_RUNNERS: dict[str, type] = {}
+
+
+def _load_runners() -> None:
+    """Populate the strategy-name → runner class registry on first use."""
+    if _RUNNERS:
+        return
+    # Lazy import: strategies/ lives at the project root, not inside the
+    # nautilus/ package, so it only resolves after _ensure_project_root_on_path()
+    # has run. mypy can't see it — but the import is exercised at runtime by the
+    # CLI tests in tests/cli/test_paper_trade_cli.py.
+    from strategies.crypto.ema_cross_paper import (  # type: ignore[import-not-found]
+        EMACrossPaperTradeRunner,
+    )
+
+    _RUNNERS["ema_cross"] = EMACrossPaperTradeRunner
 
 
 def paper_trade(
     strategy: str = typer.Option(
         ...,
         "--strategy",
-        help="Strategy module name (e.g. 'ema_cross', 'grid_bot').",
+        help="Strategy module name (e.g. 'ema_cross').",
     ),
     instrument_id: str = typer.Option(
         ...,
@@ -31,7 +46,9 @@ def paper_trade(
         "--bar-type",
         help="Bar type, e.g. 'BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL'.",
     ),
-    trade_size: float = typer.Option(..., "--trade-size"),
+    trade_size: str = typer.Option(..., "--trade-size"),
+    fast_ema: int = typer.Option(10, "--fast-ema"),
+    slow_ema: int = typer.Option(20, "--slow-ema"),
     duration: str | None = typer.Option(
         None,
         "--duration",
@@ -41,24 +58,33 @@ def paper_trade(
 ) -> None:
     """Run a strategy on Binance Spot Testnet (paper trading)."""
     # Lazy imports so `import nautilus_trading.cli` stays cheap at collection time.
-    from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
     from nautilus_trading.paper_trade.secrets import load_dotenv_local
 
     _ensure_project_root_on_path()
     load_dotenv_local()
+    _load_runners()
 
-    if strategy not in STRATEGY_BUILDERS:
-        valid = ", ".join(sorted(STRATEGY_BUILDERS))
+    if strategy not in _RUNNERS:
+        valid = ", ".join(sorted(_RUNNERS))
         raise typer.BadParameter(
             f"Unknown strategy '{strategy}'. Valid: {valid}",
             param_hint="--strategy",
         )
 
-    _strategy_path, _config_path = _resolve_strategy_paths(strategy)
-    typer.echo(
-        f"paper-trade stub: strategy={strategy} instrument={instrument_id} "
-        f"bar_type={bar_type} trade_size={trade_size} duration={duration} "
-        f"log_level={log_level} (runner wiring arrives in PR 3)",
-        err=True,
-    )
-    raise typer.Exit(code=1)
+    runner_cls = _RUNNERS[strategy]
+    # Dispatch: each runner accepts only the kwargs its dataclass declares;
+    # Python raises TypeError for unexpected kwargs, which we remap to a
+    # friendly usage error.
+    try:
+        runner = runner_cls(
+            instrument_id=instrument_id,
+            bar_type=bar_type,
+            trade_size=trade_size,
+            fast_ema=fast_ema,
+            slow_ema=slow_ema,
+            log_level=log_level,
+        )
+    except TypeError as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+    runner.main()
