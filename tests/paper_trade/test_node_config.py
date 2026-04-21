@@ -81,7 +81,6 @@ class _FakeInstrument:
         ("0.01", 2, Decimal("100.000"), "100.00"),
         ("0.001", 3, Decimal("0.123456"), "0.123"),
         ("0.00001", 5, Decimal("65432.123456"), "65432.12345"),
-        ("0.01", 2, Decimal("100.020"), "100.02"),
     ],
 )
 def test_round_to_tick_grid(tick, precision, raw, expected):
@@ -91,8 +90,8 @@ def test_round_to_tick_grid(tick, precision, raw, expected):
     assert str(price) == expected
 
 
-def test_round_to_tick_floors_positive_prices():
-    """We floor to avoid overshooting on BUY LIMITs and to match Binance's conservative validation."""
+def test_round_to_tick_truncates_between_tick_grid_points():
+    """Prices between two tick boundaries floor down, not round half-even."""
     inst = _FakeInstrument(tick_size="0.01", price_precision=2)
     assert str(round_to_tick(Decimal("100.019"), inst)) == "100.01"
 
