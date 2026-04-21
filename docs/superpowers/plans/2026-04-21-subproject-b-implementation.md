@@ -14,6 +14,24 @@
 
 **Global commands.** Unless noted, all shell commands run from the repo root. Pytest runs from `nautilus/`: `cd nautilus && uv run pytest ...`. Testnet-gated tests (`@pytest.mark.binance_testnet`) are opt-in and are NOT run as part of `make test-unit`.
 
+**PR submission convention (applies to every "Open PR N" task).** Before `git push` and `gh pr create`, dispatch the reviewer subagent to run `/ultrareview` and `/simplify` against the PR branch and address any issues it surfaces. The reviewer subagent (not the human, not the main thread) owns those two commands — it invokes them via its Skill tool, triages findings, and either (a) fixes them directly and commits, or (b) reports back "needs decision" for items that require a judgment call. Only after the reviewer reports clean does the PR get pushed.
+
+Concrete dispatch shape:
+
+```
+Agent(
+  subagent_type: "pr-review-toolkit:code-reviewer",
+  description: "Pre-submit review for PR N",
+  prompt: "Run /ultrareview and /simplify against branch <branch>.
+           Address the issues you raise: fix straightforward ones
+           with commits on this branch; escalate judgment calls
+           back to main. Confirm `make lint && cd nautilus && uv
+           run python -m pytest ../tests/` still pass after your
+           changes. Then report DONE or NEEDS_DECISION with the
+           list of items requiring human input."
+)
+```
+
 **Worker briefing — zero-context primer.** You are implementing against a Nautilus Trader v1.224.0 codebase. Strategies live in `strategies/crypto/*.py` and are **venue-agnostic** — the same `Strategy` subclass runs under a backtest `BacktestEngine` or a live `TradingNode` with no code change. Sub-project A shipped the `BacktestRunner` ABC at `nautilus/src/nautilus_trading/backtest/runner_base.py` and the `STRATEGY_BUILDERS` Protocol registry at `nautilus/src/nautilus_trading/cli/_strategy_configs.py`. Your job is to add the paper-trade counterpart: a `PaperTradeRunner` ABC and an `nt paper-trade` command that reuses `STRATEGY_BUILDERS` unchanged. Read the spec first.
 
 ---
@@ -1283,6 +1301,10 @@ git commit -m "feat(cli): dispatch nt paper-trade ema_cross to EMACrossPaperTrad
 
 ### Task 3.3 — Open PR 3
 
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr3-cli-ema-runner`, address findings, and confirm tests stay green. Wait for DONE.
+
+- [ ] **Step 2: Push and open PR**
+
 ```bash
 git push -u origin subproject-b/pr3-cli-ema-runner
 gh pr create --title "sub-project B PR 3: first concrete runner (ema_cross) + CLI dispatch" ...
@@ -1348,6 +1370,10 @@ Mirror Task 4.1 using `TimesFMConfigBuilder` arg names. Note: TimesFM requires t
 
 ### Task 4.4 — Open PR 4
 
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr4-simple-runners`, address findings, and confirm tests stay green. Wait for DONE.
+
+- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr4-simple-runners && gh pr create --title "sub-project B PR 4: simple directional runners (grid_bot, dca_bot, timesfm_swing)" ...`
+
 ---
 
 ## PR 5 — Composite/ML runners: hybrid_sma_r10, timesfm_grid, rvs_swing, shock_guard
@@ -1367,6 +1393,10 @@ Composition test asserts `len(config.actors) == 1` and the actor path ends with 
 Same pattern. Per-strategy args extracted from each `*ConfigBuilder`.
 
 ### Task 5.5 — Open PR 5
+
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr5-composite-runners`, address findings, and confirm tests stay green. Wait for DONE.
+
+- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr5-composite-runners && gh pr create --title "sub-project B PR 5: composite/ML runners (hybrid_sma_r10, timesfm_grid, rvs_swing, shock_guard)" ...`
 
 ---
 
@@ -1453,6 +1483,10 @@ Remove the `strategies/crypto/kronos/paper_trade.py` entry from `nautilus/pyproj
 
 ### Task 6.4 — Open PR 6
 
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr6-kronos-parity`, address findings, and confirm both unit tests and the parity gate stay green. Wait for DONE.
+
+- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr6-kronos-parity && gh pr create --title "sub-project B PR 6: Kronos migration + parity gate" ...`
+
 ---
 
 ## PR 7 — CI opt-in smoke + `make smoke-paper-order` + runbook + roadmap
@@ -1517,6 +1551,10 @@ Write the runbook with: Testnet account creation link, Ed25519 key-gen commands,
 Replace the sub-project B roadmap paragraph with the paper-trade-only scope. Add a short "Paper trading" section to `CLAUDE.md` mirroring the existing "Backtesting" section.
 
 ### Task 7.6 — Open PR 7
+
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr7-smoke-runbook`, address findings, and confirm tests stay green. Wait for DONE.
+
+- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr7-smoke-runbook && gh pr create --title "sub-project B PR 7: opt-in smoke + runbook + roadmap" ...`
 
 ---
 
