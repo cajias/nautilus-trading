@@ -79,3 +79,49 @@ def test_paper_trade_ema_cross_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("ema_cross", "BTCUSDT.BINANCE", 12, 26)]
+
+
+def test_paper_trade_grid_bot_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy grid_bot ...` builds a GridBot runner
+    and calls .main(). Grid options must dispatch conditionally — no ema args.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "grid_bot",
+                self.instrument_id,
+                self.upper_price,
+                self.lower_price,
+                self.grid_levels,
+            )
+        )
+
+    from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
+
+    monkeypatch.setattr(GridBotPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "grid_bot",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--upper-price",
+            "72000",
+            "--lower-price",
+            "60000",
+            "--grid-levels",
+            "8",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("grid_bot", "BTCUSDT.BINANCE", "72000", "60000", 8)]

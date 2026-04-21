@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from nautilus_trader.config import TradingNodeConfig
+
 from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
 from nautilus_trading.paper_trade.node_config import build_paper_trade_node_config, run_paper_trade
 from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
