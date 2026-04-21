@@ -125,3 +125,46 @@ def test_paper_trade_grid_bot_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("grid_bot", "BTCUSDT.BINANCE", "72000", "60000", 8)]
+
+
+def test_paper_trade_dca_bot_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy dca_bot ...` builds a DCABot runner
+    and calls .main(). DCA options dispatch conditionally — no ema/grid args.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "dca_bot",
+                self.instrument_id,
+                self.buy_interval_bars,
+                self.buy_amount,
+            )
+        )
+
+    from strategies.crypto.dca_bot_paper import DCABotPaperTradeRunner
+
+    monkeypatch.setattr(DCABotPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "dca_bot",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--buy-interval-bars",
+            "60",
+            "--buy-amount",
+            "10",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("dca_bot", "BTCUSDT.BINANCE", 60, "10")]

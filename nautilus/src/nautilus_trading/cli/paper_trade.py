@@ -25,6 +25,9 @@ def _load_runners() -> None:
     # nautilus/ package, so it only resolves after _ensure_project_root_on_path()
     # has run. mypy can't see it — but the import is exercised at runtime by the
     # CLI tests in tests/cli/test_paper_trade_cli.py.
+    from strategies.crypto.dca_bot_paper import (  # type: ignore[import-not-found]
+        DCABotPaperTradeRunner,
+    )
     from strategies.crypto.ema_cross_paper import (  # type: ignore[import-not-found]
         EMACrossPaperTradeRunner,
     )
@@ -34,6 +37,7 @@ def _load_runners() -> None:
 
     _RUNNERS["ema_cross"] = EMACrossPaperTradeRunner
     _RUNNERS["grid_bot"] = GridBotPaperTradeRunner
+    _RUNNERS["dca_bot"] = DCABotPaperTradeRunner
 
 
 def paper_trade(
@@ -58,6 +62,8 @@ def paper_trade(
     upper_price: str | None = typer.Option(None, "--upper-price"),
     lower_price: str | None = typer.Option(None, "--lower-price"),
     grid_levels: int | None = typer.Option(None, "--grid-levels"),
+    buy_interval_bars: int | None = typer.Option(None, "--buy-interval-bars"),
+    buy_amount: str | None = typer.Option(None, "--buy-amount"),
     duration: str | None = typer.Option(
         None,
         "--duration",
@@ -99,6 +105,10 @@ def paper_trade(
             "lower_price": lower_price,
             "grid_levels": grid_levels,
         }
+    elif strategy == "dca_bot":
+        kwargs = {**base_kwargs, "buy_interval_bars": buy_interval_bars}
+        if buy_amount is not None:
+            kwargs["buy_amount"] = buy_amount
     else:
         kwargs = base_kwargs
 
