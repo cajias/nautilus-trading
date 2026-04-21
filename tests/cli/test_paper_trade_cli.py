@@ -297,6 +297,40 @@ def test_paper_trade_hybrid_sma_r10_dispatches_to_runner(monkeypatch):
     assert calls == [("hybrid_sma_r10", "BTCUSDT.BINANCE", 10, 30, "0.05", "0.10")]
 
 
+def test_paper_trade_hybrid_sma_r10_missing_required_args_is_usage_error(monkeypatch):
+    """Omitting --sma-fast/--sma-slow/--stop-fast/--stop-slow for hybrid_sma_r10
+    yields a Typer usage error (BadParameter), not a raw ValueError traceback.
+    Guards the builder boundary: HybridSMAConfigBuilder.build raises ValueError
+    when required args are missing; the CLI must remap that to a user-friendly
+    usage error.
+    """
+    from strategies.crypto.hybrid_sma_r10_paper import HybridSMAR10PaperTradeRunner
+
+    def _should_not_run(self):
+        raise AssertionError("main() must not run when required args are missing")
+
+    monkeypatch.setattr(HybridSMAR10PaperTradeRunner, "main", _should_not_run)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "hybrid_sma_r10",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            # deliberately omit --sma-fast / --sma-slow / --stop-fast / --stop-slow
+        ],
+    )
+    assert result.exit_code != 0
+    assert "sma_fast" in result.output or "sma-fast" in result.output
+
+
 def test_paper_trade_timesfm_grid_dispatches_to_runner(monkeypatch):
     """Invoking `nt paper-trade --strategy timesfm_grid ...` builds a TimesFMGrid
     runner and calls .main(). TimesFMGrid uses only base args — all ML/grid
