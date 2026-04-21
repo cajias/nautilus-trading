@@ -79,48 +79,19 @@ may then restore the broader `mypy src/ tests/` gate.
 
 ---
 
-## Clarify `strategies/crypto/kronos/backtest.py` module docstring
+## Completed and pruned (2026-04-21)
 
-**Origin:** Task 4.3 follow-up; Copilot review on PR #14 (2026-04-19).
+The following three entries were verified against HEAD and removed during the
+post-sub-project-A docs cleanup (chore branch `chore/docs-cleanup-post-subproject-a`):
 
-**Why deferred:** Current line 1 reads "thin composition of kronos/backtest_config.py
-builders" — flagged by Copilot as ambiguous about what the script actually does.
-Docs-only change; no behavior impact.
-
-**When to reinstate:** Any hygiene / chore PR after PR 4 merges.
-
-**Acceptance:** Module docstring reworded to something like "Runner script that
-composes `kronos/backtest_config.py` builders into a BacktestEngine invocation."
-`ruff check` clean; no other changes.
-
----
-
-## Wrap `engine.run()` in `try/finally engine.dispose()` in `strategies/crypto/kronos/backtest.py`
-
-**Origin:** Task 4.3 follow-up; Copilot review on PR #14 (2026-04-19).
-
-**Why deferred:** Not a regression (pre-refactor `run_backtest()` did not use
-try/finally either). Copilot correctly noted a mid-run exception currently leaks
-engine resources. Deferring because PR 5 or PR 6 will likely restructure this
-file anyway, making it the better place to inline this fix.
-
-**When to reinstate:** Whichever PR next touches `backtest.py` — PR 5 or PR 6.
-
-**Acceptance:** `engine.run()` wrapped in `try/finally: engine.dispose()`;
-existing unit tests still pass; `ruff check` clean.
-
----
-
-## Rewrite `strategies/crypto/kronos/_fetch_binance.py` module docstring
-
-**Origin:** Task 4.3 follow-up; Copilot review on PR #14 (2026-04-19).
-
-**Why deferred:** Current docstring describes the module as "pure conversion helper"
-but the module performs network I/O (Binance REST calls) — semantically inaccurate.
-Docs-only change; no behavior impact.
-
-**When to reinstate:** Any hygiene / chore PR after PR 4 merges.
-
-**Acceptance:** Docstring reworded to accurately describe the fetch-and-convert
-behavior (e.g., "Fetches OHLCV data from the Binance public REST API and converts
-it to NautilusTrader Bar objects."). `ruff check` clean; no other changes.
+- **Clarify `strategies/crypto/kronos/backtest.py` module docstring** — done.
+  `strategies/crypto/kronos/backtest.py:1` now reads
+  `"""Runner script that composes kronos/backtest_config.py builders into a
+  BacktestEngine invocation."""`.
+- **Wrap `engine.run()` in `try/finally engine.dispose()`** — done.
+  `strategies/crypto/kronos/backtest.py:128-132` wraps the `run()` / `print_results()`
+  block in `try/finally: engine.dispose()`.
+- **Rewrite `strategies/crypto/kronos/_fetch_binance.py` module docstring** — done.
+  `strategies/crypto/kronos/_fetch_binance.py:1` now reads
+  `"""Fetches OHLCV data from the Binance public REST API and converts it to
+  NautilusTrader Bar objects."""`.
