@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
+
 import pytest
 from nautilus_trader.adapters.binance import BINANCE
 from nautilus_trader.adapters.binance.common.enums import BinanceAccountType, BinanceEnvironment
 from nautilus_trader.adapters.binance.config import BinanceKeyType
-from nautilus_trading.paper_trade.node_config import build_paper_trade_node_config
+from nautilus_trader.model.objects import Price
+from nautilus_trading.paper_trade.node_config import (
+    build_paper_trade_node_config,
+    round_to_tick,
+)
 
 
 @pytest.fixture
@@ -60,11 +66,6 @@ def test_environment_is_testnet(sample_config):
     assert sample_config.exec_clients[BINANCE].environment == BinanceEnvironment.TESTNET
 
 
-from decimal import Decimal
-
-from nautilus_trader.model.objects import Price
-
-
 class _FakeInstrument:
     """Minimal Instrument shim exposing just what round_to_tick() needs."""
 
@@ -84,8 +85,6 @@ class _FakeInstrument:
     ],
 )
 def test_round_to_tick_grid(tick, precision, raw, expected):
-    from nautilus_trading.paper_trade.node_config import round_to_tick
-
     inst = _FakeInstrument(tick_size=tick, price_precision=precision)
     price = round_to_tick(raw, inst)
     assert isinstance(price, Price)
@@ -94,14 +93,21 @@ def test_round_to_tick_grid(tick, precision, raw, expected):
 
 def test_round_to_tick_floors_positive_prices():
     """We floor to avoid overshooting on BUY LIMITs and to match Binance's conservative validation."""
-    from nautilus_trading.paper_trade.node_config import round_to_tick
-
     inst = _FakeInstrument(tick_size="0.01", price_precision=2)
     assert str(round_to_tick(Decimal("100.019"), inst)) == "100.01"
 
 
 def test_round_to_tick_preserves_exact_grid():
-    from nautilus_trading.paper_trade.node_config import round_to_tick
-
     inst = _FakeInstrument(tick_size="0.01", price_precision=2)
     assert str(round_to_tick(Decimal("100.02"), inst)) == "100.02"
+
+
+def test_round_to_tick_price_smaller_than_tick_floors_to_zero():
+    """Pin current behavior: sub-tick prices floor to 0.
+
+    Strategies upstream are responsible for filtering these out before
+    order submission. If this ever changes to raise ValueError instead,
+    update the docstring + callers accordingly.
+    """
+    inst = _FakeInstrument(tick_size="0.01", price_precision=2)
+    assert str(round_to_tick(Decimal("0.003"), inst)) == "0.00"
