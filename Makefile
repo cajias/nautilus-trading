@@ -9,7 +9,7 @@
 # Strategy module path (relative to strategies/), e.g. forex.ema_cross
 STRATEGY ?= forex.ema_cross
 
-.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos paper-trade-kronos strategies live jupyter clean
+.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos paper-trade-kronos strategies jupyter clean
 
 # Default target
 help:
@@ -36,7 +36,6 @@ help:
 	@echo "  make backtest-kronos   - Run Kronos foundation model backtest (fetches Binance data)"
 	@echo "  make paper-trade-kronos - Run Kronos paper trading on Binance Testnet"
 	@echo "  make strategies        - List all available strategies"
-	@echo "  make live              - Paper trade on Binance testnet"
 	@echo "  make jupyter           - Launch Jupyter Lab with strategy notebooks"
 	@echo ""
 	@echo "Variables:"
