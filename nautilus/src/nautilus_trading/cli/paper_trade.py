@@ -40,6 +40,9 @@ def _load_runners() -> None:
     from strategies.crypto.rvs_swing_paper import (  # type: ignore[import-not-found]
         RVSSwingPaperTradeRunner,
     )
+    from strategies.crypto.shock_guard_paper import (  # type: ignore[import-not-found]
+        ShockGuardPaperTradeRunner,
+    )
     from strategies.crypto.timesfm_grid_paper import (  # type: ignore[import-not-found]
         TimesFMGridPaperTradeRunner,
     )
@@ -54,6 +57,7 @@ def _load_runners() -> None:
     _RUNNERS["hybrid_sma_r10"] = HybridSMAR10PaperTradeRunner
     _RUNNERS["timesfm_grid"] = TimesFMGridPaperTradeRunner
     _RUNNERS["rvs_swing"] = RVSSwingPaperTradeRunner
+    _RUNNERS["shock_guard"] = ShockGuardPaperTradeRunner
 
 
 def paper_trade(
@@ -147,6 +151,9 @@ def paper_trade(
         kwargs = base_kwargs
     elif strategy == "rvs_swing":
         # RVSSwing: base fields only — all anomaly/stop/EMA params default.
+        kwargs = base_kwargs
+    elif strategy == "shock_guard":
+        # ShockGuard: base fields only — all allocation/shock params default.
         kwargs = base_kwargs
     else:
         kwargs = base_kwargs

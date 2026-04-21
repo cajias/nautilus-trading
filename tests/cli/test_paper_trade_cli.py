@@ -373,3 +373,42 @@ def test_paper_trade_rvs_swing_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("rvs_swing", "BTCUSDT.BINANCE", "0.001")]
+
+
+def test_paper_trade_shock_guard_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy shock_guard ...` builds a ShockGuard
+    runner and calls .main(). ShockGuard uses only base args — all allocation/
+    shock parameters have Config defaults, so no new Typer options are needed.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "shock_guard",
+                self.instrument_id,
+                self.trade_size,
+            )
+        )
+
+    from strategies.crypto.shock_guard_paper import ShockGuardPaperTradeRunner
+
+    monkeypatch.setattr(ShockGuardPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "shock_guard",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("shock_guard", "BTCUSDT.BINANCE", "0.001")]
