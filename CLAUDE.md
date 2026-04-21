@@ -44,7 +44,6 @@ make install                         # Install deps
 make strategies                      # List all available strategies
 make backtest                        # Run default (forex.ema_cross)
 make backtest STRATEGY=forex.ema_cross  # Run specific strategy
-make live STRATEGY=forex.ema_cross   # Live trading (placeholder)
 make jupyter                         # Launch Jupyter in strategies/
 make test                            # Run tests
 make lint                            # Lint (ruff, mypy, vulture)

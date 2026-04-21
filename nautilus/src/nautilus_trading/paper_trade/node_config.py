@@ -1,4 +1,12 @@
-"""Live/paper trading node configuration and execution."""
+"""TradingNodeConfig builder for Binance Spot Testnet paper-trade runs.
+
+Centralizes the three Binance-Testnet blocker fixes so every PaperTradeRunner
+subclass inherits them for free:
+
+    1. Ed25519 key type for user-data WebSocket (§7.1 of spec).
+    2. InstrumentProviderConfig populated with the run's target instrument (§7.2).
+    3. Tick-size rounding helper for LIMIT orders (§7.3; added in PR 2).
+"""
 
 from __future__ import annotations
 
@@ -28,40 +36,35 @@ from nautilus_trader.live.node import TradingNode
 from nautilus_trader.model.identifiers import InstrumentId
 
 
-def build_live_config(
+def build_paper_trade_node_config(
     *,
     strategy_path: str,
     config_path: str,
     strategy_config: dict[str, Any],
     instrument_id: str,
-    account_type: str = "SPOT",
-    testnet: bool = True,
     log_level: str = "INFO",
-    trader_id: str = "TRADER-001",
+    trader_id: str = "PAPER-TRADER-001",
 ) -> TradingNodeConfig:
-    """Build a TradingNodeConfig for Binance live/paper trading.
+    """Build a TradingNodeConfig for Binance Spot Testnet paper trading.
 
     Parameters
     ----------
     strategy_path : str
-        Full import path for the strategy class (e.g. "strategies.crypto.grid_bot:GridBotStrategy").
+        Full import path for the strategy class
+        (e.g. "strategies.crypto.grid_bot:GridBotStrategy").
     config_path : str
-        Full import path for the config class (e.g. "strategies.crypto.grid_bot:GridBotConfig").
+        Full import path for the strategy's config class.
     strategy_config : dict
-        Strategy configuration parameters.
+        Strategy configuration parameters — emitted by STRATEGY_BUILDERS[name].build(args).
     instrument_id : str
         Instrument ID to load into the venue cache (e.g. "BTCUSDT.BINANCE").
-    account_type : str
-        Binance account type: SPOT, MARGIN, USDT_FUTURE, COIN_FUTURE.
-    testnet : bool
-        If True, use Binance testnet. If False, use production (requires real API keys).
     log_level : str
         Logging level.
     trader_id : str
         Trader identifier.
     """
-    binance_account = BinanceAccountType[account_type]
-    environment = BinanceEnvironment.TESTNET if testnet else BinanceEnvironment.LIVE
+    account_type = BinanceAccountType.SPOT
+    environment = BinanceEnvironment.TESTNET
     instrument_provider = BinanceInstrumentProviderConfig(
         load_ids=frozenset([InstrumentId.from_str(instrument_id)]),
     )
@@ -71,7 +74,7 @@ def build_live_config(
         logging=LoggingConfig(log_level=log_level),
         data_clients={
             BINANCE: BinanceDataClientConfig(
-                account_type=binance_account,
+                account_type=account_type,
                 environment=environment,
                 key_type=BinanceKeyType.ED25519,
                 instrument_provider=instrument_provider,
@@ -79,7 +82,7 @@ def build_live_config(
         },
         exec_clients={
             BINANCE: BinanceExecClientConfig(
-                account_type=binance_account,
+                account_type=account_type,
                 environment=environment,
                 key_type=BinanceKeyType.ED25519,
                 instrument_provider=instrument_provider,
@@ -95,18 +98,17 @@ def build_live_config(
     )
 
 
-def run_live(config: TradingNodeConfig) -> None:
-    """Start a live trading node. Blocks until interrupted."""
-    _check_api_keys(config)
+def run_paper_trade(config: TradingNodeConfig) -> None:
+    """Start a paper-trade node. Blocks until SIGINT/SIGTERM."""
+    _check_testnet_api_keys()
 
     node = TradingNode(config=config)
     node.add_data_client_factory(BINANCE, BinanceLiveDataClientFactory)
     node.add_exec_client_factory(BINANCE, BinanceLiveExecClientFactory)
     node.build()
 
-    # Graceful shutdown on Ctrl+C
     def _shutdown(_signum, _frame):
-        print("\nShutting down trading node...")
+        print("\nShutting down paper-trade node...")
         node.stop()
         node.dispose()
         sys.exit(0)
@@ -117,26 +119,13 @@ def run_live(config: TradingNodeConfig) -> None:
     node.run()
 
 
-def _check_api_keys(config: TradingNodeConfig) -> None:
-    """Verify that Binance API keys are set in the environment."""
-    binance_config = config.exec_clients.get(BINANCE)
-    if binance_config is None:
-        return
-
-    is_testnet = getattr(binance_config, "environment", None) == BinanceEnvironment.TESTNET
-
-    if is_testnet:
-        key = os.environ.get("BINANCE_TESTNET_API_KEY") or os.environ.get("BINANCE_API_KEY")
-        secret = os.environ.get("BINANCE_TESTNET_API_SECRET") or os.environ.get("BINANCE_API_SECRET")
-        env_label = "BINANCE_TESTNET_API_KEY / BINANCE_TESTNET_API_SECRET"
-    else:
-        key = os.environ.get("BINANCE_API_KEY")
-        secret = os.environ.get("BINANCE_API_SECRET")
-        env_label = "BINANCE_API_KEY / BINANCE_API_SECRET"
-
+def _check_testnet_api_keys() -> None:
+    """Fail fast with an actionable message if Testnet keys are missing."""
+    key = os.environ.get("BINANCE_TESTNET_API_KEY")
+    secret = os.environ.get("BINANCE_TESTNET_API_SECRET")
     if not key or not secret:
-        print("ERROR: Binance API keys not found in environment.")
-        print(f"Set {env_label} before running.")
-        if is_testnet:
-            print("Get testnet keys at: https://testnet.binance.vision/")
+        print("ERROR: Binance Testnet API keys not found in environment.")
+        print("Set BINANCE_TESTNET_API_KEY and BINANCE_TESTNET_API_SECRET,")
+        print("or put them in .env.local at the repo root.")
+        print("Get testnet keys at: https://testnet.binance.vision/")
         sys.exit(1)
