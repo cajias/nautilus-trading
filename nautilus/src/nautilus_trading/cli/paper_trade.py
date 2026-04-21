@@ -118,12 +118,15 @@ def paper_trade(
     else:
         kwargs = base_kwargs
 
-    # Dispatch: each runner accepts only the kwargs its dataclass declares;
-    # Python raises TypeError for unexpected kwargs, which we remap to a
-    # friendly usage error (defense in depth).
+    # Dispatch: each runner accepts only the kwargs its dataclass declares.
+    # TypeError → unexpected kwargs (wrong field name); ValueError → strategy
+    # builder rejected missing required args (e.g. grid_bot without --upper-price).
+    # We eagerly call build_config() here so the builder validates *before* main()
+    # boots a TradingNode — a raw traceback would be hostile CLI UX.
     try:
         runner = runner_cls(**kwargs)
-    except TypeError as exc:
+        runner.build_config()
+    except (TypeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
     runner.main()

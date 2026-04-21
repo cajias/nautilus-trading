@@ -44,6 +44,39 @@ def test_paper_trade_unknown_strategy_exits_nonzero():
     assert result.exit_code != 0
 
 
+def test_paper_trade_grid_bot_missing_required_args_is_usage_error(monkeypatch):
+    """Omitting --upper-price/--lower-price for grid_bot yields a Typer usage
+    error (BadParameter), not a raw ValueError traceback. Guards the builder
+    boundary: GridBotConfigBuilder.build raises ValueError when required args
+    are missing; the CLI must remap that to a user-friendly usage error.
+    """
+    from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
+
+    def _should_not_run(self):
+        raise AssertionError("main() must not run when required args are missing")
+
+    monkeypatch.setattr(GridBotPaperTradeRunner, "main", _should_not_run)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "grid_bot",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            # deliberately omitting --upper-price / --lower-price / --grid-levels
+        ],
+    )
+    assert result.exit_code != 0
+    assert "upper-price" in result.output or "upper_price" in result.output
+
+
 def test_paper_trade_ema_cross_dispatches_to_runner(monkeypatch):
     """Invoking `nt paper-trade --strategy ema_cross ...` builds an EMACross runner
     and calls .main(). We swap .main() for a recorder double so we don't hit Testnet.
