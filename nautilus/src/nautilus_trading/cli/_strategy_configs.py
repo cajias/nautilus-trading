@@ -13,8 +13,7 @@ from typing import Any, Protocol
 class StrategyConfigBuilder(Protocol):
     """Builds a strategy_config dict from parsed CLI args."""
 
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        ...
+    def build(self, args: dict[str, Any]) -> dict[str, Any]: ...
 
 
 class GridBotConfigBuilder:
@@ -89,10 +88,34 @@ class HybridSMAConfigBuilder:
         return out
 
 
+class TimesFMGridConfigBuilder:
+    """TimesFM quantile grid: base fields only — all ML/grid params have Config defaults."""
+
+    def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        return _base(args)
+
+
+class RVSSwingConfigBuilder:
+    """RVS swing: base fields only — anomaly/stop/EMA thresholds all have Config defaults."""
+
+    def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        return _base(args)
+
+
+class ShockGuardConfigBuilder:
+    """Shock Guard macro allocator: base fields only — all allocation/shock params default."""
+
+    def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        return _base(args)
+
+
 STRATEGY_BUILDERS: dict[str, StrategyConfigBuilder] = {
     "grid_bot": GridBotConfigBuilder(),
     "dca_bot": DCABotConfigBuilder(),
     "ema_cross": EMAConfigBuilder(),
     "timesfm_swing": TimesFMConfigBuilder(),
     "hybrid_sma_r10": HybridSMAConfigBuilder(),
+    "timesfm_grid": TimesFMGridConfigBuilder(),
+    "rvs_swing": RVSSwingConfigBuilder(),
+    "shock_guard": ShockGuardConfigBuilder(),
 }
