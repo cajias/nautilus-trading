@@ -40,6 +40,7 @@ htmlcov/
 !.claude/settings.json
 .playwright-mcp/
 .remember/
+.superpowers/
 
 # uv temp lockfiles (not the main nautilus/uv.lock)
 /uv-*.lock
