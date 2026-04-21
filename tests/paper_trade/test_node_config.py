@@ -18,8 +18,8 @@ from nautilus_trading.paper_trade.node_config import (
 @pytest.fixture
 def sample_config():
     return build_paper_trade_node_config(
-        strategy_path="strategies.crypto.ema_cross:EMACrossStrategy",
-        config_path="strategies.crypto.ema_cross:EMACrossConfig",
+        strategy_path="strategies.forex.ema_cross:EMACrossStrategy",
+        config_path="strategies.forex.ema_cross:EMACrossConfig",
         strategy_config={
             "instrument_id": "BTCUSDT.BINANCE",
             "bar_type": "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",

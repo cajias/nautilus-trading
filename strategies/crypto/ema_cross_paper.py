@@ -39,8 +39,8 @@ class EMACrossPaperTradeRunner(PaperTradeRunner):
         }
         strategy_config = builder.build(builder_args)
         return build_paper_trade_node_config(
-            strategy_path="strategies.crypto.ema_cross:EMACrossStrategy",
-            config_path="strategies.crypto.ema_cross:EMACrossConfig",
+            strategy_path="strategies.forex.ema_cross:EMACrossStrategy",
+            config_path="strategies.forex.ema_cross:EMACrossConfig",
             strategy_config=strategy_config,
             instrument_id=self.instrument_id,
             log_level=self.log_level,

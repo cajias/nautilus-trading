@@ -24,6 +24,7 @@ def test_runner_builds_testnet_spot_config():
     assert config.data_clients[BINANCE].environment == BinanceEnvironment.TESTNET
     assert len(config.strategies) == 1
     strat_entry = config.strategies[0]
-    assert strat_entry.strategy_path.endswith(":EMACrossStrategy")
+    assert strat_entry.strategy_path == "strategies.forex.ema_cross:EMACrossStrategy"
+    assert strat_entry.config_path == "strategies.forex.ema_cross:EMACrossConfig"
     assert strat_entry.config["fast_ema_period"] == 10
     assert strat_entry.config["slow_ema_period"] == 20
