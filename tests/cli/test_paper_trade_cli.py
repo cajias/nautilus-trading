@@ -44,6 +44,39 @@ def test_paper_trade_unknown_strategy_exits_nonzero():
     assert result.exit_code != 0
 
 
+def test_paper_trade_grid_bot_missing_required_args_is_usage_error(monkeypatch):
+    """Omitting --upper-price/--lower-price for grid_bot yields a Typer usage
+    error (BadParameter), not a raw ValueError traceback. Guards the builder
+    boundary: GridBotConfigBuilder.build raises ValueError when required args
+    are missing; the CLI must remap that to a user-friendly usage error.
+    """
+    from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
+
+    def _should_not_run(self):
+        raise AssertionError("main() must not run when required args are missing")
+
+    monkeypatch.setattr(GridBotPaperTradeRunner, "main", _should_not_run)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "grid_bot",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            # deliberately omitting --upper-price / --lower-price / --grid-levels
+        ],
+    )
+    assert result.exit_code != 0
+    assert "upper-price" in result.output or "upper_price" in result.output
+
+
 def test_paper_trade_ema_cross_dispatches_to_runner(monkeypatch):
     """Invoking `nt paper-trade --strategy ema_cross ...` builds an EMACross runner
     and calls .main(). We swap .main() for a recorder double so we don't hit Testnet.
@@ -79,3 +112,135 @@ def test_paper_trade_ema_cross_dispatches_to_runner(monkeypatch):
     )
     assert result.exit_code == 0, result.stdout
     assert calls == [("ema_cross", "BTCUSDT.BINANCE", 12, 26)]
+
+
+def test_paper_trade_grid_bot_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy grid_bot ...` builds a GridBot runner
+    and calls .main(). Grid options must dispatch conditionally — no ema args.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "grid_bot",
+                self.instrument_id,
+                self.upper_price,
+                self.lower_price,
+                self.grid_levels,
+            )
+        )
+
+    from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
+
+    monkeypatch.setattr(GridBotPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "grid_bot",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--upper-price",
+            "72000",
+            "--lower-price",
+            "60000",
+            "--grid-levels",
+            "8",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("grid_bot", "BTCUSDT.BINANCE", "72000", "60000", 8)]
+
+
+def test_paper_trade_dca_bot_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy dca_bot ...` builds a DCABot runner
+    and calls .main(). DCA options dispatch conditionally — no ema/grid args.
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "dca_bot",
+                self.instrument_id,
+                self.buy_interval_bars,
+                self.buy_amount,
+            )
+        )
+
+    from strategies.crypto.dca_bot_paper import DCABotPaperTradeRunner
+
+    monkeypatch.setattr(DCABotPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "dca_bot",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--buy-interval-bars",
+            "60",
+            "--buy-amount",
+            "10",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("dca_bot", "BTCUSDT.BINANCE", 60, "10")]
+
+
+def test_paper_trade_timesfm_swing_dispatches_to_runner(monkeypatch):
+    """Invoking `nt paper-trade --strategy timesfm_swing ...` builds a TimesFMSwing
+    runner and calls .main(). TimesFM reuses --fast-ema/--slow-ema (no new options).
+    """
+    calls = []
+
+    def _recording_main(self):
+        calls.append(
+            (
+                "timesfm_swing",
+                self.instrument_id,
+                self.fast_ema,
+                self.slow_ema,
+            )
+        )
+
+    from strategies.crypto.timesfm_swing_paper import TimesFMSwingPaperTradeRunner
+
+    monkeypatch.setattr(TimesFMSwingPaperTradeRunner, "main", _recording_main)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        app,
+        [
+            "paper-trade",
+            "--strategy",
+            "timesfm_swing",
+            "--instrument-id",
+            "BTCUSDT.BINANCE",
+            "--bar-type",
+            "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL",
+            "--trade-size",
+            "0.001",
+            "--fast-ema",
+            "5",
+            "--slow-ema",
+            "30",
+        ],
+    )
+    assert result.exit_code == 0, result.stdout
+    assert calls == [("timesfm_swing", "BTCUSDT.BINANCE", 5, 30)]

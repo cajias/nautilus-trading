@@ -7,6 +7,8 @@ delegates to `runner.main()`.
 
 from __future__ import annotations
 
+from typing import Any
+
 import typer
 
 from nautilus_trading.cli._common import _ensure_project_root_on_path
@@ -23,11 +25,23 @@ def _load_runners() -> None:
     # nautilus/ package, so it only resolves after _ensure_project_root_on_path()
     # has run. mypy can't see it — but the import is exercised at runtime by the
     # CLI tests in tests/cli/test_paper_trade_cli.py.
+    from strategies.crypto.dca_bot_paper import (  # type: ignore[import-not-found]
+        DCABotPaperTradeRunner,
+    )
     from strategies.crypto.ema_cross_paper import (  # type: ignore[import-not-found]
         EMACrossPaperTradeRunner,
     )
+    from strategies.crypto.grid_bot_paper import (  # type: ignore[import-not-found]
+        GridBotPaperTradeRunner,
+    )
+    from strategies.crypto.timesfm_swing_paper import (  # type: ignore[import-not-found]
+        TimesFMSwingPaperTradeRunner,
+    )
 
     _RUNNERS["ema_cross"] = EMACrossPaperTradeRunner
+    _RUNNERS["grid_bot"] = GridBotPaperTradeRunner
+    _RUNNERS["dca_bot"] = DCABotPaperTradeRunner
+    _RUNNERS["timesfm_swing"] = TimesFMSwingPaperTradeRunner
 
 
 def paper_trade(
@@ -49,6 +63,11 @@ def paper_trade(
     trade_size: str = typer.Option(..., "--trade-size"),
     fast_ema: int = typer.Option(10, "--fast-ema"),
     slow_ema: int = typer.Option(20, "--slow-ema"),
+    upper_price: str | None = typer.Option(None, "--upper-price"),
+    lower_price: str | None = typer.Option(None, "--lower-price"),
+    grid_levels: int | None = typer.Option(None, "--grid-levels"),
+    buy_interval_bars: int | None = typer.Option(None, "--buy-interval-bars"),
+    buy_amount: str | None = typer.Option(None, "--buy-amount"),
     duration: str | None = typer.Option(
         None,
         "--duration",
@@ -72,19 +91,42 @@ def paper_trade(
         )
 
     runner_cls = _RUNNERS[strategy]
-    # Dispatch: each runner accepts only the kwargs its dataclass declares;
-    # Python raises TypeError for unexpected kwargs, which we remap to a
-    # friendly usage error.
+
+    # Build per-strategy kwargs so options don't leak across strategies
+    # (e.g. fast_ema has no place on a grid runner, and vice versa).
+    base_kwargs: dict[str, Any] = {
+        "instrument_id": instrument_id,
+        "bar_type": bar_type,
+        "trade_size": trade_size,
+        "log_level": log_level,
+    }
+    if strategy == "ema_cross":
+        kwargs = {**base_kwargs, "fast_ema": fast_ema, "slow_ema": slow_ema}
+    elif strategy == "timesfm_swing":
+        kwargs = {**base_kwargs, "fast_ema": fast_ema, "slow_ema": slow_ema}
+    elif strategy == "grid_bot":
+        kwargs = {
+            **base_kwargs,
+            "upper_price": upper_price,
+            "lower_price": lower_price,
+            "grid_levels": grid_levels,
+        }
+    elif strategy == "dca_bot":
+        kwargs = {**base_kwargs, "buy_interval_bars": buy_interval_bars}
+        if buy_amount is not None:
+            kwargs["buy_amount"] = buy_amount
+    else:
+        kwargs = base_kwargs
+
+    # Dispatch: each runner accepts only the kwargs its dataclass declares.
+    # TypeError → unexpected kwargs (wrong field name); ValueError → strategy
+    # builder rejected missing required args (e.g. grid_bot without --upper-price).
+    # We eagerly call build_config() here so the builder validates *before* main()
+    # boots a TradingNode — a raw traceback would be hostile CLI UX.
     try:
-        runner = runner_cls(
-            instrument_id=instrument_id,
-            bar_type=bar_type,
-            trade_size=trade_size,
-            fast_ema=fast_ema,
-            slow_ema=slow_ema,
-            log_level=log_level,
-        )
-    except TypeError as exc:
+        runner = runner_cls(**kwargs)
+        runner.build_config()
+    except (TypeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
     runner.main()
