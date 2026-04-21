@@ -55,5 +55,10 @@ def paper_trade(
         )
 
     _strategy_path, _config_path = _resolve_strategy_paths(strategy)
-    # PR 3 wires this to a concrete PaperTradeRunner. Until then, fail loudly.
+    typer.echo(
+        f"paper-trade stub: strategy={strategy} instrument={instrument_id} "
+        f"bar_type={bar_type} trade_size={trade_size} duration={duration} "
+        f"log_level={log_level} (runner wiring arrives in PR 3)",
+        err=True,
+    )
     raise typer.Exit(code=1)

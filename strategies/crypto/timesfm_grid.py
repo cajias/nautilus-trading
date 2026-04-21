@@ -23,9 +23,9 @@ from nautilus_trader.model.enums import OrderSide, TimeInForce
 from nautilus_trader.model.events import OrderFilled
 from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
-from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.paper_trade.node_config import round_to_tick
 from strategies.crypto._grid_math import (
     compute_atr_adjusted_step,
     compute_calibration_coverage,
@@ -528,7 +528,7 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
             instrument_id=self.config.instrument_id,
             order_side=side,
             quantity=self.instrument.make_qty(self.config.trade_size),
-            price=Price.from_str(str(grid_price)),
+            price=round_to_tick(grid_price, self.instrument),
             time_in_force=TimeInForce.GTC,
         )
         self.grid_orders[level] = order.client_order_id.value
