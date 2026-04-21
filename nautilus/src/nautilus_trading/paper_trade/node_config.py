@@ -50,7 +50,7 @@ def round_to_tick(price: Decimal, instrument: Any) -> Price:
       2. A floored BUY-limit price can never overshoot the user's ceiling;
          the SELL side is handled by callers mirroring the offset.
     """
-    tick = Decimal(str(instrument.price_increment))
+    tick = instrument.price_increment.as_decimal()
     floored = (price / tick).quantize(Decimal("1"), rounding=ROUND_FLOOR) * tick
     return Price(floored, precision=instrument.price_precision)
 
