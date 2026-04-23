@@ -14,12 +14,11 @@ Components
   actor + strategy declaratively; used by ``nt paper-trade --config
   configs/paper/kronos.yaml``.
 
-Imports are deliberately **not** re-exported at the package root. ``actor``
-and ``strategy`` pull ``pandas``/``torch`` from the ``[kronos]`` extra; the
-``[dev]``-only dev env doesn't have them, and eager package-root imports
-would break ``nt paper-trade`` and the CLI dispatch tests for every runner
-(not just Kronos). Import from submodules directly when you need the
-symbols.
+Imports are deliberately **not** re-exported at the package root. Eager
+package-root imports of ``actor``/``strategy`` would pull heavy modules
+(``pandas``/``torch``) on every ``nt paper-trade`` invocation, even for
+strategies that don't need them. Import from submodules directly when
+you need the symbols.
 
 Quick start (backtest)
 ----------------------
