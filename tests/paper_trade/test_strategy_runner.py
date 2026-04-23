@@ -1,7 +1,7 @@
 """Tests for PaperTradeStrategyRunner — the generic paper-trade runner that
 supersedes the 8 ``*_paper.py`` shims + ``kronos/paper_runner.py``.
 
-The runner is a concrete ``PaperTradeRunner`` subclass parameterized by a
+The runner is a freestanding ``@dataclass`` parameterized by a
 ``StrategySpec`` + a params dict; it emits a ``TradingNodeConfig`` with any
 declared actors attached before the strategy (preserving the Kronos
 "actor publishes → strategy consumes" signal-flow contract).

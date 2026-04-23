@@ -10,9 +10,10 @@ Components
 - ``strategy.KronosStrategy`` / ``strategy.KronosStrategyConfig``: strategy
   that subscribes to ``KronosSignal`` and makes trading decisions with
   stop-loss, take-profit, and a peak-drawdown circuit breaker.
-- ``paper_runner.KronosPaperTradeRunner``: paper-trade driver wiring the
-  actor + strategy declaratively; used by ``nt paper-trade --config
-  configs/paper/kronos.yaml``.
+- Paper-trade driver: run ``nt paper-trade --config configs/paper/kronos.yaml``.
+  The per-strategy ``paper_runner`` shim was removed in sub-project B.5;
+  ``PaperTradeStrategyRunner`` + ``STRATEGY_SPECS["kronos"]`` now wire the
+  actor + strategy declaratively for every paper-trade run.
 
 Imports are deliberately **not** re-exported at the package root. Eager
 package-root imports of ``actor``/``strategy`` would pull heavy modules
