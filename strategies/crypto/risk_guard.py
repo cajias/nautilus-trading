@@ -148,6 +148,7 @@ class RiskGuard:
             if account is None:
                 return self._rg_starting_equity
             from nautilus_trader.model.currencies import USDT as _USDT
+
             balance = account.balances().get(_USDT)
             if balance is None:
                 return self._rg_starting_equity
@@ -214,7 +215,7 @@ class RiskGuard:
                 self.log.warning(  # type: ignore[attr-defined]
                     f"[RiskGuard] Order notional ${notional:.2f} > "
                     f"max position ${max_notional:.2f} "
-                    f"({self._rg_max_position_pct*100:.0f}% of ${self._rg_starting_equity:.0f}). "
+                    f"({self._rg_max_position_pct * 100:.0f}% of ${self._rg_starting_equity:.0f}). "
                     f"Clamp not applied — reduce trade_size in config."
                 )
             except Exception:

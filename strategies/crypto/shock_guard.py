@@ -95,8 +95,8 @@ class ShockGuardStrategy(RiskGuard, Strategy):
         )
 
         # ATR indicators for spike detection
-        self._short_atr = AverageTrueRange(1)   # 1-bar ATR (most recent)
-        self._long_atr = AverageTrueRange(60)    # 60-bar ATR (~1 hour)
+        self._short_atr = AverageTrueRange(1)  # 1-bar ATR (most recent)
+        self._long_atr = AverageTrueRange(60)  # 60-bar ATR (~1 hour)
         self._short_atr_value: float = 0.0
         self._long_atr_value: float = 0.0
 

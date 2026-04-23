@@ -106,12 +106,18 @@ class GridBotStrategy(RiskGuard, Strategy):
         )
 
         # Portfolio-level risk guardrails (drawdown circuit breaker + order filters)
-        starting_equity = float(
-            self.portfolio.account(self.config.instrument_id.venue).balances_total().get(
-                self.cache.instrument(self.config.instrument_id).quote_currency,
-                0,
+        starting_equity = (
+            float(
+                self.portfolio.account(self.config.instrument_id.venue)
+                .balances_total()
+                .get(
+                    self.cache.instrument(self.config.instrument_id).quote_currency,
+                    0,
+                )
             )
-        ) if self.portfolio.account(self.config.instrument_id.venue) else 1000.0
+            if self.portfolio.account(self.config.instrument_id.venue)
+            else 1000.0
+        )
         self._risk_guard_init(
             starting_equity=starting_equity,
             max_drawdown_pct=20.0,

@@ -16,7 +16,10 @@ from decimal import Decimal
 
 
 def compute_uniform_grid_levels(
-    *, lower: Decimal, upper: Decimal, n_levels: int,
+    *,
+    lower: Decimal,
+    upper: Decimal,
+    n_levels: int,
 ) -> list[Decimal]:
     """Return n_levels evenly-spaced Decimal prices from lower to upper (inclusive).
 
@@ -29,7 +32,10 @@ def compute_uniform_grid_levels(
 
 
 def compute_atr_adjusted_step(
-    *, total_range: Decimal, atr_value: Decimal, n_levels: int,
+    *,
+    total_range: Decimal,
+    atr_value: Decimal,
+    n_levels: int,
 ) -> Decimal:
     """Return the ATR-adjusted inter-level step size.
 
@@ -46,7 +52,9 @@ def compute_atr_adjusted_step(
 
 
 def compute_calibration_coverage(
-    *, quantile_range: float, recent_range: float,
+    *,
+    quantile_range: float,
+    recent_range: float,
 ) -> float:
     """Return coverage ratio = quantile_range / recent_range.
 
@@ -59,8 +67,13 @@ def compute_calibration_coverage(
 
 
 def compute_kelly_size(
-    *, p10: float, p90: float, current_price: float,
-    kelly_fraction: float, total_capital: float, grid_levels: int,
+    *,
+    p10: float,
+    p90: float,
+    current_price: float,
+    kelly_fraction: float,
+    total_capital: float,
+    grid_levels: int,
 ) -> float:
     """Half-Kelly dollar amount per grid level.
 
