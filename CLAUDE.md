@@ -247,6 +247,36 @@ Examples:
 - `BTCUSDT.BINANCE-5-MINUTE-LAST-INTERNAL`
 - `EUR/USD.SIM-15-MINUTE-MID-INTERNAL`
 
+## Paper trading
+
+Run any strategy against Binance Spot Testnet via the `nt paper-trade` CLI, backed by committed YAML configs. Shipped in sub-project B.
+
+### With `nt paper-trade --config` (canonical)
+
+```bash
+cd nautilus && uv run nt paper-trade --config ../configs/paper/ema_cross.yaml
+```
+
+One YAML per strategy under `configs/paper/`. To add a new strategy-config, duplicate an existing YAML and edit the `strategy` key + per-strategy `params`.
+
+### Pre-release smoke (opt-in)
+
+```bash
+cd nautilus && uv run python -m pytest ../tests/paper_trade/test_smoke_paper.py -v
+```
+
+Gated by the `binance_testnet` pytest marker — normal `make test` skips it. Requires Binance Testnet credentials; see `docs/runbooks/paper-trade.md` for the full setup.
+
+### Core classes
+
+| Class | Purpose |
+|-------|---------|
+| `PaperTradeRunner` | Base class for paper-trade runners. Override `build_config()` and `main()`. |
+| `build_paper_trade_node_config` | Helper that wires Binance Spot Testnet defaults (Ed25519, InstrumentProvider, account/env). |
+| `run_paper_trade` | Boots the `TradingNode`, installs SIGINT/SIGTERM handlers, blocks. |
+| `PaperRunConfig` | YAML schema (msgspec Struct). |
+| `round_to_tick` | Snap a synthetic LIMIT price to the instrument's `price_increment`. |
+
 ## Live Trading (Binance)
 
 ### Target venue: Binance
