@@ -38,6 +38,9 @@ def _load_runners() -> None:
     from strategies.crypto.hybrid_sma_r10_paper import (  # type: ignore[import-not-found]
         HybridSMAR10PaperTradeRunner,
     )
+    from strategies.crypto.kronos.paper_runner import (  # type: ignore[import-not-found]
+        KronosPaperTradeRunner,
+    )
     from strategies.crypto.rvs_swing_paper import (  # type: ignore[import-not-found]
         RVSSwingPaperTradeRunner,
     )
@@ -59,6 +62,7 @@ def _load_runners() -> None:
     _RUNNERS["timesfm_grid"] = TimesFMGridPaperTradeRunner
     _RUNNERS["rvs_swing"] = RVSSwingPaperTradeRunner
     _RUNNERS["shock_guard"] = ShockGuardPaperTradeRunner
+    _RUNNERS["kronos"] = KronosPaperTradeRunner
 
 
 def paper_trade(

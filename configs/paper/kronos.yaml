@@ -1,0 +1,10 @@
+strategy: kronos
+instrument_id: BTCUSDT.BINANCE
+bar_type: BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL
+trade_size: "0.001"
+log_level: INFO
+params:
+  model_size: mini
+  n_samples: 10
+  forecast_horizon: 24
+  inference_interval_bars: 4

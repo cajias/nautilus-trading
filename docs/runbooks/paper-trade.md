@@ -53,14 +53,14 @@ Pre-baked configs live under `configs/paper/`:
 
 ```
 $ ls configs/paper/
-dca_bot.yaml       hybrid_sma_r10.yaml  shock_guard.yaml    timesfm_grid.yaml
-ema_cross.yaml     rvs_swing.yaml       timesfm_swing.yaml  grid_bot.yaml
+dca_bot.yaml       hybrid_sma_r10.yaml  rvs_swing.yaml      timesfm_grid.yaml
+ema_cross.yaml     kronos.yaml          shock_guard.yaml    timesfm_swing.yaml
+grid_bot.yaml
 ```
 
-Eight runners are wired through the CLI today. Kronos CLI integration is
-pending task #42 — until it ships `configs/paper/kronos.yaml`, Kronos is only
-reachable through its Python API (`KronosPaperTradeRunner(...).main()` in a
-REPL or ad-hoc script that first puts the repo root on `sys.path`).
+All nine runners — `ema_cross`, `grid_bot`, `dca_bot`, `timesfm_swing`,
+`hybrid_sma_r10`, `timesfm_grid`, `rvs_swing`, `shock_guard`, and `kronos` —
+are wired through the CLI.
 
 Start a run:
 
