@@ -1,0 +1,8 @@
+strategy: ema_cross
+instrument_id: BTCUSDT.BINANCE
+bar_type: BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL
+trade_size: "0.001"
+log_level: INFO
+params:
+  fast_ema: 10
+  slow_ema: 20

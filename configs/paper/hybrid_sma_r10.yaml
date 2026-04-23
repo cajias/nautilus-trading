@@ -1,0 +1,11 @@
+strategy: hybrid_sma_r10
+instrument_id: BTCUSDT.BINANCE
+bar_type: BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL
+# trade_size intentionally omitted — HybridSMA sizes from equity.
+trade_size: null
+log_level: INFO
+params:
+  sma_fast: 10
+  sma_slow: 30
+  stop_fast: "0.05"
+  stop_slow: "0.10"

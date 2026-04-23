@@ -1,0 +1,9 @@
+strategy: grid_bot
+instrument_id: BTCUSDT.BINANCE
+bar_type: BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL
+trade_size: "0.001"
+log_level: INFO
+params:
+  upper_price: "72000"
+  lower_price: "60000"
+  grid_levels: 8
