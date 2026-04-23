@@ -1,121 +1,41 @@
-"""Protocol-based strategy config builders.
+"""Deprecated — re-exports from :mod:`nautilus_trading.cli._strategy_specs`.
 
-Each builder maps CLI args → the strategy_config dict passed to
-ImportableStrategyConfig. New strategies add a class and an entry in
-STRATEGY_BUILDERS; no CLI editing needed.
+Sub-project A shipped the 8 concrete strategy-config builders here.
+Sub-project B.5 unified them (plus import-path strings and actor wiring)
+into a single ``StrategySpec`` registry in ``cli/_strategy_specs.py``.
+
+This shim keeps ``from nautilus_trading.cli._strategy_configs import ...``
+working for downstream code (``cli/paper_trade.py``, the 8 ``*_paper.py``
+runners, and ``tests/test_strategy_configs.py``) until Task C of PR 1
+migrates callers and removes the shim.
+
+Prefer importing directly from ``cli._strategy_specs`` in new code.
 """
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from nautilus_trading.cli._strategy_specs import (
+    STRATEGY_BUILDERS,
+    DCABotConfigBuilder,
+    EMAConfigBuilder,
+    GridBotConfigBuilder,
+    HybridSMAConfigBuilder,
+    RVSSwingConfigBuilder,
+    ShockGuardConfigBuilder,
+    StrategyConfigBuilder,
+    TimesFMConfigBuilder,
+    TimesFMGridConfigBuilder,
+)
 
-
-class StrategyConfigBuilder(Protocol):
-    """Builds a strategy_config dict from parsed CLI args."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]: ...
-
-
-class GridBotConfigBuilder:
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("upper_price") or not args.get("lower_price"):
-            raise ValueError("grid_bot requires --upper-price and --lower-price")
-        return {
-            "instrument_id": args["instrument_id"],
-            "bar_type": args["bar_type"],
-            "trade_size": args["trade_size"],
-            "upper_price": args["upper_price"],
-            "lower_price": args["lower_price"],
-            "grid_levels": args["grid_levels"],
-        }
-
-
-_BASE_FIELDS = ("instrument_id", "bar_type")
-
-
-def _base(args: dict[str, Any], *, include_trade_size: bool = True) -> dict[str, Any]:
-    out = {k: args[k] for k in _BASE_FIELDS}
-    if include_trade_size:
-        out["trade_size"] = args["trade_size"]
-    return out
-
-
-class DCABotConfigBuilder:
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("buy_interval_bars"):
-            raise ValueError("dca_bot requires buy_interval_bars")
-        out = _base(args)
-        if args.get("buy_amount"):
-            out["buy_amount"] = args["buy_amount"]
-        out["buy_interval_bars"] = args["buy_interval_bars"]
-        return out
-
-
-class EMAConfigBuilder:
-    """EMA cross / swing strategies that need both slow and fast EMA periods."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        out = _base(args)
-        out["ema_period"] = args["slow_ema"]
-        out["fast_ema_period"] = args["fast_ema"]
-        out["slow_ema_period"] = args["slow_ema"]
-        return out
-
-
-class TimesFMConfigBuilder:
-    """TimesFM swing: uses ema_period + fallback_fast_ema_period (no fast_ema_period)."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        out = _base(args)
-        out["ema_period"] = args["slow_ema"]
-        out["fallback_fast_ema_period"] = args["fast_ema"]
-        return out
-
-
-class HybridSMAConfigBuilder:
-    """Hybrid SMA ensemble: sizes from equity, so NO trade_size. Decimal fields as strings."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("sma_fast") or not args.get("sma_slow"):
-            raise ValueError("hybrid_sma_r10 requires sma_fast and sma_slow")
-        if args.get("stop_fast") is None or args.get("stop_slow") is None:
-            raise ValueError("hybrid_sma_r10 requires stop_fast and stop_slow")
-        out = _base(args, include_trade_size=False)
-        out["sma_fast"] = args["sma_fast"]
-        out["sma_slow"] = args["sma_slow"]
-        out["stop_fast"] = str(args["stop_fast"])
-        out["stop_slow"] = str(args["stop_slow"])
-        return out
-
-
-class TimesFMGridConfigBuilder:
-    """TimesFM quantile grid: base fields only — all ML/grid params have Config defaults."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
-
-
-class RVSSwingConfigBuilder:
-    """RVS swing: base fields only — anomaly/stop/EMA thresholds all have Config defaults."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
-
-
-class ShockGuardConfigBuilder:
-    """Shock Guard macro allocator: base fields only — all allocation/shock params default."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
-
-
-STRATEGY_BUILDERS: dict[str, StrategyConfigBuilder] = {
-    "grid_bot": GridBotConfigBuilder(),
-    "dca_bot": DCABotConfigBuilder(),
-    "ema_cross": EMAConfigBuilder(),
-    "timesfm_swing": TimesFMConfigBuilder(),
-    "hybrid_sma_r10": HybridSMAConfigBuilder(),
-    "timesfm_grid": TimesFMGridConfigBuilder(),
-    "rvs_swing": RVSSwingConfigBuilder(),
-    "shock_guard": ShockGuardConfigBuilder(),
-}
+__all__ = [
+    "DCABotConfigBuilder",
+    "EMAConfigBuilder",
+    "GridBotConfigBuilder",
+    "HybridSMAConfigBuilder",
+    "RVSSwingConfigBuilder",
+    "STRATEGY_BUILDERS",
+    "ShockGuardConfigBuilder",
+    "StrategyConfigBuilder",
+    "TimesFMConfigBuilder",
+    "TimesFMGridConfigBuilder",
+]

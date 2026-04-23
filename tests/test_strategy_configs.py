@@ -243,6 +243,8 @@ def test_all_registered_strategies_resolvable():
     for name, builder in STRATEGY_BUILDERS.items():
         assert hasattr(builder, "build"), f"{name} builder missing .build()"
     # Lock in the current set so drift is obvious in diffs.
+    # Sub-project B.5 added "kronos" to the registry via the unified
+    # StrategySpec table in cli/_strategy_specs.py.
     assert set(STRATEGY_BUILDERS.keys()) == {
         "grid_bot",
         "dca_bot",
@@ -252,4 +254,5 @@ def test_all_registered_strategies_resolvable():
         "timesfm_grid",
         "rvs_swing",
         "shock_guard",
+        "kronos",
     }
