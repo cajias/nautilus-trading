@@ -28,19 +28,13 @@ def _find_market_dirs(strategies_dir: Path) -> list[Path]:
     if not strategies_dir.is_dir():
         return []
     return sorted(
-        d
-        for d in strategies_dir.iterdir()
-        if d.is_dir() and (d / "__init__.py").exists()
+        d for d in strategies_dir.iterdir() if d.is_dir() and (d / "__init__.py").exists()
     )
 
 
 def _scan_strategy_files(market_dir: Path) -> list[Path]:
     """Return .py files in a market directory, excluding __init__.py."""
-    return sorted(
-        f
-        for f in market_dir.glob("*.py")
-        if f.name != "__init__.py"
-    )
+    return sorted(f for f in market_dir.glob("*.py") if f.name != "__init__.py")
 
 
 def _find_strategy_classes(
@@ -102,9 +96,7 @@ def strategies() -> None:
     console = Console()
 
     if not strategies_dir.is_dir():
-        console.print(
-            f"[red]strategies/ directory not found at {strategies_dir}[/red]"
-        )
+        console.print(f"[red]strategies/ directory not found at {strategies_dir}[/red]")
         raise SystemExit(1)
 
     table = Table(title="Available Strategies")

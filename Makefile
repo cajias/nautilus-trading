@@ -27,7 +27,7 @@ help:
 	@echo ""
 	@echo "Linting:"
 	@echo "  make lint              - Run all linters (ruff, mypy, vulture)"
-	@echo "  make lint-fix          - Auto-fix linting issues (ruff, isort)"
+	@echo "  make lint-fix          - Auto-fix linting + format (ruff)"
 	@echo "  make validate          - Pre-push validation (lint + format + tests)"
 	@echo ""
 	@echo "Running:"
@@ -68,10 +68,9 @@ install:
 	@echo "v Installation complete!"
 	@echo ""
 	@echo "Tools available via 'uv run':"
-	@echo "  - ruff (linter)"
+	@echo "  - ruff (linter + import sorter + formatter)"
 	@echo "  - mypy (type checker)"
 	@echo "  - vulture (dead code detector)"
-	@echo "  - isort (import sorter)"
 	@echo "  - pytest (test runner)"
 	@echo "  - jupyter (notebook server)"
 
@@ -132,8 +131,8 @@ lint-fix:
 	@echo "Auto-fixing linting issues..."
 	@echo "-> Ruff (auto-fix)..."
 	@cd nautilus && uv run ruff check src/ ../strategies/ --fix
-	@echo "-> Isort (import sorting)..."
-	@cd nautilus && uv run isort src/ ../strategies/
+	@echo "-> Ruff format..."
+	@cd nautilus && uv run ruff format src/
 	@echo "v Auto-fixes complete!"
 
 # Pre-push validation
