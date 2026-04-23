@@ -7,20 +7,17 @@ strategy+actor class paths, configured instrument_id.
 
 from __future__ import annotations
 
+import pytest
 from nautilus_trader.adapters.binance import BINANCE
 from nautilus_trader.adapters.binance.common.enums import BinanceAccountType, BinanceEnvironment
 
 
-def test_kronos_paper_runner_matches_quarantined_script():
+def test_kronos_paper_runner_matches_quarantined_script(monkeypatch: pytest.MonkeyPatch):
     # Stub env vars so the quarantined config snapshot and KronosPaperTradeRunner.build_config()
     # can read Binance testnet secrets without requiring real credentials. The config-only
     # path never hits the wire; these stubs just satisfy the presence check.
-    import os
-
-    os.environ.setdefault("BINANCE_TESTNET_API_KEY", "stub_key_for_config_only")
-    os.environ.setdefault("BINANCE_TESTNET_API_SECRET", "stub_secret_for_config_only")
-    os.environ.setdefault("KRONOS_SYMBOL", "BTCUSDT.BINANCE")
-    os.environ.setdefault("KRONOS_INTERVAL", "1-MINUTE-LAST-EXTERNAL")
+    monkeypatch.setenv("BINANCE_TESTNET_API_KEY", "stub_key_for_config_only")
+    monkeypatch.setenv("BINANCE_TESTNET_API_SECRET", "stub_secret_for_config_only")
 
     from strategies.crypto.kronos.paper_runner import KronosPaperTradeRunner
 
