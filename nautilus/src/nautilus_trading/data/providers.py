@@ -103,9 +103,7 @@ class TestDataProvider(DataProvider):
         try:
             catalog = ParquetDataCatalog(str(catalog_path))
             instruments = catalog.instruments()
-            return any(
-                self._pair.replace("/", "") in str(inst.id) for inst in instruments
-            )
+            return any(self._pair.replace("/", "") in str(inst.id) for inst in instruments)
         except Exception:
             return False
 
@@ -308,8 +306,7 @@ class BinanceDataProvider(DataProvider):
             catalog.write_data([instrument])
             catalog.write_data(bars)
             print(
-                f"[binance] {pair}: wrote {len(bars):,} bars "
-                f"({self._interval}) to {catalog_path}"
+                f"[binance] {pair}: wrote {len(bars):,} bars ({self._interval}) to {catalog_path}"
             )
 
         return catalog

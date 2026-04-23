@@ -47,7 +47,7 @@ make backtest STRATEGY=forex.ema_cross  # Run specific strategy
 make jupyter                         # Launch Jupyter in strategies/
 make test                            # Run tests
 make lint                            # Lint (ruff, mypy, vulture)
-make lint-fix                        # Auto-fix (ruff, isort)
+make lint-fix                        # Auto-fix + format (ruff)
 make validate                        # Pre-push check (lint + format + tests)
 make clean                           # Remove test artifacts and caches
 ```
@@ -65,10 +65,9 @@ cd nautilus && uv run nt strategies
 
 | Tool | Purpose | Config |
 |------|---------|--------|
-| `ruff` | Linting + formatting | `nautilus/pyproject.toml` [tool.ruff] |
+| `ruff` | Linting + formatting + import sorting | `nautilus/pyproject.toml` [tool.ruff] |
 | `mypy` | Type checking | `nautilus/pyproject.toml` [tool.mypy] |
 | `vulture` | Dead code detection | min-confidence 80 |
-| `isort` | Import sorting | via `make lint-fix` |
 | `pytest` | Testing | `nautilus/pyproject.toml` [tool.pytest] |
 | `uv` | Package management | `nautilus/pyproject.toml` |
 

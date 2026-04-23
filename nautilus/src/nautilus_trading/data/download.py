@@ -23,8 +23,6 @@ def get_provider(name: str = "test") -> DataProvider:
     return PROVIDERS[name]()
 
 
-def ensure_catalog(
-    catalog_path: Path, provider: str = "test"
-) -> ParquetDataCatalog:
+def ensure_catalog(catalog_path: Path, provider: str = "test") -> ParquetDataCatalog:
     """Download data using the specified provider and return a catalog."""
     return get_provider(provider).ensure_catalog(catalog_path)
