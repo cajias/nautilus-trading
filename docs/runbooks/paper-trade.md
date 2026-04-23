@@ -26,7 +26,7 @@ pre-release smoke.
 ## 2. `.env.local` template
 
 The app auto-loads `.env.local` at the repo root via `python-dotenv`. Copy
-`/.env.example` and fill in the Binance Testnet section:
+`.env.example` (at the repo root) and fill in the Binance Testnet section:
 
 ```
 BINANCE_TESTNET_API_KEY=<api-key-id-from-binance>
@@ -54,9 +54,10 @@ dca_bot.yaml       hybrid_sma_r10.yaml  shock_guard.yaml    timesfm_grid.yaml
 ema_cross.yaml     rvs_swing.yaml       timesfm_swing.yaml  grid_bot.yaml
 ```
 
-Eight runners are wired through the CLI today. Kronos runs through the legacy
-`make paper-trade-kronos` target until task #42 lands
-`configs/paper/kronos.yaml`.
+Eight runners are wired through the CLI today. Kronos CLI integration is
+pending task #42 — until it ships `configs/paper/kronos.yaml`, Kronos is only
+reachable through its Python API (`KronosPaperTradeRunner(...).main()` in a
+REPL or ad-hoc script that first puts the repo root on `sys.path`).
 
 Start a run:
 

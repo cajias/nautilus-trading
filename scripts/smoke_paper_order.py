@@ -17,10 +17,10 @@ Where <strategy-key> is one of the YAML config names under ``configs/paper/``:
 
 (Kronos is intentionally excluded: it is not registered in the YAML-driven
 ``_RUNNERS`` registry in ``nautilus_trading.cli.paper_trade`` and ships no
-YAML config under ``configs/paper/``. Drive Kronos through its own
-``make paper-trade-kronos`` target if you need a manual smoke.)
+YAML config under ``configs/paper/``. Kronos CLI integration is pending
+task #42; smoke it manually via ``KronosPaperTradeRunner(...).main()``.)
 
-Requires Binance Testnet credentials loaded (see configs/paper/.env.local).
+Requires Binance Testnet credentials loaded (see .env.local at the repo root).
 Fails loudly — no silent retries, no masked timeouts. Non-zero exit on any
 error path so the shell caller can treat it as a gate.
 """

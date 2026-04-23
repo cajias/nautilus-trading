@@ -38,7 +38,6 @@ from nautilus_trader.adapters.binance import (
 )
 from nautilus_trader.live.node import TradingNode
 from nautilus_trader.model.data import Bar
-from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
 from strategies.crypto.dca_bot_paper import DCABotPaperTradeRunner
 from strategies.crypto.ema_cross_paper import EMACrossPaperTradeRunner
 from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
@@ -48,6 +47,8 @@ from strategies.crypto.rvs_swing_paper import RVSSwingPaperTradeRunner
 from strategies.crypto.shock_guard_paper import ShockGuardPaperTradeRunner
 from strategies.crypto.timesfm_grid_paper import TimesFMGridPaperTradeRunner
 from strategies.crypto.timesfm_swing_paper import TimesFMSwingPaperTradeRunner
+
+from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
 
 # Whole module is opt-in — requires live testnet credentials.
 pytestmark = pytest.mark.binance_testnet

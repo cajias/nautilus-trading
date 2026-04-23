@@ -9,7 +9,7 @@
 # Strategy module path (relative to strategies/), e.g. forex.ema_cross
 STRATEGY ?= forex.ema_cross
 
-.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos paper-trade-kronos smoke-paper-order strategies jupyter clean
+.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos smoke-paper-order strategies jupyter clean
 
 # Default target
 help:
@@ -34,7 +34,6 @@ help:
 	@echo "  make backtest          - Run backtest (default: STRATEGY=$(STRATEGY))"
 	@echo "  make backtest-crypto   - Run crypto backtest with Binance data"
 	@echo "  make backtest-kronos   - Run Kronos foundation model backtest (fetches Binance data)"
-	@echo "  make paper-trade-kronos - Run Kronos paper trading on Binance Testnet"
 	@echo "  make smoke-paper-order - Submit one off-market LIMIT to Binance Testnet (opt-in)"
 	@echo "  make strategies        - List all available strategies"
 	@echo "  make jupyter           - Launch Jupyter Lab with strategy notebooks"
@@ -49,7 +48,6 @@ help:
 	@echo "  make backtest-crypto STRATEGY=crypto.dca_bot   # DCA bot backtest"
 	@echo "  make backtest-crypto STRATEGY=crypto.timesfm_swing  # TimesFM strategy"
 	@echo "  make backtest-kronos                               # Kronos backtest (mini model)"
-	@echo "  make paper-trade-kronos                            # Kronos paper trading (Binance Testnet)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove test artifacts and caches"
@@ -174,16 +172,9 @@ strategies:
 backtest-kronos:
 	cd nautilus && uv run python ../strategies/crypto/kronos/backtest.py
 
-# Run Kronos paper trading on Binance Testnet
-# Requires: BINANCE_TESTNET_API_KEY, BINANCE_TESTNET_API_SECRET, KRONOS_REPO_PATH
-# Model: KRONOS_MODEL_SIZE=mini|base  (default: mini)
-# Symbol: KRONOS_SYMBOL=BTCUSDT       (default: BTCUSDT)
-paper-trade-kronos:
-	cd nautilus && uv run python ../strategies/crypto/kronos/paper_trade.py
-
 # Submit ONE off-market LIMIT order to Binance Spot Testnet, assert ACK, cancel.
 # Opt-in manual smoke — requires BINANCE_TESTNET_API_KEY, BINANCE_TESTNET_API_SECRET,
-# and BINANCE_TESTNET_ED25519_KEY_PATH to be set (see configs/paper/.env.local).
+# and BINANCE_TESTNET_ED25519_KEY_PATH to be set (see .env.local at the repo root).
 # Usage: make smoke-paper-order STRATEGY=ema_cross
 smoke-paper-order:
 	@if [ -z "$(STRATEGY)" ] || [ "$(STRATEGY)" = "forex.ema_cross" ]; then \
