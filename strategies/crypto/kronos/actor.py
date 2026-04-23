@@ -121,9 +121,7 @@ def build_kronos_signal(
         forecast_low = float(pred_df["low"].min())
 
         predicted_return_pct = (
-            (forecast_close - current_close) / current_close
-            if current_close > 0
-            else 0.0
+            (forecast_close - current_close) / current_close if current_close > 0 else 0.0
         )
 
         # Confidence: magnitude of predicted move relative to forecast price range.
@@ -135,9 +133,7 @@ def build_kronos_signal(
         else:
             confidence = float(min(1.0, abs(predicted_return_pct) * 20))
 
-        direction = 1.0 if predicted_return_pct > 0 else (
-            -1.0 if predicted_return_pct < 0 else 0.0
-        )
+        direction = 1.0 if predicted_return_pct > 0 else (-1.0 if predicted_return_pct < 0 else 0.0)
 
         return KronosSignal(
             instrument_id=instrument_id,
@@ -177,6 +173,7 @@ def _try_import_kronos(repo_path: str | None) -> bool:
 
     try:
         import importlib
+
         importlib.import_module("model")
         return True
     except ImportError:
@@ -378,9 +375,7 @@ class KronosActor(Actor):
                 return delta
         return pd.Timedelta(hours=1)  # safe default
 
-    def _build_y_timestamp(
-        self, x_timestamp: pd.Series, freq: pd.Timedelta
-    ) -> pd.Series:
+    def _build_y_timestamp(self, x_timestamp: pd.Series, freq: pd.Timedelta) -> pd.Series:
         """Build future timestamps for the forecast horizon."""
         last_ts = x_timestamp.iloc[-1]
         future = pd.date_range(

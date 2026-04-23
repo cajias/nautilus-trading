@@ -121,6 +121,8 @@ lint:
 	@echo "Running linters..."
 	@echo "-> Ruff (linting)..."
 	@cd nautilus && uv run ruff check src/ ../strategies/
+	@echo "-> Ruff (format check)..."
+	@cd nautilus && uv run ruff format --check src/ ../strategies/
 	@echo "-> Mypy (type checking)..."
 	@cd nautilus && uv run mypy src/
 	@echo "-> Vulture (dead code detection)..."
@@ -132,7 +134,7 @@ lint-fix:
 	@echo "-> Ruff (auto-fix)..."
 	@cd nautilus && uv run ruff check src/ ../strategies/ --fix
 	@echo "-> Ruff format..."
-	@cd nautilus && uv run ruff format src/
+	@cd nautilus && uv run ruff format src/ ../strategies/
 	@echo "v Auto-fixes complete!"
 
 # Pre-push validation
@@ -141,7 +143,7 @@ validate:
 	@echo "-> Ruff check..."
 	@cd nautilus && uv run ruff check src/ ../strategies/
 	@echo "-> Ruff format check..."
-	@cd nautilus && uv run ruff format --check src/
+	@cd nautilus && uv run ruff format --check src/ ../strategies/
 	@echo "-> Running tests..."
 	@cd nautilus && uv run pytest ../tests/ -q --tb=line -x
 	@echo "v Validation passed!"

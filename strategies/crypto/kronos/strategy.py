@@ -364,6 +364,5 @@ class KronosStrategy(Strategy):
         self.submit_order(order)
         self._entry_price = self._current_price
         self.log.info(
-            f"Entered {side.name} @ {self._current_price:.6f} "
-            f"qty={self.config.trade_size}"
+            f"Entered {side.name} @ {self._current_price:.6f} qty={self.config.trade_size}"
         )

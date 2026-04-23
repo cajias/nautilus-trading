@@ -242,8 +242,7 @@ class RVSSwingStrategy(RiskGuard, Strategy):
         stop_price = self.compute_trailing_stop(self._current_price)
         if self._current_price <= stop_price:
             self.log.info(
-                f"Trailing stop triggered at {self._current_price:.2f} "
-                f"(stop={stop_price:.2f})"
+                f"Trailing stop triggered at {self._current_price:.2f} (stop={stop_price:.2f})"
             )
             self.close_all_positions(self.config.instrument_id)
             self._reset_position_state()

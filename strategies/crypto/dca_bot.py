@@ -123,8 +123,7 @@ class DCABotStrategy(RiskGuard, Strategy):
         new_total_qty = self._total_quantity + buy_qty
         if new_total_qty > 0:
             self._avg_entry_price = (
-                float(self._total_quantity) * self._avg_entry_price
-                + float(buy_qty) * current_price
+                float(self._total_quantity) * self._avg_entry_price + float(buy_qty) * current_price
             ) / float(new_total_qty)
         self._total_quantity = new_total_qty
         self._total_invested += self.config.buy_amount
