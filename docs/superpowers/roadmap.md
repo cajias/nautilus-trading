@@ -10,17 +10,23 @@ Consolidate `nautilus/src/nautilus_trading/` and `strategies/crypto/` under SOLI
 - **Plan:** `plans/2026-04-17-subproject-a-implementation.md` — 8 PRs, ~135 TDD steps
 - **Branch:** `design/subproject-a-v2`
 
-## Sub-project B — Binance live trading (PLANNED, not started)
+## Sub-project B — Binance paper-trade testbed (SHIPPED)
 
-Paper-trade → testnet → production promotion path for live crypto trading. Consumes A's refactored strategy surface.
+Delivered a paper-trade surface on Binance Spot Testnet as the on-ramp to real-money live trading. Everything in B is opt-in: normal `make test` does not talk to Binance.
 
-Scope (from A's §2 non-goals):
-- Real-money Binance live trading
-- Ed25519 key rotation, production environment wiring
-- `strategies/crypto/kronos/paper_trade.py` migration (quarantined in A)
-- Live node config + secrets handling
+What shipped:
 
-**Status:** No spec yet. Brainstorm after A ships.
+- `nt paper-trade --config configs/paper/<strategy>.yaml` CLI (YAML-driven, one file per strategy).
+- Nine paper-trade runners: `ema_cross`, `grid_bot`, `dca_bot`, `timesfm_swing`, `hybrid_sma_r10`, `timesfm_grid`, `rvs_swing`, `shock_guard` (YAML) plus `kronos` (legacy `make paper-trade-kronos` target — YAML wiring tracked as task #42).
+- Core wiring under `nautilus/src/nautilus_trading/paper_trade/`: `PaperTradeRunner` ABC, `build_paper_trade_node_config` (Ed25519 + InstrumentProvider defaults), `run_paper_trade` (SIGINT/SIGTERM lifecycle), `PaperRunConfig` msgspec schema, `round_to_tick` price helper.
+- Opt-in pre-release smoke: `tests/paper_trade/test_smoke_paper.py` gated by the `binance_testnet` pytest marker; every runner must boot and receive at least one `Bar` within 30s.
+- Order-path smoke: `make smoke-paper-order STRATEGY=<name>` submits + cancels an off-market LIMIT.
+- Operator docs: `docs/runbooks/paper-trade.md` (this sub-project's user-facing runbook).
+
+Out of scope, deferred to future work:
+
+- Real-money production key rotation + promotion flow.
+- Operator-invoked panic-close endpoint (moves into sub-project C).
 
 ## Sub-project C — Competition platform (PLANNED, not started)
 
@@ -31,7 +37,7 @@ Scope (from A's §2 non-goals):
 - `strategies/competition/` tree
 - Consumes A's Protocol surface
 
-**Status:** No spec yet. Brainstorm after B ships.
+**Status:** No spec yet. Next sub-project to brainstorm now that B has shipped.
 
 ## Why this order
 
