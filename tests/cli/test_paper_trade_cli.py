@@ -52,3 +52,40 @@ def test_paper_trade_config_file_dispatches_to_runner(tmp_path, monkeypatch):
     result = runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
     assert result.exit_code == 0, result.stdout
     assert calls == [("ema_cross", "BTCUSDT.BINANCE", 12, 26)]
+
+
+def test_paper_trade_config_missing_file_is_usage_error(tmp_path):
+    """Nonexistent config file → Typer exit_code != 0 mentioning the path.
+
+    This is served by typer.Option(exists=True) on --config; the test guards
+    that the option definition still carries the `exists=True` flag.
+    """
+    runner = CliRunner()
+    bogus = tmp_path / "does-not-exist.yaml"
+    result = runner.invoke(app, ["paper-trade", "--config", str(bogus)])
+    assert result.exit_code != 0
+    assert "does-not-exist" in result.output or "does not exist" in result.output
+
+
+def test_paper_trade_config_unknown_strategy_is_usage_error(tmp_path):
+    """Unknown strategy in YAML → BadParameter listing valid names."""
+    yaml_path = tmp_path / "run.yaml"
+    yaml_path.write_text(
+        'strategy: nonexistent_bot\ninstrument_id: X\nbar_type: Y\ntrade_size: "0.001"\n'
+    )
+    runner = CliRunner()
+    result = runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    assert result.exit_code != 0
+    assert "nonexistent_bot" in result.output
+
+
+def test_paper_trade_config_unknown_yaml_field_is_usage_error(tmp_path):
+    """Unknown top-level YAML field → BadParameter (not raw ValidationError)."""
+    yaml_path = tmp_path / "run.yaml"
+    yaml_path.write_text(
+        'strategy: ema_cross\ninstrument_id: X\nbar_type: Y\ntrade_size: "0.001"\nbogus_field: 1\n'
+    )
+    runner = CliRunner()
+    result = runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    assert result.exit_code != 0
+    assert "bogus_field" in result.output
