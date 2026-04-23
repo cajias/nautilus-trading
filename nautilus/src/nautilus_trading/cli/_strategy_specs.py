@@ -48,28 +48,44 @@ class ActorConfigBuilder(Protocol):
 # ---------------------------------------------------------------------------
 
 
-class GridBotConfigBuilder:
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("upper_price") or not args.get("lower_price"):
-            raise ValueError("grid_bot requires --upper-price and --lower-price")
-        return {
-            "instrument_id": args["instrument_id"],
-            "bar_type": args["bar_type"],
-            "trade_size": args["trade_size"],
-            "upper_price": args["upper_price"],
-            "lower_price": args["lower_price"],
-            "grid_levels": args["grid_levels"],
-        }
-
-
 _BASE_FIELDS = ("instrument_id", "bar_type")
 
 
 def _base(args: dict[str, Any], *, include_trade_size: bool = True) -> dict[str, Any]:
+    """Pick the shared base fields (``instrument_id``, ``bar_type``, and
+    optionally ``trade_size``) out of ``args`` into a fresh dict.
+
+    Raises
+    ------
+    ValueError
+        If any required field is missing or empty. Using ``ValueError`` (not
+        ``KeyError``) gives uniform failure semantics across all 9 builders —
+        the CLI can map any ``ValueError`` from ``builder.build(...)`` to a
+        ``typer.BadParameter`` without having to special-case ``KeyError`` too.
+    """
+    required: tuple[str, ...] = _BASE_FIELDS + (("trade_size",) if include_trade_size else ())
+    missing = [f for f in required if not args.get(f)]
+    if missing:
+        raise ValueError(
+            f"strategy config requires {', '.join(required)}; missing: {', '.join(missing)}"
+        )
     out = {k: args[k] for k in _BASE_FIELDS}
     if include_trade_size:
         out["trade_size"] = args["trade_size"]
     return out
+
+
+class GridBotConfigBuilder:
+    def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        if not args.get("upper_price") or not args.get("lower_price"):
+            raise ValueError("grid_bot requires --upper-price and --lower-price")
+        if args.get("grid_levels") is None:
+            raise ValueError("grid_bot requires grid_levels")
+        out = _base(args)  # ValueError on missing instrument_id/bar_type/trade_size
+        out["upper_price"] = args["upper_price"]
+        out["lower_price"] = args["lower_price"]
+        out["grid_levels"] = args["grid_levels"]
+        return out
 
 
 class DCABotConfigBuilder:

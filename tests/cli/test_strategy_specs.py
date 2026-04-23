@@ -294,21 +294,93 @@ def test_kronos_actor_spec_builder_is_kronos_actor_config_builder():
     assert actor_spec.builder.build(args) == KronosActorConfigBuilder().build(args)
 
 
-def test_kronos_actor_config_builder_output_is_valid_kronos_actor_config_kwargs():
-    """The actor-config dict must contain every required field of
-    KronosActorConfig so that ImportableActorConfig can instantiate it."""
+def test_kronos_actor_config_builder_output_constructs_kronos_actor_config():
+    """Round-trip: ``KronosActorConfig(**builder.build(args))`` must not raise.
+
+    This guards against KronosActorConfig schema drift. A key-presence check
+    stays green while ``ImportableActorConfig`` blows up at runtime; actually
+    constructing the config surfaces missing-required-field or type errors
+    here, at unit-test time.
+
+    ImportableActorConfig does the string→``InstrumentId``/``BarType`` coercion
+    via msgspec at TradingNode boot. When constructing ``KronosActorConfig``
+    directly we convert them explicitly — the test is about required-field
+    coverage, not the coercion layer.
+    """
+    from nautilus_trader.model.data import BarType
+    from nautilus_trader.model.identifiers import InstrumentId
     from nautilus_trading.cli._strategy_specs import KronosActorConfigBuilder
+    from strategies.crypto.kronos.actor import KronosActorConfig
+
+    instrument_str = "BTCUSDT.BINANCE"
+    bar_type_str = "BTCUSDT.BINANCE-1-MINUTE-LAST-INTERNAL"
 
     out = KronosActorConfigBuilder().build(
-        {
-            "instrument_id": "BTCUSDT.BINANCE",
-            "bar_type": "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-        }
+        {"instrument_id": instrument_str, "bar_type": bar_type_str}
     )
-    # All fields that lack defaults on KronosActorConfig must be present.
-    assert "instrument_id" in out
-    assert "bar_type" in out
-    # Optional fields may be present but must not be None-if-set.
-    for k in ("model_size", "n_samples", "forecast_horizon", "inference_interval_bars"):
-        assert k in out
-        assert out[k] is not None
+
+    # Convert string IDs to the types KronosActorConfig expects when constructed
+    # directly — ImportableActorConfig does this via msgspec at runtime.
+    kwargs = dict(out)
+    kwargs["instrument_id"] = InstrumentId.from_str(kwargs["instrument_id"])
+    kwargs["bar_type"] = BarType.from_str(kwargs["bar_type"])
+
+    config = KronosActorConfig(**kwargs)  # must not raise
+
+    # Round-trip sanity: every builder output field lands on the config.
+    assert str(config.instrument_id) == instrument_str
+    assert str(config.bar_type) == bar_type_str
+    assert config.model_size == "mini"
+    assert config.n_samples == 10
+    assert config.forecast_horizon == 24
+    assert config.inference_interval_bars == 4
+
+
+# -- Uniform failure mode: missing base fields raise ValueError, not KeyError -
+
+
+def test_all_builders_raise_value_error_on_empty_args():
+    """Every registered builder must raise ``ValueError`` (not ``KeyError``)
+    when handed an empty args dict.
+
+    Uniform ``ValueError`` semantics matter because the CLI / YAML dispatcher
+    catches ``ValueError`` from ``builder.build(...)`` and re-raises it as a
+    ``typer.BadParameter``. A ``KeyError`` would bypass that mapping and
+    surface as an uncaught stack trace.
+
+    Each builder may raise with its own message (e.g. ``grid_bot`` checks
+    prices before calling ``_base``; ``dca_bot`` checks ``buy_interval_bars``
+    first). We don't pin the message here — only the exception type.
+    """
+    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+
+    for name, spec in STRATEGY_SPECS.items():
+        with pytest.raises(ValueError) as excinfo:
+            spec.builder.build({})
+        # Sanity: KeyError would not inherit from ValueError, so a false
+        # positive here would only arise if a builder raised ValueError for a
+        # reason unrelated to missing fields — acceptable, we just want the
+        # non-KeyError contract to hold.
+        assert not isinstance(excinfo.value, KeyError), (
+            f"{name} raised KeyError-compatible ValueError: {excinfo.value!r}"
+        )
+
+
+def test_kronos_builder_raises_value_error_on_missing_base_fields():
+    """Regression: the pre-fix ``KronosConfigBuilder`` (and any other builder
+    that went straight to ``_base(args)`` without a prior guard) silently
+    ``KeyError``-ed on missing base fields. ``_base`` now raises
+    ``ValueError`` uniformly. This test pins that for kronos specifically
+    so any future regression in ``_base`` fails loudly here.
+    """
+    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+
+    builder = STRATEGY_SPECS["kronos"].builder
+
+    # instrument_id only — bar_type + trade_size missing
+    with pytest.raises(ValueError, match=r"bar_type|trade_size"):
+        builder.build({"instrument_id": "BTCUSDT.BINANCE"})
+
+    # bar_type only — instrument_id + trade_size missing
+    with pytest.raises(ValueError, match=r"instrument_id|trade_size"):
+        builder.build({"bar_type": "BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL"})
