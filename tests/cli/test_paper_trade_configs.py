@@ -32,6 +32,7 @@ CONFIG_CASES = [
     ("timesfm_grid.yaml", "strategies.crypto.timesfm_grid_paper", "TimesFMGridPaperTradeRunner"),
     ("rvs_swing.yaml", "strategies.crypto.rvs_swing_paper", "RVSSwingPaperTradeRunner"),
     ("shock_guard.yaml", "strategies.crypto.shock_guard_paper", "ShockGuardPaperTradeRunner"),
+    ("kronos.yaml", "strategies.crypto.kronos.paper_runner", "KronosPaperTradeRunner"),
 ]
 
 

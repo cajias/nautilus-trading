@@ -13,12 +13,7 @@ Usage:
 Where <strategy-key> is one of the YAML config names under ``configs/paper/``:
 
     ema_cross grid_bot dca_bot timesfm_swing hybrid_sma_r10
-    timesfm_grid rvs_swing shock_guard
-
-(Kronos is intentionally excluded: it is not registered in the YAML-driven
-``_RUNNERS`` registry in ``nautilus_trading.cli.paper_trade`` and ships no
-YAML config under ``configs/paper/``. Kronos CLI integration is pending
-task #42; smoke it manually via ``KronosPaperTradeRunner(...).main()``.)
+    timesfm_grid rvs_swing shock_guard kronos
 
 Requires Binance Testnet credentials loaded. `load_dotenv_local()` reads
 ``.env.local`` from the current working directory; the documented invocation
@@ -74,10 +69,7 @@ _SMOKE_STRATEGY_ID = StrategyId("SMOKE-001")
 
 
 def _load_registry() -> dict[str, type]:
-    """Return the 8-entry ``_RUNNERS`` dict after triggering lazy population.
-
-    Kronos is deliberately not included — see the module docstring.
-    """
+    """Return the ``_RUNNERS`` dict after triggering lazy population."""
     _load_runners()
     return dict(_RUNNERS)
 

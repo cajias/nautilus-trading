@@ -181,7 +181,7 @@ backtest-kronos:
 smoke-paper-order:
 	@if [ -z "$(STRATEGY)" ] || [ "$(STRATEGY)" = "forex.ema_cross" ]; then \
 	  echo "Usage: make smoke-paper-order STRATEGY=<name>"; \
-	  echo "Available: ema_cross grid_bot dca_bot timesfm_swing hybrid_sma_r10 timesfm_grid rvs_swing shock_guard"; \
+	  echo "Available: ema_cross grid_bot dca_bot timesfm_swing hybrid_sma_r10 timesfm_grid rvs_swing shock_guard kronos"; \
 	  echo "(STRATEGY must be an explicit paper-trade key, not the backtest-module default.)"; \
 	  exit 1; \
 	fi

@@ -2,40 +2,40 @@
 
 Components
 ----------
-KronosSignal
-    Custom data object published by KronosActor via the MessageBus.
-KronosActor / KronosActorConfig
-    Actor that maintains a rolling OHLCV window, runs Kronos inference,
-    and publishes KronosSignal objects every N bars.
-KronosStrategy / KronosStrategyConfig
-    Strategy that subscribes to KronosSignal and makes trading decisions
-    with stop-loss, take-profit, and a peak-drawdown circuit breaker.
+- ``data.KronosSignal``: custom data object published by KronosActor via the
+  MessageBus.
+- ``actor.KronosActor`` / ``actor.KronosActorConfig``: actor that maintains a
+  rolling OHLCV window, runs Kronos inference, and publishes ``KronosSignal``
+  objects every N bars.
+- ``strategy.KronosStrategy`` / ``strategy.KronosStrategyConfig``: strategy
+  that subscribes to ``KronosSignal`` and makes trading decisions with
+  stop-loss, take-profit, and a peak-drawdown circuit breaker.
+- ``paper_runner.KronosPaperTradeRunner``: paper-trade driver wiring the
+  actor + strategy declaratively; used by ``nt paper-trade --config
+  configs/paper/kronos.yaml``.
+
+Imports are deliberately **not** re-exported at the package root. ``actor``
+and ``strategy`` pull ``pandas``/``torch`` from the ``[kronos]`` extra; the
+``[dev]``-only dev env doesn't have them, and eager package-root imports
+would break ``nt paper-trade`` and the CLI dispatch tests for every runner
+(not just Kronos). Import from submodules directly when you need the
+symbols.
 
 Quick start (backtest)
 ----------------------
-See strategies/crypto/kronos/backtest.py for a complete runnable example.
+See ``strategies/crypto/kronos/backtest.py`` for a complete runnable example.
 
 Model selection
 ---------------
-Set model_size="mini" (default), "small", or "base" in KronosActorConfig.
-Or override the HuggingFace model/tokenizer IDs:
+Set ``model_size="mini"`` (default), ``"small"``, or ``"base"`` in
+``KronosActorConfig``. Or override the HuggingFace model/tokenizer IDs:
+
     KronosActorConfig(
         huggingface_model_id="NeoQuasar/Kronos-mini",
         huggingface_tokenizer_id="NeoQuasar/Kronos-Tokenizer-2k",
     )
 
-Environment variable alternative:
+Environment variable alternative::
+
     export KRONOS_MODEL_SIZE=mini   # read in backtest.py
 """
-
-from strategies.crypto.kronos.actor import KronosActor, KronosActorConfig
-from strategies.crypto.kronos.data import KronosSignal
-from strategies.crypto.kronos.strategy import KronosStrategy, KronosStrategyConfig
-
-__all__ = [
-    "KronosSignal",
-    "KronosActor",
-    "KronosActorConfig",
-    "KronosStrategy",
-    "KronosStrategyConfig",
-]
