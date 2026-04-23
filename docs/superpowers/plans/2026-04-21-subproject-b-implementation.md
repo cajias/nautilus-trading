@@ -47,7 +47,7 @@ Read these files once before PR 1. They define the patterns you will mirror and 
 5. `nautilus/src/nautilus_trading/cli/_common.py` — `_STRATEGY_CLASSES` dict and `_ensure_project_root_on_path()` / `_resolve_strategy_paths()` helpers.
 6. `nautilus/src/nautilus_trading/cli/backtest.py` — Typer-command pattern your `cli/paper_trade.py` mirrors (lazy imports, arg surface).
 7. `nautilus/src/nautilus_trading/cli/live.py` — existing `nt live` command. PR 1 deletes this file.
-8. `strategies/crypto/kronos/paper_trade.py` — the quarantined Kronos script PR 6 replaces and deletes.
+8. `strategies/crypto/kronos/paper_trade.py` — the quarantined Kronos script PR 7 replaces and deletes.
 9. `.env.example` — the template. PR 1 extends it.
 
 ---
@@ -1400,13 +1400,23 @@ Same pattern. Per-strategy args extracted from each `*ConfigBuilder`.
 
 ---
 
-## PR 6 — Kronos migration + parity gate
+## PR 6 — YAML run configs
 
-**Depends on:** PR 5 merged.
+See standalone plan: `docs/superpowers/plans/2026-04-22-pr6-yaml-run-configs-implementation.md`
+
+Spec: `docs/superpowers/specs/2026-04-22-pr6-yaml-run-configs-design.md`
+
+Replaces the 16-flag CLI with `nt paper-trade --config configs/paper/<name>.yaml`. The flag path is deleted — no deprecation window. Completed before Kronos lands so Kronos can ship a config file instead of ~17 new flags.
+
+---
+
+## PR 7 — Kronos migration + parity gate
+
+**Depends on:** PR 6 (YAML run configs) merged.
 
 **Scope:** Replace `strategies/crypto/kronos/paper_trade.py` (quarantined script) with `strategies/crypto/kronos/paper_runner.py` implementing `KronosPaperTradeRunner(PaperTradeRunner)`. Add a parity test asserting the new runner's config matches the quarantined script's on the 5 fields from spec §10. Delete the old script only after the parity test passes in the same PR.
 
-### Task 6.1 — Write the parity test first (pre-implementation)
+### Task 7.1 — Write the parity test first (pre-implementation)
 
 **Files:**
 - Create: `tests/strategies/crypto/kronos/test_paper_runner_parity.py`
@@ -1432,12 +1442,12 @@ def test_kronos_paper_runner_matches_quarantined_script():
     os.environ.setdefault("KRONOS_SYMBOL", "BTCUSDT.BINANCE")
     os.environ.setdefault("KRONOS_INTERVAL", "1-MINUTE-LAST-EXTERNAL")
 
-    # Import the OLD script and capture its config before deletion in Task 6.3.
+    # Import the OLD script and capture its config before deletion in Task 7.3.
     # Because the old script calls node.run() at import-end, we must guard against
     # actually booting the node. Strategy: extract just the config construction
     # via a module-level function we temporarily expose, or parse the module AST.
     # Simpler: copy the old config construction into a fixture helper file in
-    # tests/ so this test stays runnable after Task 6.3 deletes the script.
+    # tests/ so this test stays runnable after Task 7.3 deletes the script.
     from tests.strategies.crypto.kronos._quarantined_config_snapshot import (
         build_quarantined_config,
     )
@@ -1465,15 +1475,15 @@ def test_kronos_paper_runner_matches_quarantined_script():
 
 - [ ] **Step 2: Create the config snapshot fixture**
 
-Because Task 6.3 deletes the old script, copy its **config-construction portion only** (not `node.run()`) into `tests/strategies/crypto/kronos/_quarantined_config_snapshot.py`. This is a one-time frozen copy — it exists to prove parity at migration time and then never changes.
+Because Task 7.3 deletes the old script, copy its **config-construction portion only** (not `node.run()`) into `tests/strategies/crypto/kronos/_quarantined_config_snapshot.py`. This is a one-time frozen copy — it exists to prove parity at migration time and then never changes.
 
-### Task 6.2 — Implement `KronosPaperTradeRunner`
+### Task 7.2 — Implement `KronosPaperTradeRunner`
 
 Mirror the PR 5 actor pattern. Reuses `KronosStrategy` and `KronosActor` unchanged.
 
-### Task 6.3 — Delete the quarantined script
+### Task 7.3 — Delete the quarantined script
 
-Only after Task 6.1's parity test passes:
+Only after Task 7.1's parity test passes:
 
 ```bash
 rm strategies/crypto/kronos/paper_trade.py
@@ -1481,26 +1491,26 @@ rm strategies/crypto/kronos/paper_trade.py
 
 Remove the `strategies/crypto/kronos/paper_trade.py` entry from `nautilus/pyproject.toml`'s `tool.ruff.per-file-ignores` table.
 
-### Task 6.4 — Open PR 6
+### Task 7.4 — Open PR 7
 
-- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr6-kronos-parity`, address findings, and confirm both unit tests and the parity gate stay green. Wait for DONE.
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr7-kronos-parity`, address findings, and confirm both unit tests and the parity gate stay green. Wait for DONE.
 
-- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr6-kronos-parity && gh pr create --title "sub-project B PR 6: Kronos migration + parity gate" ...`
+- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr7-kronos-parity && gh pr create --title "sub-project B PR 7: Kronos migration + parity gate" ...`
 
 ---
 
-## PR 7 — CI opt-in smoke + `make smoke-paper-order` + runbook + roadmap
+## PR 8 — CI opt-in smoke + `make smoke-paper-order` + runbook + roadmap
 
-**Depends on:** PR 6 merged.
+**Depends on:** PR 7 (Kronos migration) merged.
 
-### Task 7.1 — Register `binance_testnet` pytest marker
+### Task 8.1 — Register `binance_testnet` pytest marker
 
 **Files:**
 - Modify: `nautilus/pyproject.toml` (`[tool.pytest.ini_options]` → `markers`)
 
 - [ ] Add `"binance_testnet: opt-in smoke against live Binance Spot Testnet"` to the markers list.
 
-### Task 7.2 — CI node-boot smoke for all 8
+### Task 8.2 — CI node-boot smoke for all 8
 
 **Files:**
 - Create: `tests/paper_trade/test_smoke_paper.py`
@@ -1534,7 +1544,7 @@ def test_node_boots_and_receives_data(runner_factory, instrument, bar_type):
     ...
 ```
 
-### Task 7.3 — Manual `make smoke-paper-order STRATEGY=<name>` target
+### Task 8.3 — Manual `make smoke-paper-order STRATEGY=<name>` target
 
 **Files:**
 - Modify: `Makefile`
@@ -1542,26 +1552,26 @@ def test_node_boots_and_receives_data(runner_factory, instrument, bar_type):
 
 The Makefile target invokes the script with the strategy name. The script boots the runner's node, grabs the exec client, submits one off-market LIMIT order via the exec client directly (strategy-bypass), asserts the ACK, cancels the order, shuts down.
 
-### Task 7.4 — Runbook `docs/runbooks/paper-trade.md`
+### Task 8.4 — Runbook `docs/runbooks/paper-trade.md`
 
 Write the runbook with: Testnet account creation link, Ed25519 key-gen commands, `.env.local` template, how to start / stop / panic-close, common errors (401, unknown instrument, tick rejection) + their fixes.
 
-### Task 7.5 — Update `docs/superpowers/roadmap.md` and `CLAUDE.md`
+### Task 8.5 — Update `docs/superpowers/roadmap.md` and `CLAUDE.md`
 
 Replace the sub-project B roadmap paragraph with the paper-trade-only scope. Add a short "Paper trading" section to `CLAUDE.md` mirroring the existing "Backtesting" section.
 
-### Task 7.6 — Open PR 7
+### Task 8.6 — Open PR 8
 
-- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr7-smoke-runbook`, address findings, and confirm tests stay green. Wait for DONE.
+- [ ] **Step 1: Dispatch pre-submit reviewer** — per the PR submission convention at the top of this plan, dispatch the `pr-review-toolkit:code-reviewer` subagent to run `/ultrareview` and `/simplify` against `subproject-b/pr8-smoke-runbook`, address findings, and confirm tests stay green. Wait for DONE.
 
-- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr7-smoke-runbook && gh pr create --title "sub-project B PR 7: opt-in smoke + runbook + roadmap" ...`
+- [ ] **Step 2: Push and open PR** — `git push -u origin subproject-b/pr8-smoke-runbook && gh pr create --title "sub-project B PR 8: opt-in smoke + runbook + roadmap" ...`
 
 ---
 
 ## Self-review (executed 2026-04-21 by plan author)
 
 **Spec coverage:**
-- §1 Goal → PR 3–6 ship runners; PR 7 ships CI + runbook. ✅
+- §1 Goal → PR 3–5 ship runners; PR 6 swaps flags for YAML configs; PR 7 migrates Kronos; PR 8 ships CI + runbook. ✅
 - §2 Non-goals → plan explicitly retires `nt live` in PR 1 (aligned with "no real money"). ✅
 - §3 Architecture → PR 1 creates `paper_trade/` package parallel to `backtest/`. ✅
 - §4 Module layout → every file listed in spec has a task. ✅
@@ -1569,9 +1579,9 @@ Replace the sub-project B roadmap paragraph with the paper-trade-only scope. Add
 - §6 Secrets flow → PR 1 Task 1.2. ✅
 - §7 Three blocker fixes → PR 2 covers all three (7.1/7.2 as regression tests, 7.3 as new helper + strategy audit). ✅
 - §8 Runner ABC → PR 1 Task 1.1. ✅
-- §9 Testing → PR 7 Task 7.2 (CI smoke) + 7.3 (forced-order). Unit tests distributed across PRs. ✅
-- §10 Kronos parity → PR 6 Task 6.1 with 5-field assertion. ✅
-- §11 Documentation → PR 7 Tasks 7.4/7.5. ✅
+- §9 Testing → PR 8 Task 8.2 (CI smoke) + 8.3 (forced-order). Unit tests distributed across PRs. ✅
+- §10 Kronos parity → PR 7 Task 7.1 with 5-field assertion. ✅
+- §11 Documentation → PR 8 Tasks 8.4/8.5. ✅
 - §12 PR slicing → 7 PRs, 1:1 match with spec. ✅
 - §13 Open follow-ons → out of plan by design. ✅
 
