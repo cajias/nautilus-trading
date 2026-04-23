@@ -7,7 +7,7 @@ Algorithmic trading project using [NautilusTrader](https://github.com/nautechsys
 - **Python**: 3.13 (required: 3.12-3.14)
 - **Package manager**: `uv` (do NOT use pip or conda)
 - **Venv**: `nautilus/.venv/` (managed by `uv sync` inside `nautilus/`)
-- **Extras**: `dev` (ruff, mypy, vulture, pytest), `viz` (plotly, jupyterlab), `binance`, `interactive_brokers`
+- **Extras**: `dev` only (ruff, mypy, vulture, pytest). Every shipped-strategy runtime dep (pandas, numpy, torch, timesfm, plotly, jupyterlab, Kronos PyPI deps, etc.) is a base dependency — if the code is in the tree, its deps are in the lockfile. No `[viz]`/`[ml]`/`[kronos]`/`[binance]` extras.
 
 ## Project Structure
 

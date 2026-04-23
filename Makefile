@@ -9,16 +9,15 @@
 # Strategy module path (relative to strategies/), e.g. forex.ema_cross
 STRATEGY ?= forex.ema_cross
 
-.PHONY: help install install-ml install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos smoke-paper-order strategies jupyter clean
+.PHONY: help install install-kronos test test-unit test-kronos lint lint-fix validate backtest backtest-crypto backtest-kronos smoke-paper-order strategies jupyter clean
 
 # Default target
 help:
 	@echo "NautilusTrader - Make targets"
 	@echo ""
 	@echo "Setup:"
-	@echo "  make install           - Install all dev dependencies and tools"
-	@echo "  make install-ml        - Install ML dependencies (TimesFM, PyTorch)"
-	@echo "  make install-kronos    - Install Kronos deps + clone model repo"
+	@echo "  make install           - Install all runtime deps + dev tooling"
+	@echo "  make install-kronos    - Clone the Kronos model-code repo (Python deps already installed by 'make install')"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test              - Run all tests (pytest)"
@@ -52,7 +51,10 @@ help:
 	@echo "Cleanup:"
 	@echo "  make clean             - Remove test artifacts and caches"
 
-# Install all dependencies and tools
+# Install all runtime deps + dev tooling.
+# Every shipped strategy's runtime deps (pandas/torch/timesfm/etc.) are base
+# dependencies, so `make install` alone produces a working `nt paper-trade`
+# and `make test`. Only dev tooling (ruff/mypy/pytest) lives under --extra dev.
 install:
 	@echo "Installing NautilusTrader development environment..."
 	@echo ""
@@ -62,8 +64,8 @@ install:
 		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 		echo "v uv installed"; \
 	}
-	@echo "-> Installing package with dev and viz dependencies..."
-	@cd nautilus && uv sync --extra dev --extra viz
+	@echo "-> Installing package + dev tooling..."
+	@cd nautilus && uv sync --extra dev
 	@echo ""
 	@echo "v Installation complete!"
 	@echo ""
@@ -74,24 +76,12 @@ install:
 	@echo "  - pytest (test runner)"
 	@echo "  - jupyter (notebook server)"
 
-# Install ML dependencies (TimesFM, PyTorch)
-install-ml:
-	@echo "Installing ML dependencies (TimesFM, PyTorch)..."
-	@cd nautilus && uv sync --extra ml --extra dev
-	@echo "v ML installation complete!"
-	@echo "  - timesfm (time series foundation model)"
-	@echo "  - torch (PyTorch backend)"
-
-# Install Kronos foundation model (financial OHLCV forecasting)
-# Kronos is not a PyPI package — its Python dependencies are declared in
-# pyproject.toml [kronos] and installed via uv sync. The repo itself is
-# cloned for its model/ source code, then pointed to via KRONOS_REPO_PATH.
+# Clone the Kronos foundation-model source (not a PyPI package — we need its
+# model/ directory for weights loading). Python deps ship in [dependencies];
+# this target is *only* the git clone + KRONOS_REPO_PATH hint.
 # Override clone dir: KRONOS_DIR=/other/path make install-kronos
 KRONOS_DIR ?= $(HOME)/kronos
 install-kronos:
-	@echo "Installing Kronos foundation model..."
-	@echo "-> Installing Python dependencies via uv..."
-	@cd nautilus && uv sync --extra kronos --extra dev
 	@if [ ! -d "$(KRONOS_DIR)" ]; then \
 		echo "-> Cloning Kronos model code to $(KRONOS_DIR)..."; \
 		git clone https://github.com/shiyu-coder/Kronos.git $(KRONOS_DIR); \
@@ -99,7 +89,7 @@ install-kronos:
 		echo "-> Kronos repo already at $(KRONOS_DIR), skipping clone"; \
 	fi
 	@echo ""
-	@echo "v Kronos installation complete!"
+	@echo "v Kronos source ready."
 	@echo "  Repo : $(KRONOS_DIR)"
 	@echo "  Usage: export KRONOS_REPO_PATH=$(KRONOS_DIR) && make backtest-kronos"
 	@echo "  HuggingFace model weights download on first run (~few GB)"
