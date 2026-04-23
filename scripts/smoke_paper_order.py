@@ -20,7 +20,9 @@ Where <strategy-key> is one of the YAML config names under ``configs/paper/``:
 YAML config under ``configs/paper/``. Kronos CLI integration is pending
 task #42; smoke it manually via ``KronosPaperTradeRunner(...).main()``.)
 
-Requires Binance Testnet credentials loaded (see .env.local at the repo root).
+Requires Binance Testnet credentials loaded. `load_dotenv_local()` reads
+``.env.local`` from the current working directory; the documented invocation
+above uses ``cd nautilus && ...``, so place your file at ``nautilus/.env.local``.
 Fails loudly — no silent retries, no masked timeouts. Non-zero exit on any
 error path so the shell caller can treat it as a gate.
 """
@@ -55,7 +57,6 @@ from nautilus_trader.model.enums import OrderSide  # noqa: E402
 from nautilus_trader.model.events import OrderAccepted, OrderCanceled  # noqa: E402
 from nautilus_trader.model.identifiers import InstrumentId, StrategyId  # noqa: E402
 from nautilus_trader.model.objects import Quantity  # noqa: E402
-
 from nautilus_trading.cli.paper_trade import _RUNNERS, _load_runners  # noqa: E402
 from nautilus_trading.paper_trade.node_config import round_to_tick  # noqa: E402
 from nautilus_trading.paper_trade.run_config import load_run_config  # noqa: E402
@@ -82,7 +83,9 @@ def _load_registry() -> dict[str, type]:
 
 
 def _build_runner(
-    strategy_key: str, config_path: Path, registry: dict[str, type],
+    strategy_key: str,
+    config_path: Path,
+    registry: dict[str, type],
 ) -> tuple[object, object]:
     """Load YAML, build kwargs, instantiate the runner — mirroring cli.paper_trade."""
     run_config = load_run_config(config_path)

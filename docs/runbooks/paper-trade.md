@@ -25,8 +25,11 @@ pre-release smoke.
 
 ## 2. `.env.local` template
 
-The app auto-loads `.env.local` at the repo root via `python-dotenv`. Copy
-`.env.example` (at the repo root) and fill in the Binance Testnet section:
+The app auto-loads `.env.local` from the current working directory via
+`python-dotenv`. The canonical invocation starts with `cd nautilus && uv run
+...`, so your `.env.local` belongs at **`nautilus/.env.local`**. Copy the
+repo-root `.env.example` template there and fill in the Binance Testnet
+section:
 
 ```
 BINANCE_TESTNET_API_KEY=<api-key-id-from-binance>
@@ -108,7 +111,8 @@ receive at least one `Bar` within 30 seconds. The suite is gated behind the
 `binance_testnet` pytest marker (registered in PR 8.2) so normal `make test`
 runs skip it.
 
-Required env vars (auto-loaded from `.env.local`, or exported manually):
+Required env vars (auto-loaded from `nautilus/.env.local` by the fixture,
+or exported manually):
 
 - `BINANCE_TESTNET_API_KEY`
 - `BINANCE_TESTNET_API_SECRET`

@@ -174,7 +174,8 @@ backtest-kronos:
 
 # Submit ONE off-market LIMIT order to Binance Spot Testnet, assert ACK, cancel.
 # Opt-in manual smoke — requires BINANCE_TESTNET_API_KEY, BINANCE_TESTNET_API_SECRET,
-# and BINANCE_TESTNET_ED25519_KEY_PATH to be set (see .env.local at the repo root).
+# and BINANCE_TESTNET_ED25519_KEY_PATH to be set in nautilus/.env.local,
+# because this target runs the script from the nautilus/ working directory.
 # Usage: make smoke-paper-order STRATEGY=ema_cross
 smoke-paper-order:
 	@if [ -z "$(STRATEGY)" ] || [ "$(STRATEGY)" = "forex.ema_cross" ]; then \

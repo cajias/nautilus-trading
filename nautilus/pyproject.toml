@@ -76,7 +76,7 @@ addopts = ["-v", "--strict-markers", "--tb=short", "--basetemp=./.pytest-tmp"]
 markers = [
     "slow: marks tests as slow",
     "integration: marks tests as integration tests",
-    "binance_testnet: opt-in smoke against live Binance Spot Testnet (requires BINANCE_TESTNET_API_KEY + Ed25519 PEM)",
+    "binance_testnet: opt-in smoke against live Binance Spot Testnet (requires BINANCE_TESTNET_API_KEY, BINANCE_TESTNET_API_SECRET, and BINANCE_TESTNET_ED25519_KEY_PATH)",
 ]
 
 [tool.coverage.run]

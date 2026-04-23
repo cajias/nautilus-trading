@@ -49,6 +49,7 @@ from strategies.crypto.timesfm_grid_paper import TimesFMGridPaperTradeRunner
 from strategies.crypto.timesfm_swing_paper import TimesFMSwingPaperTradeRunner
 
 from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
+from nautilus_trading.paper_trade.secrets import load_dotenv_local
 
 # Whole module is opt-in — requires live testnet credentials.
 pytestmark = pytest.mark.binance_testnet
@@ -83,7 +84,13 @@ def _require_testnet_credentials() -> None:
     Mirrors the real preflight in ``paper_trade.node_config._check_testnet_api_keys``:
     we require the API key/secret AND a readable Ed25519 PEM. Any missing or
     unreadable credential results in a ``pytest.skip`` — never a collection error.
+
+    ``load_dotenv_local()`` is called first so operators can simply drop
+    ``nautilus/.env.local`` (cwd-relative, matching ``nt paper-trade``) and
+    invoke the suite via ``cd nautilus && uv run python -m pytest -m binance_testnet ...``
+    without exporting every variable by hand.
     """
+    load_dotenv_local()
     if not os.environ.get("BINANCE_TESTNET_API_KEY"):
         pytest.skip("BINANCE_TESTNET_API_KEY not set; opt-in smoke gated off.")
     if not os.environ.get("BINANCE_TESTNET_API_SECRET"):
@@ -252,9 +259,12 @@ def test_node_boots_and_receives_data(
             run_task.cancel()
             try:
                 await run_task
-            except (asyncio.CancelledError, Exception):
-                # Cancelled tasks and downstream shutdown races are expected.
+            except asyncio.CancelledError:
+                # Cancellation during bounded shutdown is expected.
                 pass
+            # Any other exception from run_async() — including an auth failure
+            # that caused the boot wait to time out — must surface so the
+            # operator sees the real cause, not a generic "no bars" assertion.
 
     try:
         loop.run_until_complete(_boot_and_wait())
