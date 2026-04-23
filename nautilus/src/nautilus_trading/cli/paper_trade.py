@@ -1,7 +1,11 @@
-"""`nt paper-trade` — Binance Spot Testnet paper-trade entry point.
+"""``nt paper-trade`` — Binance Spot Testnet paper-trade entry point.
 
-This module loads a YAML run config, resolves the strategy-name to a concrete
-PaperTradeRunner class, instantiates it, and delegates to `runner.main()`.
+Loads a YAML run config, resolves the strategy name to a ``StrategySpec`` from
+the unified registry in ``cli/_strategy_specs.py``, hands the spec + parsed
+params to :class:`PaperTradeStrategyRunner`, and delegates to ``runner.main()``.
+
+Supersedes the sub-project A ``_RUNNERS`` dispatch table. Every paper-trade
+strategy now flows through the same generic runner — no per-strategy shim.
 """
 
 from __future__ import annotations
@@ -13,56 +17,6 @@ import msgspec
 import typer
 
 from nautilus_trading.cli._common import _ensure_project_root_on_path
-
-# Strategy-name → runner class, populated lazily to keep CLI import cheap.
-_RUNNERS: dict[str, type] = {}
-
-
-def _load_runners() -> None:
-    """Populate the strategy-name → runner class registry on first use."""
-    if _RUNNERS:
-        return
-    # Lazy import: strategies/ lives at the project root, not inside the
-    # nautilus/ package, so it only resolves after _ensure_project_root_on_path()
-    # has run. mypy can't see it — but the import is exercised at runtime by the
-    # CLI tests in tests/cli/test_paper_trade_cli.py.
-    from strategies.crypto.dca_bot_paper import (  # type: ignore[import-not-found]
-        DCABotPaperTradeRunner,
-    )
-    from strategies.crypto.ema_cross_paper import (  # type: ignore[import-not-found]
-        EMACrossPaperTradeRunner,
-    )
-    from strategies.crypto.grid_bot_paper import (  # type: ignore[import-not-found]
-        GridBotPaperTradeRunner,
-    )
-    from strategies.crypto.hybrid_sma_r10_paper import (  # type: ignore[import-not-found]
-        HybridSMAR10PaperTradeRunner,
-    )
-    from strategies.crypto.kronos.paper_runner import (  # type: ignore[import-not-found]
-        KronosPaperTradeRunner,
-    )
-    from strategies.crypto.rvs_swing_paper import (  # type: ignore[import-not-found]
-        RVSSwingPaperTradeRunner,
-    )
-    from strategies.crypto.shock_guard_paper import (  # type: ignore[import-not-found]
-        ShockGuardPaperTradeRunner,
-    )
-    from strategies.crypto.timesfm_grid_paper import (  # type: ignore[import-not-found]
-        TimesFMGridPaperTradeRunner,
-    )
-    from strategies.crypto.timesfm_swing_paper import (  # type: ignore[import-not-found]
-        TimesFMSwingPaperTradeRunner,
-    )
-
-    _RUNNERS["ema_cross"] = EMACrossPaperTradeRunner
-    _RUNNERS["grid_bot"] = GridBotPaperTradeRunner
-    _RUNNERS["dca_bot"] = DCABotPaperTradeRunner
-    _RUNNERS["timesfm_swing"] = TimesFMSwingPaperTradeRunner
-    _RUNNERS["hybrid_sma_r10"] = HybridSMAR10PaperTradeRunner
-    _RUNNERS["timesfm_grid"] = TimesFMGridPaperTradeRunner
-    _RUNNERS["rvs_swing"] = RVSSwingPaperTradeRunner
-    _RUNNERS["shock_guard"] = ShockGuardPaperTradeRunner
-    _RUNNERS["kronos"] = KronosPaperTradeRunner
 
 
 def paper_trade(
@@ -78,39 +32,51 @@ def paper_trade(
     ],
 ) -> None:
     """Run a strategy on Binance Spot Testnet (paper trading)."""
-    # Lazy imports so `import nautilus_trading.cli` stays cheap at collection time.
+    # Lazy imports so `import nautilus_trading.cli` stays cheap at collection
+    # time. ``_strategy_specs`` + the generic runner import transitively pull
+    # in msgspec-heavy adapter config modules; deferring that cost keeps
+    # ``nt --help`` snappy.
+    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
     from nautilus_trading.paper_trade.run_config import load_run_config
     from nautilus_trading.paper_trade.secrets import load_dotenv_local
+    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
     _ensure_project_root_on_path()
     load_dotenv_local()
-    _load_runners()
 
     try:
         run_config = load_run_config(config)
     except msgspec.ValidationError as exc:
         raise typer.BadParameter(f"Invalid config {config}: {exc}", param_hint="--config") from exc
 
-    if run_config.strategy not in _RUNNERS:
-        valid = ", ".join(sorted(_RUNNERS))
+    if run_config.strategy not in STRATEGY_SPECS:
+        valid = ", ".join(sorted(STRATEGY_SPECS))
         raise typer.BadParameter(
             f"Unknown strategy '{run_config.strategy}'. Valid: {valid}",
             param_hint="--config",
         )
 
-    runner_cls = _RUNNERS[run_config.strategy]
-
-    kwargs: dict[str, object] = {
+    # Merge the three top-level PaperRunConfig fields with per-strategy
+    # ``params``. The StrategySpec builder plucks what it needs; extra keys
+    # are ignored by the builder.
+    merged_params: dict[str, object] = {
         "instrument_id": run_config.instrument_id,
         "bar_type": run_config.bar_type,
-        "log_level": run_config.log_level,
         **run_config.params,
     }
     if run_config.trade_size is not None:
-        kwargs["trade_size"] = run_config.trade_size
+        merged_params["trade_size"] = run_config.trade_size
 
+    runner = PaperTradeStrategyRunner(
+        spec=STRATEGY_SPECS[run_config.strategy],
+        params=merged_params,
+        log_level=run_config.log_level,
+    )
+
+    # Build the config eagerly so any ValueError from a builder (missing
+    # required field, bad type) surfaces as typer.BadParameter rather than
+    # an uncaught stack trace once the TradingNode starts booting.
     try:
-        runner = runner_cls(**kwargs)
         runner.build_config()
     except (TypeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc

@@ -27,15 +27,27 @@ def test_paper_trade_config_file_dispatches_to_runner(tmp_path, monkeypatch):
     """`nt paper-trade --config run.yaml` loads the YAML, instantiates the
     right runner, and calls .main(). Sanity check for the YAML dispatch path;
     per-strategy coverage lives in tests/cli/test_paper_trade_configs.py.
+
+    B.5 migration: the CLI now dispatches through the generic
+    ``PaperTradeStrategyRunner`` (not per-strategy shims), so the monkeypatch
+    attaches to that class and the recorded tuple reads fields off the merged
+    ``params`` dict rather than per-runner dataclass attributes.
     """
     calls = []
 
     def _recording_main(self):
-        calls.append(("ema_cross", self.instrument_id, self.fast_ema, self.slow_ema))
+        calls.append(
+            (
+                self.spec.name,
+                self.params["instrument_id"],
+                self.params["fast_ema"],
+                self.params["slow_ema"],
+            )
+        )
 
-    from strategies.crypto.ema_cross_paper import EMACrossPaperTradeRunner
+    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
-    monkeypatch.setattr(EMACrossPaperTradeRunner, "main", _recording_main)
+    monkeypatch.setattr(PaperTradeStrategyRunner, "main", _recording_main)
 
     yaml_path = tmp_path / "run.yaml"
     yaml_path.write_text(

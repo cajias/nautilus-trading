@@ -69,7 +69,7 @@ def build_backtest_config(
     }
 
     # Dispatch to a registered builder when one exists; else keep the base dict.
-    from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
+    from nautilus_trading.cli._strategy_specs import STRATEGY_BUILDERS
 
     module_name = strategy_path.rsplit(".", 1)[-1].split(":")[0]
     builder = STRATEGY_BUILDERS.get(module_name)
