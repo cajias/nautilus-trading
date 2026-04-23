@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/pre-guard-writes.sh",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-guard-writes.sh",
             "timeout": 5,
             "statusMessage": "Checking write target…"
           }
@@ -20,13 +20,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/post-format-lint.sh",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-format-lint.sh",
             "timeout": 30,
             "statusMessage": "ruff format + fix…"
           },
           {
             "type": "command",
-            "command": ".claude/hooks/post-typecheck.sh",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/post-typecheck.sh",
             "timeout": 60,
             "statusMessage": "mypy type-check…"
           }
