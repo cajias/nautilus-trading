@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import sys
+from collections.abc import Callable
 from decimal import Decimal
 from pathlib import Path
 
@@ -80,7 +81,9 @@ def _load_registry() -> dict[str, type]:
     return dict(_RUNNERS)
 
 
-def _build_runner(strategy_key: str, config_path: Path, registry: dict[str, type]) -> object:
+def _build_runner(
+    strategy_key: str, config_path: Path, registry: dict[str, type],
+) -> tuple[object, object]:
     """Load YAML, build kwargs, instantiate the runner — mirroring cli.paper_trade."""
     run_config = load_run_config(config_path)
     if run_config.strategy != strategy_key:
@@ -125,7 +128,7 @@ async def _wait_first_bar(msgbus: object, deadline_seconds: float) -> None:
 async def _wait_for_event(
     msgbus: object,
     topic: str,
-    predicate: "callable[[object], bool]",
+    predicate: Callable[[object], bool],
     timeout_seconds: float,
     label: str,
 ) -> object:
