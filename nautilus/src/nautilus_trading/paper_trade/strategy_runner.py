@@ -1,9 +1,11 @@
 """PaperTradeStrategyRunner — generic Binance Spot Testnet runner.
 
-One concrete :class:`PaperTradeRunner` subclass parameterized by a
+A single concrete runner class parameterized by a
 :class:`~nautilus_trading.cli._strategy_specs.StrategySpec` + a params dict.
-Replaces the 8 ``*_paper.py`` shims and ``strategies/crypto/kronos/paper_runner.py``
-(those get deleted in Task C of sub-project B.5 PR 1).
+Replaces the 8 ``*_paper.py`` shims and
+``strategies/crypto/kronos/paper_runner.py`` (deleted in the same PR) and
+the ``PaperTradeRunner`` ABC they all subclassed (also deleted in this PR —
+a sole concrete runner driven by the spec registry has no ABC to inherit).
 
 Signal-flow ordering
 --------------------
@@ -32,11 +34,10 @@ from nautilus_trading.paper_trade.node_config import (
     build_paper_trade_node_config,
     run_paper_trade,
 )
-from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
 
 
 @dataclass
-class PaperTradeStrategyRunner(PaperTradeRunner):
+class PaperTradeStrategyRunner:
     """Spec-driven paper-trade runner.
 
     Parameters

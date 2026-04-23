@@ -138,29 +138,6 @@ def test_spec_builder_matches_legacy_strategy_builders_shim():
         assert STRATEGY_BUILDERS[name] is spec.builder
 
 
-def test_legacy_strategy_configs_module_reexports_registry():
-    """cli/_strategy_configs.py must still import cleanly — downstream code
-    (paper_trade.py, 8 shim runners, test_strategy_configs.py) depends on it
-    until Task C deletes the shim."""
-    from nautilus_trading.cli import _strategy_configs as legacy
-    from nautilus_trading.cli import _strategy_specs as specs
-
-    assert legacy.STRATEGY_BUILDERS == specs.STRATEGY_BUILDERS
-    # The 8 existing builder classes must remain importable through the shim.
-    for name in (
-        "GridBotConfigBuilder",
-        "DCABotConfigBuilder",
-        "EMAConfigBuilder",
-        "TimesFMConfigBuilder",
-        "HybridSMAConfigBuilder",
-        "TimesFMGridConfigBuilder",
-        "RVSSwingConfigBuilder",
-        "ShockGuardConfigBuilder",
-        "StrategyConfigBuilder",
-    ):
-        assert hasattr(legacy, name), f"legacy shim missing {name}"
-
-
 # -- Per-builder parity: spec.builder == direct builder class --------------
 
 

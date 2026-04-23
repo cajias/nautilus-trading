@@ -43,14 +43,6 @@ def _kronos_params() -> dict:
 # -- Importability + ABC subclassing --------------------------------------
 
 
-def test_paper_trade_strategy_runner_subclasses_paper_trade_runner():
-    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
-
-    from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
-
-    assert issubclass(PaperTradeStrategyRunner, PaperTradeRunner)
-
-
 # -- build_config: non-actor strategy (grid_bot) --------------------------
 
 
