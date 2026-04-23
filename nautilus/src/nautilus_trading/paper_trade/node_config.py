@@ -29,6 +29,7 @@ from nautilus_trader.adapters.binance.config import (
     BinanceKeyType,
 )
 from nautilus_trader.config import (
+    ImportableActorConfig,
     ImportableStrategyConfig,
     LoggingConfig,
     TradingNodeConfig,
@@ -63,6 +64,7 @@ def build_paper_trade_node_config(
     instrument_id: str,
     log_level: str = "INFO",
     trader_id: str = "PAPER-TRADER-001",
+    actors: list[ImportableActorConfig] | None = None,
 ) -> TradingNodeConfig:
     """Build a TradingNodeConfig for Binance Spot Testnet paper trading.
 
@@ -81,6 +83,12 @@ def build_paper_trade_node_config(
         Logging level.
     trader_id : str
         Trader identifier.
+    actors : list[ImportableActorConfig] | None
+        Optional declarative actors to attach to the node. Runners whose strategy
+        depends on a sibling Actor (e.g. KronosStrategy + KronosActor, which
+        communicate via a MessageBus signal) pass the actor list here. The
+        default (None) preserves the strategy-only shape used by every other
+        runner shipped through PRs 3-5.
     """
     account_type = BinanceAccountType.SPOT
     environment = BinanceEnvironment.TESTNET
@@ -107,6 +115,7 @@ def build_paper_trade_node_config(
                 instrument_provider=instrument_provider,
             ),
         },
+        actors=list(actors) if actors else [],
         strategies=[
             ImportableStrategyConfig(
                 strategy_path=strategy_path,
