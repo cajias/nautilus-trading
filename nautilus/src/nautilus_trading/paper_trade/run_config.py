@@ -23,7 +23,6 @@ class PaperRunConfig(msgspec.Struct, frozen=True, forbid_unknown_fields=True):
     bar_type: str
     trade_size: str | None = None
     log_level: str = "INFO"
-    duration: str | None = None
     params: dict[str, Any] = msgspec.field(default_factory=dict)
 
 
@@ -32,7 +31,12 @@ def load_run_config(path: Path) -> PaperRunConfig:
 
     Raises:
         FileNotFoundError: path does not exist.
-        msgspec.ValidationError: unknown field, wrong type, or missing required field.
+        msgspec.ValidationError: unknown field, wrong type, missing required field,
+            or malformed YAML (msgspec.yaml.decode routes DecodeError through
+            ValidationError when a target type is provided).
     """
     data = path.read_bytes()
-    return msgspec.yaml.decode(data, type=PaperRunConfig)
+    try:
+        return msgspec.yaml.decode(data, type=PaperRunConfig)
+    except msgspec.DecodeError as exc:
+        raise msgspec.ValidationError(f"Malformed YAML in {path}: {exc}") from exc

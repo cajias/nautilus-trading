@@ -29,7 +29,6 @@ class PaperRunConfig(msgspec.Struct, frozen=True, forbid_unknown_fields=True):
     bar_type: str                          # "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL"
     trade_size: str | None = None          # Decimal-string; None for hybrid_sma_r10
     log_level: str = "INFO"
-    duration: str | None = None            # "30m" | "2h" | None
     params: dict[str, object] = msgspec.field(default_factory=dict)
 ```
 

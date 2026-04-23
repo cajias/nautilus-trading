@@ -6,7 +6,6 @@ from pathlib import Path
 
 import msgspec
 import pytest
-
 from nautilus_trading.paper_trade.run_config import PaperRunConfig, load_run_config
 
 
@@ -32,19 +31,25 @@ params:
     assert cfg.bar_type == "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL"
     assert cfg.trade_size == "0.001"
     assert cfg.log_level == "INFO"  # default
-    assert cfg.duration is None      # default
     assert cfg.params == {"fast_ema": 12, "slow_ema": 26}
+
+
+def test_load_run_config_rejects_malformed_yaml(tmp_path: Path):
+    """Syntactically broken YAML → msgspec.ValidationError (not raw DecodeError).
+
+    This lets the CLI funnel both schema and parse errors through one except clause.
+    """
+    path = tmp_path / "run.yaml"
+    path.write_text('strategy: "unterminated\n')  # unclosed double-quote
+    with pytest.raises(msgspec.ValidationError):
+        load_run_config(path)
 
 
 def test_load_run_config_rejects_unknown_top_level_field(tmp_path: Path):
     """Unknown top-level key → msgspec.ValidationError."""
     path = tmp_path / "run.yaml"
     path.write_text(
-        "strategy: ema_cross\n"
-        "instrument_id: X\n"
-        "bar_type: Y\n"
-        "trade_size: \"0.001\"\n"
-        "bogus_field: 1\n"
+        'strategy: ema_cross\ninstrument_id: X\nbar_type: Y\ntrade_size: "0.001"\nbogus_field: 1\n'
     )
     with pytest.raises(msgspec.ValidationError) as excinfo:
         load_run_config(path)
@@ -58,7 +63,7 @@ def test_load_run_config_rejects_missing_required_field(tmp_path: Path):
         "strategy: ema_cross\n"
         "instrument_id: X\n"
         # bar_type missing
-        "trade_size: \"0.001\"\n"
+        'trade_size: "0.001"\n'
     )
     with pytest.raises(msgspec.ValidationError) as excinfo:
         load_run_config(path)
