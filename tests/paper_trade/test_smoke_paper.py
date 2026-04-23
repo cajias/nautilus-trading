@@ -1,16 +1,16 @@
-"""Opt-in Binance Spot Testnet node-boot smoke for all 9 paper-trade runners.
+"""Opt-in Binance Spot Testnet node-boot smoke for all 9 paper-trade strategies.
 
-This suite is the canonical **pre-release gate** for paper-trade runners.
+This suite is the canonical **pre-release gate** for the paper-trade layer.
 It is INTENTIONALLY excluded from default CI because:
 
   (a) it requires live Binance Spot Testnet credentials
       (``BINANCE_TESTNET_API_KEY`` + ``BINANCE_TESTNET_API_SECRET``) and a
       readable Ed25519 PEM at ``BINANCE_TESTNET_ED25519_KEY_PATH``;
-  (b) it boots a real ``TradingNode`` per runner, opens WebSocket connections
+  (b) it boots a real ``TradingNode`` per strategy, opens WebSocket connections
       to ``testnet.binance.vision``, and subscribes to live bar data — none of
       which is appropriate for unattended CI runs;
   (c) it is the final hand-crank before cutting a paper-trade release:
-      every runner must boot, authenticate, receive at least one Bar inside a
+      every strategy must boot, authenticate, receive at least one Bar inside a
       30-second window, and shut down cleanly.
 
 Default ``make test-unit`` / CI never runs these tests — the module-level
@@ -21,6 +21,11 @@ never fail).
 Run locally with credentials loaded:
 
     cd nautilus && uv run python -m pytest -m binance_testnet ../tests/
+
+Sub-project B.5: the 9 per-strategy ``*_paper.py`` shims are gone. Factories
+now construct :class:`PaperTradeStrategyRunner` directly from the unified
+:data:`STRATEGY_SPECS` registry. Test logic and assertions are unchanged
+from the pre-B.5 version — only the runner-construction surface changed.
 """
 
 from __future__ import annotations
@@ -38,17 +43,9 @@ from nautilus_trader.adapters.binance import (
 )
 from nautilus_trader.live.node import TradingNode
 from nautilus_trader.model.data import Bar
-from strategies.crypto.dca_bot_paper import DCABotPaperTradeRunner
-from strategies.crypto.ema_cross_paper import EMACrossPaperTradeRunner
-from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
-from strategies.crypto.hybrid_sma_r10_paper import HybridSMAR10PaperTradeRunner
-from strategies.crypto.kronos.paper_runner import KronosPaperTradeRunner
-from strategies.crypto.rvs_swing_paper import RVSSwingPaperTradeRunner
-from strategies.crypto.shock_guard_paper import ShockGuardPaperTradeRunner
-from strategies.crypto.timesfm_grid_paper import TimesFMGridPaperTradeRunner
-from strategies.crypto.timesfm_swing_paper import TimesFMSwingPaperTradeRunner
+from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
-from nautilus_trading.paper_trade.runner_base import PaperTradeRunner
 from nautilus_trading.paper_trade.secrets import load_dotenv_local
 
 # Whole module is opt-in — requires live testnet credentials.
@@ -59,14 +56,14 @@ pytestmark = pytest.mark.binance_testnet
 # Common smoke inputs
 # --------------------------------------------------------------------------- #
 
-# Short-horizon BTCUSDT testnet defaults. Grid/ML runners take plausible
+# Short-horizon BTCUSDT testnet defaults. Grid/ML strategies take plausible
 # placeholder prices; actual numeric fit is irrelevant — we only assert that
 # the node boots, authenticates, and receives at least one Bar.
 _INSTRUMENT_ID = "BTCUSDT.BINANCE"
 _BAR_TYPE = "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL"
 _TRADE_SIZE = "0.001"
 
-# Hard cap for per-runner boot + bar-receipt. Keeps the suite bounded when
+# Hard cap for per-strategy boot + bar-receipt. Keeps the suite bounded when
 # Binance Testnet is sluggish; failure modes (no bars in 30 s) are treated
 # as a smoke failure, not a timeout.
 _BOOT_TIMEOUT_SECONDS = 30.0
@@ -106,52 +103,51 @@ def _require_testnet_credentials() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Runner factories — one per runner shipped through PRs 3-7
+# Runner factories — one per strategy in STRATEGY_SPECS
 # --------------------------------------------------------------------------- #
+#
+# Each factory returns a PaperTradeStrategyRunner parameterized by the spec
+# + a strategy-appropriate params dict. Mirrors the per-strategy placeholder
+# values the pre-B.5 shim constructors took — we're verifying boot-time
+# wiring, not numeric fit.
 
 
-def _ema_cross_runner() -> EMACrossPaperTradeRunner:
-    return EMACrossPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-    )
+def _runner(spec_name: str, **extra_params: object) -> PaperTradeStrategyRunner:
+    params: dict[str, object] = {
+        "instrument_id": _INSTRUMENT_ID,
+        "bar_type": _BAR_TYPE,
+        "trade_size": _TRADE_SIZE,
+        **extra_params,
+    }
+    return PaperTradeStrategyRunner(spec=STRATEGY_SPECS[spec_name], params=params)
 
 
-def _grid_bot_runner() -> GridBotPaperTradeRunner:
-    return GridBotPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
+def _ema_cross_runner() -> PaperTradeStrategyRunner:
+    return _runner("ema_cross", fast_ema=10, slow_ema=20)
+
+
+def _grid_bot_runner() -> PaperTradeStrategyRunner:
+    return _runner(
+        "grid_bot",
         upper_price="72000",
         lower_price="60000",
         grid_levels=8,
     )
 
 
-def _dca_bot_runner() -> DCABotPaperTradeRunner:
-    return DCABotPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-        buy_interval_bars=60,
-        buy_amount="10",
-    )
+def _dca_bot_runner() -> PaperTradeStrategyRunner:
+    return _runner("dca_bot", buy_interval_bars=60, buy_amount="10")
 
 
-def _timesfm_swing_runner() -> TimesFMSwingPaperTradeRunner:
-    return TimesFMSwingPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-    )
+def _timesfm_swing_runner() -> PaperTradeStrategyRunner:
+    return _runner("timesfm_swing", fast_ema=10, slow_ema=20)
 
 
-def _hybrid_sma_r10_runner() -> HybridSMAR10PaperTradeRunner:
-    # No trade_size — HybridSMA sizes from equity (see runner docstring).
-    return HybridSMAR10PaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
+def _hybrid_sma_r10_runner() -> PaperTradeStrategyRunner:
+    # HybridSMA sizes from equity — trade_size is passed but ignored by the
+    # builder; it's present here for uniform params-dict construction.
+    return _runner(
+        "hybrid_sma_r10",
         sma_fast=10,
         sma_slow=30,
         stop_fast="0.05",
@@ -159,39 +155,23 @@ def _hybrid_sma_r10_runner() -> HybridSMAR10PaperTradeRunner:
     )
 
 
-def _timesfm_grid_runner() -> TimesFMGridPaperTradeRunner:
-    return TimesFMGridPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-    )
+def _timesfm_grid_runner() -> PaperTradeStrategyRunner:
+    return _runner("timesfm_grid")
 
 
-def _rvs_swing_runner() -> RVSSwingPaperTradeRunner:
-    return RVSSwingPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-    )
+def _rvs_swing_runner() -> PaperTradeStrategyRunner:
+    return _runner("rvs_swing")
 
 
-def _shock_guard_runner() -> ShockGuardPaperTradeRunner:
-    return ShockGuardPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-    )
+def _shock_guard_runner() -> PaperTradeStrategyRunner:
+    return _runner("shock_guard")
 
 
-def _kronos_runner() -> KronosPaperTradeRunner:
-    return KronosPaperTradeRunner(
-        instrument_id=_INSTRUMENT_ID,
-        bar_type=_BAR_TYPE,
-        trade_size=_TRADE_SIZE,
-    )
+def _kronos_runner() -> PaperTradeStrategyRunner:
+    return _runner("kronos")
 
 
-RUNNER_CASES: list[tuple[str, Callable[[], PaperTradeRunner]]] = [
+RUNNER_CASES: list[tuple[str, Callable[[], PaperTradeStrategyRunner]]] = [
     ("ema_cross", _ema_cross_runner),
     ("grid_bot", _grid_bot_runner),
     ("dca_bot", _dca_bot_runner),
@@ -216,9 +196,9 @@ RUNNER_CASES: list[tuple[str, Callable[[], PaperTradeRunner]]] = [
 )
 def test_node_boots_and_receives_data(
     runner_name: str,
-    factory: Callable[[], PaperTradeRunner],
+    factory: Callable[[], PaperTradeStrategyRunner],
 ) -> None:
-    """Boot each runner's TradingNode, assert at least one Bar inside 30 s.
+    """Boot each strategy's TradingNode, assert at least one Bar inside 30 s.
 
     Mirrors the node-wiring bits of ``paper_trade.node_config.run_paper_trade``
     (client factories + build) but replaces ``node.run()`` — which blocks on

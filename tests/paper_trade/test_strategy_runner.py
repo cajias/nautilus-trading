@@ -263,109 +263,17 @@ def test_log_level_defaults_to_info():
     assert runner.build_config().logging.log_level == "INFO"
 
 
-# -- Behavioral parity with the shims that get deleted in Task C ----------
-#
-# These tests are the SAFETY GATE for Task C's shim deletion. They assert
-# three layers of parity between each shim's ``build_config()`` output and
-# the generic ``PaperTradeStrategyRunner``'s output:
-#
-#   1. Strategy shape — import paths and the strategy_config dict.
-#   2. Actor shape (kronos only) — same for the attached actor.
-#   3. Environment shape — trader_id, log level, and the registered venue
-#      adapters on both sides. This catches default-drift in
-#      ``build_paper_trade_node_config`` that wouldn't surface from the
-#      per-strategy comparisons alone — e.g., accidentally flipping
-#      Binance testnet → prod, or dropping an exec_client registration.
-#
-# If the shim's output could be swapped for the runner's without anyone
-# noticing at TradingNode boot, these three layers should prove that.
-
-
-def _assert_env_parity(shim_config, runner_config) -> None:
-    """Environment-shape parity: fields the shim and generic runner must agree
-    on irrespective of which strategy drives them."""
-    assert shim_config.trader_id == runner_config.trader_id
-    assert shim_config.logging.log_level == runner_config.logging.log_level
-    # Same venue adapters registered on both sides — prevents default-drift
-    # in build_paper_trade_node_config from silently diverging (e.g. a
-    # client dropped or an extra one added).
-    assert set(shim_config.data_clients.keys()) == set(runner_config.data_clients.keys())
-    assert set(shim_config.exec_clients.keys()) == set(runner_config.exec_clients.keys())
-    # Confirm the Binance client stays pinned to Testnet on both paths —
-    # a flip to PRODUCTION here would mean real money touched the wire.
-    for venue in shim_config.data_clients:
-        assert (
-            shim_config.data_clients[venue].environment
-            == runner_config.data_clients[venue].environment
-        )
-        assert (
-            shim_config.exec_clients[venue].environment
-            == runner_config.exec_clients[venue].environment
-        )
-
-
-def test_grid_bot_shim_parity():
-    """PaperTradeStrategyRunner must produce the same TradingNodeConfig shape as
-    ``GridBotPaperTradeRunner``. Parity is the prerequisite for deleting the
-    shim in Task C."""
-    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
-    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
-    from strategies.crypto.grid_bot_paper import GridBotPaperTradeRunner
-
-    shim_config = GridBotPaperTradeRunner(
-        instrument_id="BTCUSDT.BINANCE",
-        bar_type="BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL",
-        trade_size="0.001",
-        upper_price="50000",
-        lower_price="40000",
-        grid_levels=8,
-    ).build_config()
-
-    runner_config = PaperTradeStrategyRunner(
-        spec=STRATEGY_SPECS["grid_bot"],
-        params=_grid_bot_params(),
-    ).build_config()
-
-    # Strategy parity
-    assert shim_config.strategies[0].strategy_path == runner_config.strategies[0].strategy_path
-    assert shim_config.strategies[0].config_path == runner_config.strategies[0].config_path
-    assert shim_config.strategies[0].config == runner_config.strategies[0].config
-    assert list(shim_config.actors) == list(runner_config.actors) == []
-    # Environment-shape parity
-    _assert_env_parity(shim_config, runner_config)
-
-
-def test_kronos_shim_parity():
-    """Same three-layer parity guarantee for kronos, which has an actor. This
-    is the test that gates deletion of ``strategies/crypto/kronos/paper_runner.py``
-    in Task C."""
-    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
-    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
-    from strategies.crypto.kronos.paper_runner import KronosPaperTradeRunner
-
-    shim_config = KronosPaperTradeRunner(
-        instrument_id="BTCUSDT.BINANCE",
-        bar_type="BTCUSDT.BINANCE-1-MINUTE-LAST-INTERNAL",
-        trade_size="0.001",
-    ).build_config()
-
-    runner_config = PaperTradeStrategyRunner(
-        spec=STRATEGY_SPECS["kronos"],
-        params=_kronos_params(),
-    ).build_config()
-
-    # Strategy parity
-    assert shim_config.strategies[0].strategy_path == runner_config.strategies[0].strategy_path
-    assert shim_config.strategies[0].config_path == runner_config.strategies[0].config_path
-    assert shim_config.strategies[0].config == runner_config.strategies[0].config
-    # Actor parity
-    assert len(shim_config.actors) == 1
-    assert len(runner_config.actors) == 1
-    assert shim_config.actors[0].actor_path == runner_config.actors[0].actor_path
-    assert shim_config.actors[0].config_path == runner_config.actors[0].config_path
-    assert shim_config.actors[0].config == runner_config.actors[0].config
-    # Environment-shape parity
-    _assert_env_parity(shim_config, runner_config)
+# Note: shim-parity tests (test_grid_bot_shim_parity, test_kronos_shim_parity)
+# lived here through PR 1 Task C's pre-delete verification. They were the
+# SAFETY GATE proving the generic runner matched each shim's build_config()
+# shape byte-for-byte (strategy + actor + env). Once that verification
+# passed, the shims got deleted in the same task, and the parity tests
+# became unrunnable (their side-by-side compare target no longer exists).
+# The per-strategy shape is now covered by test_strategy_config_matches_
+# spec_builder_output (grid_bot) and test_kronos_actor_config_applies_paper_
+# runner_defaults + test_kronos_strategy_config_contains_only_base_fields.
+# The env shape is locked in by build_paper_trade_node_config's own unit
+# tests in tests/paper_trade/test_node_config.py.
 
 
 # -- Registry-wide sanity: every spec builds --------------------------------
