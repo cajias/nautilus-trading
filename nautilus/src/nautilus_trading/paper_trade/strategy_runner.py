@@ -62,9 +62,14 @@ class PaperTradeStrategyRunner:
     log_level: str = "INFO"
 
     def build_config(self) -> TradingNodeConfig:
-        """Build the :class:`TradingNodeConfig`. Separated from :meth:`main`
-        so unit tests can assert on the static config shape without booting
-        a :class:`TradingNode`.
+        """Build the :class:`TradingNodeConfig`.
+
+        Returning a config (rather than booting a :class:`TradingNode`) lets
+        unit tests assert on the static config shape and lets the CLI reuse
+        the eager-validated config for both error mapping and the actual
+        boot — see ``cli/paper_trade.py``, which calls
+        :func:`~nautilus_trading.paper_trade.node_config.run_paper_trade`
+        with the result.
 
         Build order: actors → strategy. The ``self.params`` dict feeds both
         builders, so per-run state (instrument_id / bar_type / overrides)

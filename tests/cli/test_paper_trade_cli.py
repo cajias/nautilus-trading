@@ -132,20 +132,13 @@ def test_paper_trade_dispatch_builds_config_exactly_once(tmp_path, monkeypatch):
         return original_build(self)
 
     monkeypatch.setattr(PaperTradeStrategyRunner, "build_config", _counting_build)
-    # No-op the boot so we don't actually start a TradingNode. Patch every
-    # binding site of ``run_paper_trade`` because the current code imports it
-    # at module level in ``strategy_runner.py`` (top-level ``from`` binds it
-    # into that module's namespace), and the post-refactor code will import
-    # it lazily inside ``cli/paper_trade.py``. ``raising=False`` lets the same
-    # test run cleanly across both shapes.
+    # No-op the boot so we don't actually start a TradingNode. The CLI's
+    # lazy ``from nautilus_trading.paper_trade.node_config import
+    # run_paper_trade`` re-resolves the name at function-call time, so
+    # patching the source-module attribute is sufficient.
     monkeypatch.setattr(
         "nautilus_trading.paper_trade.node_config.run_paper_trade",
         lambda config: None,
-    )
-    monkeypatch.setattr(
-        "nautilus_trading.paper_trade.strategy_runner.run_paper_trade",
-        lambda config: None,
-        raising=False,
     )
 
     yaml_path = tmp_path / "run.yaml"
