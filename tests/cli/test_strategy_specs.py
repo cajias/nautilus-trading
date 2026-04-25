@@ -87,6 +87,55 @@ def test_strategy_paths_match_existing_paper_shim_values():
         assert spec.config_path == cfg_path, f"{name} config_path mismatch"
 
 
+def test_lookup_by_full_strategy_path_resolves_every_spec():
+    """``backtest/runner.py`` resolves the strategy-config builder by full
+    ``strategy_path`` against ``STRATEGY_SPECS``. This regression guards the
+    lookup against being reduced back to module-basename derivation
+    (``rsplit('.', 1)[-1].split(':')[0]``), which produced ``'strategy'`` for
+    kronos's nested path ``strategies.crypto.kronos.strategy:KronosStrategy``
+    and silently missed the registered ``'kronos'`` key. Pre-fix, calling the
+    backtest CLI with the kronos path returned the bare base config instead
+    of dispatching to ``KronosConfigBuilder``.
+    """
+    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+
+    for name, spec in STRATEGY_SPECS.items():
+        resolved = next(
+            (s for s in STRATEGY_SPECS.values() if s.strategy_path == spec.strategy_path),
+            None,
+        )
+        assert resolved is not None, f"by-path lookup missed {name} ({spec.strategy_path})"
+        assert resolved.name == name, f"path lookup for {name} resolved to {resolved.name}"
+
+
+def test_lookup_by_kronos_full_strategy_path_returns_kronos_spec():
+    """Specific regression for the nested-module bug: the kronos full
+    strategy_path resolves to the kronos spec, not to a sibling spec or to
+    ``None`` (which the pre-fix backtest dispatcher hit, silently degrading
+    to the base config dict)."""
+    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+
+    target = "strategies.crypto.kronos.strategy:KronosStrategy"
+    resolved = next(
+        (s for s in STRATEGY_SPECS.values() if s.strategy_path == target),
+        None,
+    )
+
+    assert resolved is not None
+    assert resolved.name == "kronos"
+    # And the legacy module-basename derivation that caused the bug:
+    legacy_module_name = target.rsplit(".", 1)[-1].split(":")[0]
+    assert legacy_module_name == "strategy", (
+        "guard: this test exists because the legacy lookup would derive "
+        f"{legacy_module_name!r} from the kronos path; if that derivation "
+        "ever changes, the bug-class behind this test has changed too"
+    )
+    assert legacy_module_name not in STRATEGY_SPECS, (
+        "guard: legacy module-name lookup against STRATEGY_SPECS would still miss "
+        "kronos because the registry keys by spec name, not module basename"
+    )
+
+
 def test_non_kronos_specs_have_empty_actor_specs_tuple():
     from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
 
@@ -286,8 +335,9 @@ def test_kronos_actor_config_builder_output_constructs_kronos_actor_config():
     """
     from nautilus_trader.model.data import BarType
     from nautilus_trader.model.identifiers import InstrumentId
-    from nautilus_trading.cli._strategy_specs import KronosActorConfigBuilder
     from strategies.crypto.kronos.actor import KronosActorConfig
+
+    from nautilus_trading.cli._strategy_specs import KronosActorConfigBuilder
 
     instrument_str = "BTCUSDT.BINANCE"
     bar_type_str = "BTCUSDT.BINANCE-1-MINUTE-LAST-INTERNAL"
