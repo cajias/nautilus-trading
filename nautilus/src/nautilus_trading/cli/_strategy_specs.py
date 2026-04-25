@@ -106,6 +106,8 @@ class EMAConfigBuilder:
     """EMA cross / swing strategies that need both slow and fast EMA periods."""
 
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        if not args.get("slow_ema") or not args.get("fast_ema"):
+            raise ValueError("ema_cross requires slow_ema and fast_ema")
         out = _base(args)
         out["ema_period"] = args["slow_ema"]
         out["fast_ema_period"] = args["fast_ema"]
@@ -117,6 +119,8 @@ class TimesFMConfigBuilder:
     """TimesFM swing: uses ema_period + fallback_fast_ema_period (no fast_ema_period)."""
 
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
+        if not args.get("slow_ema") or not args.get("fast_ema"):
+            raise ValueError("timesfm_swing requires slow_ema and fast_ema")
         out = _base(args)
         out["ema_period"] = args["slow_ema"]
         out["fallback_fast_ema_period"] = args["fast_ema"]
@@ -196,10 +200,9 @@ class KronosActorConfigBuilder:
     }
 
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        out: dict[str, Any] = {
-            "instrument_id": args["instrument_id"],
-            "bar_type": args["bar_type"],
-        }
+        # _base() validates instrument_id + bar_type and raises ValueError on
+        # missing — same uniform failure mode as every strategy-config builder.
+        out = _base(args, include_trade_size=False)
         for key, default in self._DEFAULTS.items():
             out[key] = args.get(key, default)
         return out

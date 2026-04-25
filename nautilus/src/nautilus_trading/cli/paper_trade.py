@@ -56,13 +56,16 @@ def paper_trade(
             param_hint="--config",
         )
 
-    # Merge the three top-level PaperRunConfig fields with per-strategy
-    # ``params``. The StrategySpec builder plucks what it needs; extra keys
-    # are ignored by the builder.
+    # Merge per-strategy ``params`` with the three top-level PaperRunConfig
+    # fields. Top-level fields land LAST so they win against any stray
+    # duplicate inside ``params:`` — top-level YAML is the canonical source
+    # of truth for instrument_id / bar_type / trade_size; if a user copies
+    # one of those into a per-strategy block by mistake, it gets harmlessly
+    # overwritten instead of silently overriding the top-level field.
     merged_params: dict[str, object] = {
+        **run_config.params,
         "instrument_id": run_config.instrument_id,
         "bar_type": run_config.bar_type,
-        **run_config.params,
     }
     if run_config.trade_size is not None:
         merged_params["trade_size"] = run_config.trade_size

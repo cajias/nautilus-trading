@@ -101,3 +101,49 @@ def test_paper_trade_config_unknown_yaml_field_is_usage_error(tmp_path):
     result = runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
     assert result.exit_code != 0
     assert "bogus_field" in result.output
+
+
+def test_paper_trade_top_level_fields_override_params_block(tmp_path, monkeypatch):
+    """Top-level YAML fields (``instrument_id`` / ``bar_type`` / ``trade_size``)
+    are the canonical source of truth. If a user mistakenly drops one of
+    those keys inside the per-strategy ``params:`` block, the top-level
+    field must win at the merge step in ``cli/paper_trade.py``.
+
+    Regression guard: PR-41 review-round caught a merge-direction bug where
+    ``**run_config.params`` came AFTER the top-level fields and could
+    silently shadow them.
+    """
+    captured: list[dict] = []
+
+    def _capture_main(self):
+        captured.append(dict(self.params))
+
+    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "main", _capture_main)
+
+    # Top-level says BTCUSDT.BINANCE; params block tries (incorrectly) to
+    # override it with a different instrument_id.
+    yaml_path = tmp_path / "run.yaml"
+    yaml_path.write_text(
+        "strategy: ema_cross\n"
+        "instrument_id: BTCUSDT.BINANCE\n"
+        "bar_type: BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL\n"
+        'trade_size: "0.001"\n'
+        "params:\n"
+        "  instrument_id: ETHUSDT.BINANCE\n"
+        "  fast_ema: 12\n"
+        "  slow_ema: 26\n"
+    )
+
+    cli_runner = CliRunner()
+    result = cli_runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    assert result.exit_code == 0, result.stdout
+    assert len(captured) == 1
+    # Top-level wins; the params-block override is harmlessly overwritten.
+    assert captured[0]["instrument_id"] == "BTCUSDT.BINANCE"
+    assert captured[0]["bar_type"] == "BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL"
+    assert captured[0]["trade_size"] == "0.001"
+    # Strategy-specific params still flow through.
+    assert captured[0]["fast_ema"] == 12
+    assert captured[0]["slow_ema"] == 26
