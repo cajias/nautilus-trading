@@ -1,4 +1,12 @@
-"""Tests for the cli._strategy_configs registry."""
+"""Tests for the strategy-config builders defined in ``cli._strategy_specs``.
+
+This file dates from sub-project A when the builders lived in
+``cli._strategy_configs`` (deleted in sub-project B.5). Tests are kept
+alongside the builders' historical home for diff-friendliness — they
+exercise the same builder classes, now imported from ``cli._strategy_specs``
+where the unified ``StrategySpec`` registry also lives. New per-spec
+contract tests go in ``tests/cli/test_strategy_specs.py``.
+"""
 
 from __future__ import annotations
 

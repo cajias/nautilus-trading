@@ -47,11 +47,12 @@ class PaperTradeStrategyRunner:
         any sibling actors. Pulled from
         :data:`~nautilus_trading.cli._strategy_specs.STRATEGY_SPECS`.
     params : dict[str, Any]
-        Per-run arguments. Must include the base fields
-        (``instrument_id``, ``bar_type``, ``trade_size``) plus any
-        strategy-specific fields the builder requires. Feeds both the
-        strategy builder and every actor builder — a single source of truth
-        for run inputs.
+        Per-run arguments. Must include ``instrument_id`` and ``bar_type``,
+        and — when the spec's builder consumes it — ``trade_size`` (most
+        strategies require it; ``hybrid_sma_r10`` is the exception, sizing
+        from equity). Plus any strategy-specific fields the builder
+        requires. Feeds both the strategy builder and every actor builder —
+        a single source of truth for run inputs.
     log_level : str, default "INFO"
         Forwarded to the node's :class:`LoggingConfig`.
     """
@@ -88,10 +89,11 @@ class PaperTradeStrategyRunner:
             strategy_config=strategy_config,
             instrument_id=self.params["instrument_id"],
             log_level=self.log_level,
-            # Pass None (not []) when there are no actors so the downstream
-            # helper's truthiness check takes the no-actors branch — matches
-            # the strategy-only shape every pre-kronos runner has used.
-            actors=actor_configs if actor_configs else None,
+            # Pass actor configs directly. Empty list = strategy-only;
+            # non-empty preserves spec order so actors attach before the
+            # strategy. ``build_paper_trade_node_config`` normalizes a falsy
+            # value into ``[]`` either way.
+            actors=actor_configs,
         )
 
     def main(self) -> None:

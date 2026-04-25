@@ -178,8 +178,8 @@ def test_actor_spec_is_frozen_dataclass():
 
 
 def test_spec_builder_matches_legacy_strategy_builders_shim():
-    """STRATEGY_BUILDERS must derive from STRATEGY_SPECS for backward compat
-    (the 8 *_paper.py shims and cli/paper_trade.py still import it)."""
+    """STRATEGY_BUILDERS must derive from STRATEGY_SPECS for legacy backtest
+    dispatch (``backtest/runner.py`` is the remaining consumer post-B.5)."""
     from nautilus_trading.cli._strategy_specs import STRATEGY_BUILDERS, STRATEGY_SPECS
 
     assert set(STRATEGY_BUILDERS) == set(STRATEGY_SPECS)
