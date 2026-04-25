@@ -40,6 +40,7 @@ exactly like ``nt paper-trade`` does today.
 
 from __future__ import annotations
 
+import inspect
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
@@ -149,10 +150,36 @@ def build_data_source(spec: Any) -> DataSource:
 
 
 def _construct(cls: type, kwargs: dict[str, Any]) -> "DataSource":
-    """Wrap ``cls(**kwargs)`` so a TypeError (unknown / missing kwarg)
-    surfaces as ValueError — uniform CLI mapping per project conventions.
+    """Validate ``kwargs`` against ``cls.__init__`` first, then construct.
+
+    Two-phase so signature mismatches (the user-facing case — a YAML
+    spec with a typo or missing field) surface as ``ValueError`` for the
+    CLI to map to ``BadParameter``, while a ``TypeError`` raised inside
+    the constructor body (an internal bug) propagates as ``TypeError``
+    and preserves diagnostic clarity. Without the split, a typo'd YAML
+    field and a real adapter bug both showed up as ``ValueError("Invalid
+    spec ...")``, degrading the crash report on real bugs.
     """
-    try:
-        return cls(**kwargs)  # type: ignore[no-any-return]
-    except TypeError as exc:
-        raise ValueError(f"data_source(type={cls.__name__}): {exc}") from exc
+    sig = inspect.signature(cls)
+    accepted_kinds = (
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        inspect.Parameter.KEYWORD_ONLY,
+    )
+    accepted = {p.name for p in sig.parameters.values() if p.kind in accepted_kinds}
+    required = {
+        p.name
+        for p in sig.parameters.values()
+        if p.kind in accepted_kinds and p.default is inspect.Parameter.empty
+    }
+
+    unknown = sorted(set(kwargs) - accepted)
+    missing = sorted(required - set(kwargs))
+    if unknown or missing:
+        parts = []
+        if unknown:
+            parts.append(f"unknown fields: {unknown}")
+        if missing:
+            parts.append(f"missing required: {missing}")
+        raise ValueError(f"data_source(type={cls.__name__}): " + "; ".join(parts))
+
+    return cls(**kwargs)  # type: ignore[no-any-return]

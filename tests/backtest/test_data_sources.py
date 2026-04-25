@@ -98,6 +98,66 @@ def test_build_data_source_unknown_type_raises_valueerror():
         build_data_source({"type": "nonsense"})
 
 
+def test_build_data_source_unknown_kwarg_raises_valueerror():
+    """Unknown kwargs in the YAML spec are user errors — raise ValueError
+    so the CLI can map to BadParameter. (TypeError contract: only signature
+    mismatches surface as ValueError; internal constructor TypeErrors
+    propagate as TypeError — see test below.)"""
+    from nautilus_trading.backtest.data_sources import build_data_source
+
+    with pytest.raises(ValueError, match="unknown"):
+        build_data_source(
+            {"type": "binance_rest", "symbol": "BTCUSDT", "interval": "1h", "junk": 42},
+        )
+
+
+def test_build_data_source_missing_required_kwarg_raises_valueerror():
+    """Required kwargs missing from the YAML spec → ValueError listing
+    them. Mirrors the ``StrategyConfigBuilder._base()`` discipline so
+    the CLI maps to BadParameter."""
+    from nautilus_trading.backtest.data_sources import build_data_source
+
+    with pytest.raises(ValueError, match="missing required"):
+        # binance_rest needs both symbol and interval
+        build_data_source({"type": "binance_rest", "symbol": "BTCUSDT"})
+
+
+def test_build_data_source_propagates_internal_typeerror(monkeypatch):
+    """If an adapter's constructor raises a ``TypeError`` for an internal
+    bug — NOT a signature mismatch — that error must surface as
+    ``TypeError``, not be re-labelled as a user-facing ``ValueError``.
+    Mislabelling internal bugs degrades the diagnostic quality of crash
+    reports.
+
+    Regression guard for /ultrareview's IMPORTANT #4 finding on PR 2's
+    foundation layer: ``_construct`` previously caught every TypeError
+    blindly, including ones from inside the constructor body. The fix is
+    "validate first, construct second, propagate constructor errors
+    normally" — so we need a substitute class whose signature passes
+    validation but whose body raises TypeError.
+
+    Frozen dataclasses don't fire ``__post_init__`` after class creation,
+    so we substitute the whole class on the binance_rest module before
+    ``build_data_source`` does its lazy import.
+    """
+    from nautilus_trading.backtest.data_sources import binance_rest as br_mod
+    from nautilus_trading.backtest.data_sources import build_data_source
+
+    class _BoomAdapter:
+        # Signature matches BinanceRestDataSource exactly so kwarg
+        # validation passes; the body simulates a real bug.
+        def __init__(self, *, symbol, interval):  # noqa: ARG002
+            raise TypeError("simulated internal bug in adapter __init__")
+
+        def load(self, *, instrument_id, bar_type, start=None, end=None):  # noqa: ARG002
+            return None
+
+    monkeypatch.setattr(br_mod, "BinanceRestDataSource", _BoomAdapter)
+
+    with pytest.raises(TypeError, match="simulated internal bug"):
+        build_data_source({"type": "binance_rest", "symbol": "BTCUSDT", "interval": "1h"})
+
+
 def test_build_data_source_missing_type_raises_valueerror():
     from nautilus_trading.backtest.data_sources import build_data_source
 
