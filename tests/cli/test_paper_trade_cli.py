@@ -103,6 +103,64 @@ def test_paper_trade_config_unknown_yaml_field_is_usage_error(tmp_path):
     assert "bogus_field" in result.output
 
 
+def test_paper_trade_dispatch_builds_config_exactly_once(tmp_path, monkeypatch):
+    """``nt paper-trade --config <yaml>`` must build the ``TradingNodeConfig``
+    exactly once per successful invocation.
+
+    Regression guard against the dual-build anti-pattern flagged by
+    /ultrareview on PR #41 (``bug_025``): the CLI used to call
+    ``runner.build_config()`` eagerly for friendly-error mapping AND
+    ``runner.main()`` (which re-built internally), doing the same msgspec
+    + ImportableActorConfig + builder work twice. Locking it to one call
+    prevents the same anti-pattern from creeping back into the parallel
+    backtest CLI in subsequent PRs.
+    """
+    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
+
+    call_count = [0]
+    original_build = PaperTradeStrategyRunner.build_config
+
+    def _counting_build(self):
+        call_count[0] += 1
+        return original_build(self)
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "build_config", _counting_build)
+    # No-op the boot so we don't actually start a TradingNode. Patch every
+    # binding site of ``run_paper_trade`` because the current code imports it
+    # at module level in ``strategy_runner.py`` (top-level ``from`` binds it
+    # into that module's namespace), and the post-refactor code will import
+    # it lazily inside ``cli/paper_trade.py``. ``raising=False`` lets the same
+    # test run cleanly across both shapes.
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.node_config.run_paper_trade",
+        lambda config: None,
+    )
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.strategy_runner.run_paper_trade",
+        lambda config: None,
+        raising=False,
+    )
+
+    yaml_path = tmp_path / "run.yaml"
+    yaml_path.write_text(
+        "strategy: ema_cross\n"
+        "instrument_id: BTCUSDT.BINANCE\n"
+        "bar_type: BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL\n"
+        'trade_size: "0.001"\n'
+        "params:\n"
+        "  fast_ema: 12\n"
+        "  slow_ema: 26\n"
+    )
+
+    cli_runner = CliRunner()
+    result = cli_runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    assert result.exit_code == 0, result.stdout
+    assert call_count[0] == 1, (
+        f"Expected build_config() to be called exactly once; got {call_count[0]}. "
+        "The CLI must reuse the eager-validated config rather than rebuilding it."
+    )
+
+
 def test_paper_trade_top_level_fields_override_params_block(tmp_path, monkeypatch):
     """Top-level YAML fields (``instrument_id`` / ``bar_type`` / ``trade_size``)
     are the canonical source of truth. If a user mistakenly drops one of
