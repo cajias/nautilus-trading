@@ -1,8 +1,15 @@
-"""Parity gate — KronosPaperTradeRunner.build_config() must match the old
-quarantined script on 5 canonical fields (spec §10).
+"""Parity gate — kronos paper-trade `build_config()` must still match the
+sub-project A quarantined snapshot on the 5 canonical fields (spec §10).
 
 Field list: account_type, environment, venue (BINANCE registered in clients),
 strategy+actor class paths, configured instrument_id.
+
+Sub-project B.5 update: the original test drove this parity via the
+now-deleted ``KronosPaperTradeRunner`` shim. The quarantined-snapshot anchor
+(``_quarantined_config_snapshot.build_quarantined_config``) is independent
+of the shim and remains as-is. We now drive the parity through
+:class:`PaperTradeStrategyRunner` + :data:`STRATEGY_SPECS["kronos"]`, which
+is the only kronos paper-trade path post-B.5. Semantics preserved end-to-end.
 """
 
 from __future__ import annotations
@@ -13,13 +20,15 @@ from nautilus_trader.adapters.binance.common.enums import BinanceAccountType, Bi
 
 
 def test_kronos_paper_runner_matches_quarantined_script(monkeypatch: pytest.MonkeyPatch):
-    # Stub env vars so the quarantined config snapshot and KronosPaperTradeRunner.build_config()
-    # can read Binance testnet secrets without requiring real credentials. The config-only
-    # path never hits the wire; these stubs just satisfy the presence check.
+    # Stub env vars so the quarantined config snapshot and the generic runner's
+    # build_config() can read Binance testnet secrets without requiring real
+    # credentials. The config-only path never hits the wire; these stubs just
+    # satisfy the presence check.
     monkeypatch.setenv("BINANCE_TESTNET_API_KEY", "stub_key_for_config_only")
     monkeypatch.setenv("BINANCE_TESTNET_API_SECRET", "stub_secret_for_config_only")
 
-    from strategies.crypto.kronos.paper_runner import KronosPaperTradeRunner
+    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
     from tests.strategies.crypto.kronos._quarantined_config_snapshot import (
         build_quarantined_config,
@@ -32,10 +41,13 @@ def test_kronos_paper_runner_matches_quarantined_script(monkeypatch: pytest.Monk
     old = build_quarantined_config(
         instrument_id=instrument_id, bar_type=bar_type, trade_size=trade_size
     )
-    new = KronosPaperTradeRunner(
-        instrument_id=instrument_id,
-        bar_type=bar_type,
-        trade_size=trade_size,
+    new = PaperTradeStrategyRunner(
+        spec=STRATEGY_SPECS["kronos"],
+        params={
+            "instrument_id": instrument_id,
+            "bar_type": bar_type,
+            "trade_size": trade_size,
+        },
     ).build_config()
 
     # 1. account_type on both data and exec clients

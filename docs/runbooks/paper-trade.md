@@ -175,8 +175,10 @@ Each entry: **Symptom → Cause → Fix**.
 ## 8. Where to look next
 
 - **Strategy configs:** `configs/paper/*.yaml`
-- **Runner implementations:**
-  `strategies/crypto/*_paper.py` plus `strategies/crypto/kronos/paper_runner.py`
+- **Generic runner:** `nautilus/src/nautilus_trading/paper_trade/strategy_runner.py`
+  (the `PaperTradeStrategyRunner` dataclass that drives every strategy).
+- **Spec registry:** `nautilus/src/nautilus_trading/cli/_strategy_specs.py`
+  (`STRATEGY_SPECS` maps strategy name → strategy + actor wiring).
 - **Core wiring:** `nautilus/src/nautilus_trading/paper_trade/`
 - **CLI command:** `nautilus/src/nautilus_trading/cli/paper_trade.py`
 - **Smoke suite:** `tests/paper_trade/test_smoke_paper.py`

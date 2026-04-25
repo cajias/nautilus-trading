@@ -17,7 +17,7 @@ What shipped:
 
 - `nt paper-trade --config configs/paper/<strategy>.yaml` CLI (YAML-driven, one file per strategy).
 - Nine YAML-wired paper-trade runners: `ema_cross`, `grid_bot`, `dca_bot`, `timesfm_swing`, `hybrid_sma_r10`, `timesfm_grid`, `rvs_swing`, `shock_guard`, `kronos` — each with a `configs/paper/<name>.yaml` and an entry in `_RUNNERS`.
-- Core wiring under `nautilus/src/nautilus_trading/paper_trade/`: `PaperTradeRunner` ABC, `build_paper_trade_node_config` (Ed25519 + InstrumentProvider defaults), `run_paper_trade` (SIGINT/SIGTERM lifecycle), `PaperRunConfig` msgspec schema, `round_to_tick` price helper.
+- Core wiring under `nautilus/src/nautilus_trading/paper_trade/`: `PaperTradeRunner` ABC (retired in B.5), `build_paper_trade_node_config` (Ed25519 + InstrumentProvider defaults), `run_paper_trade` (SIGINT/SIGTERM lifecycle), `PaperRunConfig` msgspec schema, `round_to_tick` price helper.
 - Opt-in pre-release smoke: `tests/paper_trade/test_smoke_paper.py` gated by the `binance_testnet` pytest marker; every runner must boot and receive at least one `Bar` within 30s.
 - Order-path smoke: `make smoke-paper-order STRATEGY=<name>` submits + cancels an off-market LIMIT.
 - Operator docs: `docs/runbooks/paper-trade.md` (this sub-project's user-facing runbook).

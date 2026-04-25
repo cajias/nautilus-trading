@@ -8,6 +8,6 @@ Entry: `close > SMA(n) AND close > prev_close AND sub flat`. Exit: `close < SMA(
 
 Final equity: $1,930.80 · Sharpe: 1.64 · Max DD: 23.69% · Trades: 17 · Win rate: 58.8%
 
-**Promoted to production:** Ported to NautilusTrader as [`strategies/crypto/hybrid_sma_r10.py`](../../strategies/crypto/hybrid_sma_r10.py), wired into the CLI via `HybridSMAConfigBuilder` in `nautilus/src/nautilus_trading/cli/_strategy_configs.py`, and covered by 48 tests in `tests/test_hybrid_sma_r10.py`. This is why R10's `competition/agent-5-hybrid/round10/` source could be safely deleted without losing the algorithm.
+**Promoted to production:** Ported to NautilusTrader as [`strategies/crypto/hybrid_sma_r10.py`](../../strategies/crypto/hybrid_sma_r10.py), wired into the CLI via `HybridSMAConfigBuilder` in `nautilus/src/nautilus_trading/cli/_strategy_specs.py` (was `_strategy_configs.py` before sub-project B.5 unified the registry), and covered by 48 tests in `tests/test_hybrid_sma_r10.py`. This is why R10's `competition/agent-5-hybrid/round10/` source could be safely deleted without losing the algorithm.
 
 Source archive (removed in THIS commit): `competition/agent-5-hybrid/round10/` · results: `competition/archive/results/round10_results.txt`

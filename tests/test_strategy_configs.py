@@ -1,4 +1,12 @@
-"""Tests for the cli._strategy_configs registry."""
+"""Tests for the strategy-config builders defined in ``cli._strategy_specs``.
+
+This file dates from sub-project A when the builders lived in
+``cli._strategy_configs`` (deleted in sub-project B.5). Tests are kept
+alongside the builders' historical home for diff-friendliness — they
+exercise the same builder classes, now imported from ``cli._strategy_specs``
+where the unified ``StrategySpec`` registry also lives. New per-spec
+contract tests go in ``tests/cli/test_strategy_specs.py``.
+"""
 
 from __future__ import annotations
 
@@ -6,14 +14,14 @@ import pytest
 
 
 def test_strategy_config_builder_is_protocol():
-    from nautilus_trading.cli._strategy_configs import StrategyConfigBuilder
+    from nautilus_trading.cli._strategy_specs import StrategyConfigBuilder
 
     # Protocols don't subclass ABC but are runtime-checkable when decorated.
     assert hasattr(StrategyConfigBuilder, "build")
 
 
 def test_grid_bot_builder_outputs_expected_dict():
-    from nautilus_trading.cli._strategy_configs import GridBotConfigBuilder
+    from nautilus_trading.cli._strategy_specs import GridBotConfigBuilder
 
     builder = GridBotConfigBuilder()
     out = builder.build(
@@ -37,7 +45,7 @@ def test_grid_bot_builder_outputs_expected_dict():
 
 
 def test_grid_bot_builder_raises_when_prices_missing():
-    from nautilus_trading.cli._strategy_configs import GridBotConfigBuilder
+    from nautilus_trading.cli._strategy_specs import GridBotConfigBuilder
 
     builder = GridBotConfigBuilder()
     with pytest.raises(ValueError, match="upper-price"):
@@ -51,7 +59,7 @@ def test_grid_bot_builder_raises_when_prices_missing():
 
 
 def test_dca_bot_builder():
-    from nautilus_trading.cli._strategy_configs import DCABotConfigBuilder
+    from nautilus_trading.cli._strategy_specs import DCABotConfigBuilder
 
     out = DCABotConfigBuilder().build(
         {
@@ -67,7 +75,7 @@ def test_dca_bot_builder():
 
 
 def test_dca_bot_builder_omits_buy_amount_when_absent():
-    from nautilus_trading.cli._strategy_configs import DCABotConfigBuilder
+    from nautilus_trading.cli._strategy_specs import DCABotConfigBuilder
 
     out = DCABotConfigBuilder().build(
         {
@@ -83,7 +91,7 @@ def test_dca_bot_builder_omits_buy_amount_when_absent():
 
 
 def test_ema_cross_builder():
-    from nautilus_trading.cli._strategy_configs import EMAConfigBuilder
+    from nautilus_trading.cli._strategy_specs import EMAConfigBuilder
 
     out = EMAConfigBuilder().build(
         {
@@ -101,7 +109,7 @@ def test_ema_cross_builder():
 
 
 def test_timesfm_swing_builder():
-    from nautilus_trading.cli._strategy_configs import TimesFMConfigBuilder
+    from nautilus_trading.cli._strategy_specs import TimesFMConfigBuilder
 
     out = TimesFMConfigBuilder().build(
         {
@@ -118,7 +126,7 @@ def test_timesfm_swing_builder():
 
 
 def test_hybrid_sma_builder_omits_trade_size_and_decimalizes():
-    from nautilus_trading.cli._strategy_configs import HybridSMAConfigBuilder
+    from nautilus_trading.cli._strategy_specs import HybridSMAConfigBuilder
 
     out = HybridSMAConfigBuilder().build(
         {
@@ -138,7 +146,7 @@ def test_hybrid_sma_builder_omits_trade_size_and_decimalizes():
 
 
 def test_dca_bot_builder_raises_when_interval_missing():
-    from nautilus_trading.cli._strategy_configs import DCABotConfigBuilder
+    from nautilus_trading.cli._strategy_specs import DCABotConfigBuilder
 
     builder = DCABotConfigBuilder()
     with pytest.raises(ValueError, match="buy_interval_bars"):
@@ -154,7 +162,7 @@ def test_dca_bot_builder_raises_when_interval_missing():
 
 
 def test_hybrid_sma_builder_raises_when_sma_periods_missing():
-    from nautilus_trading.cli._strategy_configs import HybridSMAConfigBuilder
+    from nautilus_trading.cli._strategy_specs import HybridSMAConfigBuilder
 
     builder = HybridSMAConfigBuilder()
     with pytest.raises(ValueError, match="sma_fast"):
@@ -172,7 +180,7 @@ def test_hybrid_sma_builder_raises_when_sma_periods_missing():
 
 
 def test_hybrid_sma_builder_raises_when_stop_periods_missing():
-    from nautilus_trading.cli._strategy_configs import HybridSMAConfigBuilder
+    from nautilus_trading.cli._strategy_specs import HybridSMAConfigBuilder
 
     builder = HybridSMAConfigBuilder()
     with pytest.raises(ValueError, match="stop_fast"):
@@ -190,7 +198,7 @@ def test_hybrid_sma_builder_raises_when_stop_periods_missing():
 
 
 def test_timesfm_grid_builder_base_only():
-    from nautilus_trading.cli._strategy_configs import TimesFMGridConfigBuilder
+    from nautilus_trading.cli._strategy_specs import TimesFMGridConfigBuilder
 
     out = TimesFMGridConfigBuilder().build(
         {
@@ -207,7 +215,7 @@ def test_timesfm_grid_builder_base_only():
 
 
 def test_rvs_swing_builder_base_only():
-    from nautilus_trading.cli._strategy_configs import RVSSwingConfigBuilder
+    from nautilus_trading.cli._strategy_specs import RVSSwingConfigBuilder
 
     out = RVSSwingConfigBuilder().build(
         {
@@ -222,7 +230,7 @@ def test_rvs_swing_builder_base_only():
 
 
 def test_shock_guard_builder_base_only():
-    from nautilus_trading.cli._strategy_configs import ShockGuardConfigBuilder
+    from nautilus_trading.cli._strategy_specs import ShockGuardConfigBuilder
 
     out = ShockGuardConfigBuilder().build(
         {
@@ -238,11 +246,13 @@ def test_shock_guard_builder_base_only():
 
 def test_all_registered_strategies_resolvable():
     """Sanity: every key in STRATEGY_BUILDERS resolves to an object with .build()."""
-    from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
+    from nautilus_trading.cli._strategy_specs import STRATEGY_BUILDERS
 
     for name, builder in STRATEGY_BUILDERS.items():
         assert hasattr(builder, "build"), f"{name} builder missing .build()"
     # Lock in the current set so drift is obvious in diffs.
+    # Sub-project B.5 added "kronos" to the registry via the unified
+    # StrategySpec table in cli/_strategy_specs.py.
     assert set(STRATEGY_BUILDERS.keys()) == {
         "grid_bot",
         "dca_bot",
@@ -252,4 +262,5 @@ def test_all_registered_strategies_resolvable():
         "timesfm_grid",
         "rvs_swing",
         "shock_guard",
+        "kronos",
     }

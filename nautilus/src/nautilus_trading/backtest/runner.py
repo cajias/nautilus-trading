@@ -69,10 +69,21 @@ def build_backtest_config(
     }
 
     # Dispatch to a registered builder when one exists; else keep the base dict.
-    from nautilus_trading.cli._strategy_configs import STRATEGY_BUILDERS
+    # Primary lookup is by full strategy_path against STRATEGY_SPECS — this is
+    # the only correct match for nested strategies like
+    # ``strategies.crypto.kronos.strategy:KronosStrategy``, where the previous
+    # ``rsplit('.', 1)[-1].split(':')[0]`` derivation produced 'strategy' (the
+    # module basename) and silently missed the registered key 'kronos'.
+    # Fallback to module-name lookup keeps callers passing bare module paths
+    # (e.g. 'strategies.crypto.grid_bot') working unchanged.
+    from nautilus_trading.cli._strategy_specs import STRATEGY_BUILDERS, STRATEGY_SPECS
 
     module_name = strategy_path.rsplit(".", 1)[-1].split(":")[0]
-    builder = STRATEGY_BUILDERS.get(module_name)
+    spec = next(
+        (s for s in STRATEGY_SPECS.values() if s.strategy_path == strategy_path),
+        None,
+    )
+    builder = spec.builder if spec is not None else STRATEGY_BUILDERS.get(module_name)
     if builder is not None:
         # Build the input dict for the builder. Pre-merge strategy_config_overrides
         # so callers can supply builder-required fields (e.g. grid_bot needs
