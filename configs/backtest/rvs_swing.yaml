@@ -1,0 +1,16 @@
+strategy: rvs_swing
+instrument_id: BTCUSDT.BINANCE
+bar_type: BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL
+trade_size: "0.001"
+log_level: INFO
+venue: BINANCE
+account_type: CASH
+starting_balances:
+  - "1000000 USDT"
+data_source:
+  type: catalog
+  path: tests/fixtures/crypto/catalog
+date_range:
+  start: "2024-01-01"
+  end: "2024-01-14"
+params: {}

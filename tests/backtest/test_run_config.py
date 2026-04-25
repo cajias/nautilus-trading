@@ -85,8 +85,8 @@ def test_backtest_run_config_decodes_full_yaml(tmp_path):
         "  symbol: BTCUSDT\n"
         "  interval: 1h\n"
         "date_range:\n"
-        "  start: 2024-01-01\n"
-        "  end: 2024-01-31\n"
+        '  start: "2024-01-01"\n'
+        '  end: "2024-01-31"\n'
         "params:\n"
         '  upper_price: "72000"\n'
         '  lower_price: "60000"\n'
@@ -159,8 +159,8 @@ def test_backtest_run_config_rejects_unknown_date_range_field(tmp_path):
         "  type: catalog\n"
         "  path: /tmp/x\n"
         "date_range:\n"
-        "  begin: 2024-01-01\n"
-        "  end: 2024-01-31\n"
+        '  begin: "2024-01-01"\n'
+        '  end: "2024-01-31"\n'
     )
     with pytest.raises(msgspec.ValidationError):
         load_run_config(yaml_path)
