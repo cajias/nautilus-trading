@@ -213,6 +213,84 @@ def test_catalog_data_source_raises_on_missing_instrument(tmp_path):
         )
 
 
+# -- _coerce_bar_precision (helper unit test) ------------------------------
+
+
+def test_coerce_bar_precision_rewrites_to_instrument_precision():
+    """Direct unit test for the ``_coerce_bar_precision`` helper used by
+    ``CatalogDataSource``. Catches drift in the precision-coercion path
+    without needing a real ``BacktestEngine`` boot.
+
+    Builds a fake instrument shape (only the two precision attributes
+    the helper inspects) and a Bar carrying float-artifact-precision-8
+    prices/quantities. Verifies the returned bar's precisions match
+    the instrument's declared values numerically AND in repr.
+    """
+    from types import SimpleNamespace
+
+    from nautilus_trader.model.data import Bar, BarType
+    from nautilus_trader.model.objects import Price, Quantity
+    from nautilus_trading.backtest.data_sources.catalog import _coerce_bar_precision
+
+    instrument = SimpleNamespace(price_precision=2, size_precision=6)
+    bt = BarType.from_str("BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL")
+    raw = Bar(
+        bar_type=bt,
+        # Eight-decimal precision (what the fixture catalog stores).
+        open=Price.from_str("42283.58000000"),
+        high=Price.from_str("42554.57000000"),
+        low=Price.from_str("42261.02000000"),
+        close=Price.from_str("42475.23000000"),
+        volume=Quantity.from_str("1271.68108000"),
+        ts_event=1704070799_999_000_000,
+        ts_init=1704070799_999_000_000,
+    )
+    assert raw.open.precision == 8  # sanity — the fixture's actual problem
+
+    coerced = _coerce_bar_precision(raw, instrument)
+
+    # Numeric values preserved.
+    assert coerced.open.as_double() == raw.open.as_double()
+    assert coerced.close.as_double() == raw.close.as_double()
+    assert coerced.volume.as_double() == raw.volume.as_double()
+    # Precision attribute now matches the instrument.
+    assert coerced.open.precision == 2
+    assert coerced.high.precision == 2
+    assert coerced.low.precision == 2
+    assert coerced.close.precision == 2
+    assert coerced.volume.precision == 6
+    # ts_event / ts_init unchanged.
+    assert coerced.ts_event == raw.ts_event
+    assert coerced.ts_init == raw.ts_init
+
+
+def test_coerce_bar_precision_fast_path_returns_input_when_already_matching():
+    """When the bar's precisions already match, the helper should not
+    rebuild the bar (cheap fast-path on the hot read loop)."""
+    from types import SimpleNamespace
+
+    from nautilus_trader.model.data import Bar, BarType
+    from nautilus_trader.model.objects import Price, Quantity
+    from nautilus_trading.backtest.data_sources.catalog import _coerce_bar_precision
+
+    instrument = SimpleNamespace(price_precision=2, size_precision=6)
+    bt = BarType.from_str("BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL")
+    matching = Bar(
+        bar_type=bt,
+        open=Price.from_str("42283.58"),
+        high=Price.from_str("42554.57"),
+        low=Price.from_str("42261.02"),
+        close=Price.from_str("42475.23"),
+        volume=Quantity.from_str("1271.681080"),
+        ts_event=0,
+        ts_init=0,
+    )
+    out = _coerce_bar_precision(matching, instrument)
+    # Identity check: helper must return the same object on the fast path
+    # so the hot loop doesn't pay an unnecessary Bar(...) reconstruction.
+    assert out is matching
+
+
 # -- BinanceRestDataSource (mocked HTTP) ----------------------------------
 
 

@@ -47,6 +47,7 @@ work for zero benefit.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 from nautilus_trader.backtest.engine import BacktestEngine, BacktestEngineConfig
 from nautilus_trader.config import (
@@ -156,20 +157,32 @@ class BacktestStrategyRunner(BacktestRunner):
         engine.run()
         return engine
 
-    def print_results(self, results: BacktestEngine) -> None:
-        """Tear the engine down. Detailed report formatting is
-        deferred to Task D's CLI — this method just disposes the engine
-        cleanly so any pending state flushes."""
-        results.dispose()
+    def print_results(self, results: Any) -> None:
+        """Print a stable one-line summary of the run.
+
+        Detailed analysis (PnL, fills, equity curve) lives in notebooks
+        that consume the engine reports separately; this method only
+        emits a stable header so CLI users + smoke tests can confirm
+        the run completed. Engine disposal is :meth:`main`'s job — see
+        the ``finally`` block there.
+
+        ``results`` is loosely typed because PR 2's runner emits the
+        engine itself (kronos parity), but a future runner — e.g. a
+        ``BacktestNode``-based one — might emit a result list. The
+        printed header is the stable contract; downstream tooling
+        keys off it without poking at engine internals.
+        """
+        del results  # not used by the header — kept for ABC parity
+        print(f"BacktestStrategyRunner complete: {self.run_config.strategy}")
 
     def main(self) -> None:
         """Run the backtest end-to-end.
 
         Build the engine config once, construct the engine, wire the
-        venue + data + strategy, run, dispose. The ``finally`` clause
-        ensures the engine is disposed even if the run raises — leaks
-        of in-flight engine state would compound across consecutive
-        backtest invocations.
+        venue + data + strategy, run, print, dispose. The ``finally``
+        clause ensures the engine is disposed even if the run raises —
+        leaks of in-flight engine state would compound across
+        consecutive backtest invocations.
         """
         config = self.build_config()
         engine = self._build_engine(config)
@@ -187,14 +200,15 @@ class BacktestStrategyRunner(BacktestRunner):
         self.add_data(engine, config)
         try:
             self.run(engine)
-        finally:
             self.print_results(engine)
+        finally:
+            engine.dispose()
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _merged_params(self) -> dict:
+    def _merged_params(self) -> dict[str, Any]:
         """Build the args dict the strategy / actor builders consume.
 
         Top-level fields land LAST so they win against any stray
@@ -203,7 +217,7 @@ class BacktestStrategyRunner(BacktestRunner):
         top-level keys into a per-strategy block by mistake, it gets
         harmlessly overwritten.
         """
-        merged: dict = {
+        merged: dict[str, Any] = {
             **self.run_config.params,
             "instrument_id": self.run_config.instrument_id,
             "bar_type": self.run_config.bar_type,

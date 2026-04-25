@@ -360,23 +360,65 @@ class _StubEngine:
 
 
 @pytest.mark.skipif(not CRYPTO_FIXTURE.exists(), reason="fixture catalog missing")
-def test_ema_cross_end_to_end_smoke_runs_without_crashing():
+def test_ema_cross_end_to_end_smoke_runs_without_crashing(capsys):
     """Boot a real ``BacktestEngine`` via the runner on the fixture
-    catalog (336 hourly BTCUSDT bars, 2024-01). Asserts only that
-    ``runner.main()`` completes without raising — content correctness
-    of the backtest is NOT in scope here; this is a wiring safety
-    gate against silent miswiring of the strategy / engine / data-source
-    composition. Mirror of the paper-trade smoke test, but it can run
+    catalog (336 hourly BTCUSDT bars, 2024-01). Asserts that the engine
+    actually processed bars (``iteration > 0``) and that
+    ``print_results`` emitted its stable header — guards against the
+    engine silently no-oping internally (a "didn't raise" pass would
+    miss that). Mirror of the paper-trade smoke test, but it can run
     in unit-suite default because ``BacktestEngine`` doesn't need
-    Testnet credentials."""
+    Testnet credentials.
+    """
     runner = _make_runner(_ema_run_config())
-    runner.main()  # should complete cleanly
+    captured_engines: list = []
+    original_build_engine = type(runner)._build_engine
+
+    def _capturing_build_engine(self, config):
+        engine = original_build_engine(self, config)
+        captured_engines.append(engine)
+        return engine
+
+    type(runner)._build_engine = _capturing_build_engine
+    try:
+        runner.main()
+    finally:
+        type(runner)._build_engine = original_build_engine
+
+    # Engine actually iterated through bars — the wiring works end-to-end.
+    assert len(captured_engines) == 1
+    assert captured_engines[0].iteration > 0, (
+        "Engine reported zero iterations — the bar-processing loop didn't run"
+    )
+    # print_results emitted the stable header.
+    out = capsys.readouterr().out
+    assert "BacktestStrategyRunner complete: ema_cross" in out, (
+        f"print_results header missing from stdout; got: {out!r}"
+    )
 
 
 @pytest.mark.skipif(not CRYPTO_FIXTURE.exists(), reason="fixture catalog missing")
-def test_grid_bot_end_to_end_smoke_runs_without_crashing():
+def test_grid_bot_end_to_end_smoke_runs_without_crashing(capsys):
     """Grid-bot smoke — covers the per-strategy params path
     (``upper_price`` / ``lower_price`` / ``grid_levels``) reaching
-    ``GridBotConfig`` correctly through the runner."""
+    ``GridBotConfig`` correctly through the runner. Same engine-loop
+    + header assertions as the ema_cross smoke."""
     runner = _make_runner(_grid_run_config())
-    runner.main()
+    captured_engines: list = []
+    original_build_engine = type(runner)._build_engine
+
+    def _capturing_build_engine(self, config):
+        engine = original_build_engine(self, config)
+        captured_engines.append(engine)
+        return engine
+
+    type(runner)._build_engine = _capturing_build_engine
+    try:
+        runner.main()
+    finally:
+        type(runner)._build_engine = original_build_engine
+
+    assert len(captured_engines) == 1
+    assert captured_engines[0].iteration > 0
+    out = capsys.readouterr().out
+    assert "BacktestStrategyRunner complete: grid_bot" in out
