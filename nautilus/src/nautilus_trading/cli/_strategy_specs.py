@@ -1,24 +1,27 @@
 """StrategySpec registry — unified home for strategy + actor wiring.
 
-This module supersedes ``cli/_strategy_configs.py``. Each ``StrategySpec``
-captures everything a generic runner needs to attach a strategy to a node:
+Each :class:`StrategySpec` captures everything a generic runner needs to
+attach a strategy to a node:
 
 - the name (CLI / YAML key)
-- the config builder (CLI args → strategy_config dict)
+- the config builder (parsed args → strategy_config dict)
 - the strategy + config import paths (for ``ImportableStrategyConfig``)
-- zero or more ``ActorSpec``s (for strategies that depend on sibling actors,
-  e.g. Kronos's inference actor)
+- zero or more :class:`ActorSpec` s (for strategies that depend on sibling
+  actors, e.g. Kronos's inference actor)
 
-The 8 non-kronos specs have ``actor_specs == ()``. The kronos spec carries a
-single ``ActorSpec`` pointing at ``KronosActor`` + ``KronosActorConfig``.
+The 8 non-kronos specs have ``actor_specs == ()``. The kronos spec carries
+a single :class:`ActorSpec` pointing at ``KronosActor`` + ``KronosActorConfig``.
 
-``STRATEGY_BUILDERS`` is preserved as a derived dict for backward compatibility
-with ``cli/paper_trade.py`` and the 8 ``*_paper.py`` shims — Task C removes
-the shim layer once the generic ``PaperTradeStrategyRunner`` is wired in.
+The dict :data:`STRATEGY_BUILDERS` is a derived projection
+``{name: spec.builder for name, spec in STRATEGY_SPECS.items()}``, kept
+because :mod:`nautilus_trading.backtest.runner` still consumes it for
+strategy-name → builder lookup. New code should consume :data:`STRATEGY_SPECS`
+directly so it picks up the strategy + config import paths and any actor
+wiring at the same time.
 
 Design note: ``StrategySpec`` + ``ActorSpec`` are frozen dataclasses so they
-can be hashed and stored in sets. ``actor_specs`` is a ``tuple`` (not a list)
-to keep the frozen instance hashable without a custom ``__hash__``.
+can be hashed and stored in sets. ``actor_specs`` is a ``tuple`` (not a
+list) to keep the frozen instance hashable without a custom ``__hash__``.
 """
 
 from __future__ import annotations
@@ -44,7 +47,7 @@ class ActorConfigBuilder(Protocol):
 
 
 # ---------------------------------------------------------------------------
-# Strategy config builders (unchanged shape from cli/_strategy_configs.py)
+# Strategy config builders
 # ---------------------------------------------------------------------------
 
 
@@ -329,9 +332,10 @@ STRATEGY_SPECS: dict[str, StrategySpec] = {
 }
 
 
-# Backward-compatible shim — Task C migrates callers to STRATEGY_SPECS and
-# removes this export. Until then, cli/paper_trade.py and the 8 *_paper.py
-# runners keep importing STRATEGY_BUILDERS from cli/_strategy_configs.py.
+# Derived name → builder projection. ``backtest/runner.py`` still consumes
+# this for strategy-name → builder lookup; new code should consume
+# ``STRATEGY_SPECS`` directly so it picks up the import paths + actor wiring
+# at the same time.
 STRATEGY_BUILDERS: dict[str, StrategyConfigBuilder] = {
     name: spec.builder for name, spec in STRATEGY_SPECS.items()
 }

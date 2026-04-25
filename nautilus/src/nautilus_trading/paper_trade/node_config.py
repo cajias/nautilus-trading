@@ -1,7 +1,7 @@
 """TradingNodeConfig builder for Binance Spot Testnet paper-trade runs.
 
-Centralizes the three Binance-Testnet blocker fixes so every PaperTradeRunner
-subclass inherits them for free:
+Centralizes the three Binance-Testnet blocker fixes consumed by
+``PaperTradeStrategyRunner.build_config()``:
 
     1. Ed25519 key type for user-data WebSocket (§7.1 of spec).
     2. InstrumentProviderConfig populated with the run's target instrument (§7.2).

@@ -40,9 +40,6 @@ def _kronos_params() -> dict:
     }
 
 
-# -- Importability + ABC subclassing --------------------------------------
-
-
 # -- build_config: non-actor strategy (grid_bot) --------------------------
 
 

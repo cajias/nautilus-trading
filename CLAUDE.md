@@ -270,7 +270,7 @@ Gated by the `binance_testnet` pytest marker — normal `make test` skips it. Re
 
 | Class | Purpose |
 |-------|---------|
-| `PaperTradeRunner` | Base class for paper-trade runners. Override `build_config()` and `main()`. |
+| `PaperTradeStrategyRunner` | Concrete generic paper-trade runner. Takes a `StrategySpec` + params dict — no subclassing. |
 | `build_paper_trade_node_config` | Helper that wires Binance Spot Testnet defaults (Ed25519, InstrumentProvider, account/env). |
 | `run_paper_trade` | Boots the `TradingNode`, installs SIGINT/SIGTERM handlers, blocks. |
 | `PaperRunConfig` | YAML schema (msgspec Struct). |
