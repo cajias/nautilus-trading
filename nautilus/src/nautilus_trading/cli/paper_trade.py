@@ -2,7 +2,9 @@
 
 Loads a YAML run config, resolves the strategy name to a ``StrategySpec`` from
 the unified registry in ``cli/_strategy_specs.py``, hands the spec + parsed
-params to :class:`PaperTradeStrategyRunner`, and delegates to ``runner.main()``.
+params to :class:`PaperTradeStrategyRunner`, builds the
+:class:`TradingNodeConfig` exactly once (eager validation doubles as the
+final config), and passes it to :func:`run_paper_trade`.
 
 Supersedes the sub-project A ``_RUNNERS`` dispatch table. Every paper-trade
 strategy now flows through the same generic runner — no per-strategy shim.
@@ -37,6 +39,7 @@ def paper_trade(
     # in msgspec-heavy adapter config modules; deferring that cost keeps
     # ``nt --help`` snappy.
     from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
+    from nautilus_trading.paper_trade.node_config import run_paper_trade
     from nautilus_trading.paper_trade.run_config import load_run_config
     from nautilus_trading.paper_trade.secrets import load_dotenv_local
     from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
@@ -78,10 +81,13 @@ def paper_trade(
 
     # Build the config eagerly so any ValueError from a builder (missing
     # required field, bad type) surfaces as typer.BadParameter rather than
-    # an uncaught stack trace once the TradingNode starts booting.
+    # an uncaught stack trace once the TradingNode starts booting. Reuse the
+    # validated config — rebuilding it inside ``run_paper_trade`` would
+    # repeat the same msgspec / ImportableActorConfig / builder work for
+    # zero benefit (builders are pure).
     try:
-        runner.build_config()
+        node_config = runner.build_config()
     except (TypeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
-    runner.main()
+    run_paper_trade(node_config)

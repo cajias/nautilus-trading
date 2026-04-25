@@ -25,29 +25,31 @@ def test_paper_trade_help_shows_config_option():
 
 def test_paper_trade_config_file_dispatches_to_runner(tmp_path, monkeypatch):
     """`nt paper-trade --config run.yaml` loads the YAML, instantiates the
-    right runner, and calls .main(). Sanity check for the YAML dispatch path;
-    per-strategy coverage lives in tests/cli/test_paper_trade_configs.py.
+    right runner, and dispatches the validated config to ``run_paper_trade``.
+    Sanity check for the YAML dispatch path; per-strategy coverage lives in
+    tests/cli/test_paper_trade_configs.py.
 
-    B.5 migration: the CLI now dispatches through the generic
-    ``PaperTradeStrategyRunner`` (not per-strategy shims), so the monkeypatch
-    attaches to that class and the recorded tuple reads fields off the merged
-    ``params`` dict rather than per-runner dataclass attributes.
+    B.5 PR 2 migration: the CLI now builds the ``TradingNodeConfig`` once
+    (via ``runner.build_config()``) and passes it directly to
+    ``run_paper_trade(config)`` — the runner no longer carries a ``.main()``
+    boot wrapper. Tests capture the runner instance via ``__init__`` and
+    no-op the boot at the source module so the lazy ``from`` import in
+    ``cli/paper_trade.py`` picks up the patched function.
     """
-    calls = []
-
-    def _recording_main(self):
-        calls.append(
-            (
-                self.spec.name,
-                self.params["instrument_id"],
-                self.params["fast_ema"],
-                self.params["slow_ema"],
-            )
-        )
-
     from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
-    monkeypatch.setattr(PaperTradeStrategyRunner, "main", _recording_main)
+    runners: list[PaperTradeStrategyRunner] = []
+    original_init = PaperTradeStrategyRunner.__init__
+
+    def _capturing_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        runners.append(self)
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "__init__", _capturing_init)
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.node_config.run_paper_trade",
+        lambda config: None,
+    )
 
     yaml_path = tmp_path / "run.yaml"
     yaml_path.write_text(
@@ -60,10 +62,15 @@ def test_paper_trade_config_file_dispatches_to_runner(tmp_path, monkeypatch):
         "  slow_ema: 26\n"
     )
 
-    runner = CliRunner()
-    result = runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    cli_runner = CliRunner()
+    result = cli_runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
     assert result.exit_code == 0, result.stdout
-    assert calls == [("ema_cross", "BTCUSDT.BINANCE", 12, 26)]
+    assert len(runners) == 1
+    captured = runners[0]
+    assert captured.spec.name == "ema_cross"
+    assert captured.params["instrument_id"] == "BTCUSDT.BINANCE"
+    assert captured.params["fast_ema"] == 12
+    assert captured.params["slow_ema"] == 26
 
 
 def test_paper_trade_config_missing_file_is_usage_error(tmp_path):
@@ -171,14 +178,20 @@ def test_paper_trade_top_level_fields_override_params_block(tmp_path, monkeypatc
     ``**run_config.params`` came AFTER the top-level fields and could
     silently shadow them.
     """
-    captured: list[dict] = []
-
-    def _capture_main(self):
-        captured.append(dict(self.params))
-
     from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
-    monkeypatch.setattr(PaperTradeStrategyRunner, "main", _capture_main)
+    captured: list[dict] = []
+    original_init = PaperTradeStrategyRunner.__init__
+
+    def _capture_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        captured.append(dict(self.params))
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "__init__", _capture_init)
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.node_config.run_paper_trade",
+        lambda config: None,
+    )
 
     # Top-level says BTCUSDT.BINANCE; params block tries (incorrectly) to
     # override it with a different instrument_id.
