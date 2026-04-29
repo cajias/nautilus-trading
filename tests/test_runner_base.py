@@ -23,11 +23,16 @@ def test_concrete_subclass_runs():
     from nautilus_trading.backtest.runner_base import BacktestRunner
 
     class _StubRunner(BacktestRunner):
-        def build_config(self):
-            return {"built": True}
+        def __init__(self):
+            self._cfg = {"built": True}
 
-        def add_data(self, engine, config):
-            engine.setdefault("data", []).append(config)
+        def build_config(self):
+            return self._cfg
+
+        def add_data(self, engine):
+            # Subclasses read whatever they need from ``self`` rather
+            # than receiving the engine config as a parameter.
+            engine.setdefault("data", []).append(self._cfg)
 
         def run(self, engine):
             return {"ok": True, "engine": engine}
@@ -39,9 +44,9 @@ def test_concrete_subclass_runs():
             pass
 
     r = _StubRunner()
-    cfg = r.build_config()
-    engine = {}
-    r.add_data(engine, cfg)
+    r.build_config()
+    engine: dict = {}
+    r.add_data(engine)
     assert r.run(engine) == {"ok": True, "engine": {"data": [{"built": True}]}}
 
 
@@ -53,7 +58,7 @@ def test_main_is_abstract():
         def build_config(self):
             return {}
 
-        def add_data(self, engine, config):
+        def add_data(self, engine):
             pass
 
         def run(self, engine):

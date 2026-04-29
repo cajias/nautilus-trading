@@ -22,17 +22,14 @@ Preserves the Kronos contract documented in
 strategy consumes them — actor must be up first). Mirror of PR 1's
 paper-trade ordering invariant.
 
-PR-2 scope
-----------
-This runner does not migrate kronos. The kronos backtest still rides
-:class:`~strategies.crypto.kronos.backtest.KronosBacktestRunner`
-through PR 2 — PR 3 ports it via a parity-snapshot test that gates on
-identical results vs. the old runner on a pinned window. Per task
-brief: this module **must not** import or reference
-``KronosBacktestRunner``; that would tangle the migrations. Build-shape
-tests can still drive the kronos spec safely because they only call
-``spec.builder.build`` / ``actor_spec.builder.build`` — they don't
-import ``KronosActor``.
+Kronos integration
+------------------
+PR 3 ported kronos onto this runner via a parity-snapshot test. The
+durable anchor at
+``tests/strategies/crypto/kronos/test_backtest_parity.py`` asserts that
+the kronos config emitted by this runner (driven by
+``STRATEGY_SPECS["kronos"]`` + :class:`BinanceRestDataSource`) matches
+the frozen snapshot — any drift trips the regression guard.
 
 Build-once contract
 -------------------
@@ -131,16 +128,13 @@ class BacktestStrategyRunner(BacktestRunner):
             logging=LoggingConfig(log_level=self.run_config.log_level),
         )
 
-    def add_data(self, engine: BacktestEngine, config: BacktestEngineConfig) -> None:
+    def add_data(self, engine: BacktestEngine) -> None:
         """Load the instrument + bars from the data source and attach
         them to ``engine``.
 
-        ``config`` is unused here — the engine config is wired during
-        construction; the data adapter is the one that knows where to
-        get the bars from. Kept in the signature to match the
-        :class:`BacktestRunner` ABC.
+        Reads everything from ``self.run_config`` and ``self.data_source``
+        — the engine config is wired during construction.
         """
-        del config  # unused; ABC signature only
         date_range = self.run_config.date_range
         result = self.data_source.load(
             instrument_id=self.run_config.instrument_id,
@@ -197,7 +191,7 @@ class BacktestStrategyRunner(BacktestRunner):
             base_currency=None,
             starting_balances=[Money.from_str(b) for b in self.run_config.starting_balances],
         )
-        self.add_data(engine, config)
+        self.add_data(engine)
         try:
             self.run(engine)
             self.print_results(engine)

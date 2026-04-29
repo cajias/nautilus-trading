@@ -1,0 +1,21 @@
+strategy: kronos
+instrument_id: BTCUSDT.BINANCE
+bar_type: BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL
+trade_size: "0.001"
+log_level: INFO
+venue: BINANCE
+account_type: CASH
+starting_balances:
+  - "500 USDT"
+data_source:
+  type: binance_rest
+  symbol: BTCUSDT
+  interval: 1h
+date_range:
+  start: "2024-01-01"
+  end: "2024-01-31"
+params:
+  model_size: mini
+  n_samples: 10
+  forecast_horizon: 24
+  inference_interval_bars: 4

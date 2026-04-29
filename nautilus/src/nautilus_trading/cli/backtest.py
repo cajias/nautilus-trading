@@ -15,11 +15,11 @@ Two code paths:
    and :func:`~nautilus_trading.backtest.runner.run_backtest`. Emits a
    ``DeprecationWarning``. Will be removed in sub-project B.5 PR 4.
 
-Kronos still rides the legacy path until PR 3 ports it to the generic
-runner via a parity-snapshot test. ``configs/backtest/kronos.yaml``
-intentionally doesn't ship in PR 2; passing a hand-rolled YAML with
-``strategy: kronos`` to the new path is rejected with a friendly
-message pointing the user at the legacy ``--strategy`` invocation.
+Kronos rides the same generic path as every other strategy from
+sub-project B.5 PR 3 onward. ``configs/backtest/kronos.yaml`` ships
+alongside the parity-snapshot test (see
+``tests/strategies/crypto/kronos/test_backtest_parity.py``); the
+legacy ``KronosBacktestRunner`` was retired in PR 3 Task #20.
 
 Build-once contract
 ===================
@@ -41,7 +41,7 @@ from typing import Annotated
 import msgspec
 import typer
 
-from nautilus_trading.cli._common import _ensure_project_root_on_path, _resolve_strategy_paths
+from nautilus_trading.cli._common import _ensure_project_root_on_path
 
 
 def backtest(
@@ -185,22 +185,17 @@ def _run_yaml_backtest(config_path: Path) -> None:
             param_hint="--config",
         )
 
-    if run_config.strategy == "kronos":
-        # PR 2 keeps kronos on the legacy KronosBacktestRunner. PR 3 ports
-        # it via parity-snapshot test and ships configs/backtest/kronos.yaml
-        # at the same time. A hand-rolled YAML with `strategy: kronos`
-        # would otherwise crash deep inside the runner; surface a clear
-        # message instead.
-        raise typer.BadParameter(
-            "kronos backtest still uses the legacy KronosBacktestRunner in PR 2. "
-            "Run via `nt backtest --strategy strategies.crypto.kronos.strategy:KronosStrategy` "
-            "until PR 3 ports it to the generic runner.",
-            param_hint="--config",
-        )
-
     try:
         data_source = build_data_source(run_config.data_source)
-    except (TypeError, ValueError) as exc:
+    except ValueError as exc:
+        # Narrowed to ValueError: ``_construct`` in
+        # ``data_sources/__init__.py`` re-labels signature mismatches
+        # (the user-facing case — typo'd YAML field, missing required
+        # field) as ValueError. Internal ``TypeError`` s raised inside
+        # an adapter constructor body MUST propagate as TypeError so
+        # crash reports stay diagnostic — re-mapping them to
+        # BadParameter would silently undo _construct's two-phase
+        # validation discipline.
         raise typer.BadParameter(str(exc), param_hint="--config") from exc
 
     runner = BacktestStrategyRunner(
@@ -238,10 +233,15 @@ def _run_legacy_backtest(
     """Pre-B.5 backtest path. Retained for one release behind
     ``DeprecationWarning``; deleted in sub-project B.5 PR 4.
 
-    Kronos backtest still routes here in PR 2 — its
-    :class:`KronosBacktestRunner` hasn't been ported yet.
+    All strategies — kronos included from PR 3 onward — should prefer
+    the new ``--config configs/backtest/<name>.yaml`` path.
     """
+    # Lazy imports so module-level ``import nautilus_trading.cli.backtest``
+    # stays cheap — only the legacy path needs ``_resolve_strategy_paths``,
+    # ``build_backtest_config``, and ``ensure_catalog``. Mirrors the
+    # lazy-import pattern in ``cli/paper_trade.py``.
     from nautilus_trading.backtest.runner import build_backtest_config, print_results, run_backtest
+    from nautilus_trading.cli._common import _resolve_strategy_paths
     from nautilus_trading.data.download import ensure_catalog
 
     _ensure_project_root_on_path()

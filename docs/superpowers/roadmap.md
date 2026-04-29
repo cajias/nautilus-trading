@@ -32,7 +32,7 @@ Out of scope, deferred to future work:
 Unify strategy execution under one generic `Strategy` class + three runners (`BacktestStrategyRunner`, `PaperTradeStrategyRunner`, `LiveStrategyRunner`) sharing a YAML-driven interface. Replaces the 8 near-identical `strategies/crypto/*_paper.py` shims with a single generic runner driven by a `StrategySpec` registry. Prerequisite for C — the R11+ submission contract requires strategies to be live-pluggable across all three modes without per-strategy runner code.
 
 - **Plan:** `/Users/rc/.claude/plans/o-strategies-why-do-logical-fiddle.md` (approved 2026-04-23)
-- **PRs:** PR 0 roadmap, PR 1 ✅ generic paper runner + delete shims (#41), PR 2 generic backtest runner + 8 backtest YAMLs (kronos.yaml deferred to PR 3 along with the `KronosBacktestRunner` retirement), PR 3 kronos parity + retire `KronosBacktestRunner` + ship `kronos.yaml`, PR 4 scaffold `LiveStrategyRunner` (raises `NotImplementedError` per 2026-04-21 no-real-money directive).
+- **PRs:** PR 0 roadmap, PR 1 ✅ generic paper runner + delete shims (#41), PR 2 ✅ generic backtest runner + 8 backtest YAMLs (#42), PR 3 kronos parity + retire `KronosBacktestRunner` + ship `kronos.yaml`, PR 4 scaffold `LiveStrategyRunner` (raises `NotImplementedError` per 2026-04-21 no-real-money directive).
 
 ## Sub-project C — Competition platform (PLANNED, not started)
 
