@@ -25,29 +25,31 @@ def test_paper_trade_help_shows_config_option():
 
 def test_paper_trade_config_file_dispatches_to_runner(tmp_path, monkeypatch):
     """`nt paper-trade --config run.yaml` loads the YAML, instantiates the
-    right runner, and calls .main(). Sanity check for the YAML dispatch path;
-    per-strategy coverage lives in tests/cli/test_paper_trade_configs.py.
+    right runner, and dispatches the validated config to ``run_paper_trade``.
+    Sanity check for the YAML dispatch path; per-strategy coverage lives in
+    tests/cli/test_paper_trade_configs.py.
 
-    B.5 migration: the CLI now dispatches through the generic
-    ``PaperTradeStrategyRunner`` (not per-strategy shims), so the monkeypatch
-    attaches to that class and the recorded tuple reads fields off the merged
-    ``params`` dict rather than per-runner dataclass attributes.
+    B.5 PR 2 migration: the CLI now builds the ``TradingNodeConfig`` once
+    (via ``runner.build_config()``) and passes it directly to
+    ``run_paper_trade(config)`` — the runner no longer carries a ``.main()``
+    boot wrapper. Tests capture the runner instance via ``__init__`` and
+    no-op the boot at the source module so the lazy ``from`` import in
+    ``cli/paper_trade.py`` picks up the patched function.
     """
-    calls = []
-
-    def _recording_main(self):
-        calls.append(
-            (
-                self.spec.name,
-                self.params["instrument_id"],
-                self.params["fast_ema"],
-                self.params["slow_ema"],
-            )
-        )
-
     from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
-    monkeypatch.setattr(PaperTradeStrategyRunner, "main", _recording_main)
+    runners: list[PaperTradeStrategyRunner] = []
+    original_init = PaperTradeStrategyRunner.__init__
+
+    def _capturing_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        runners.append(self)
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "__init__", _capturing_init)
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.node_config.run_paper_trade",
+        lambda config: None,
+    )
 
     yaml_path = tmp_path / "run.yaml"
     yaml_path.write_text(
@@ -60,10 +62,15 @@ def test_paper_trade_config_file_dispatches_to_runner(tmp_path, monkeypatch):
         "  slow_ema: 26\n"
     )
 
-    runner = CliRunner()
-    result = runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    cli_runner = CliRunner()
+    result = cli_runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
     assert result.exit_code == 0, result.stdout
-    assert calls == [("ema_cross", "BTCUSDT.BINANCE", 12, 26)]
+    assert len(runners) == 1
+    captured = runners[0]
+    assert captured.spec.name == "ema_cross"
+    assert captured.params["instrument_id"] == "BTCUSDT.BINANCE"
+    assert captured.params["fast_ema"] == 12
+    assert captured.params["slow_ema"] == 26
 
 
 def test_paper_trade_config_missing_file_is_usage_error(tmp_path):
@@ -103,6 +110,57 @@ def test_paper_trade_config_unknown_yaml_field_is_usage_error(tmp_path):
     assert "bogus_field" in result.output
 
 
+def test_paper_trade_dispatch_builds_config_exactly_once(tmp_path, monkeypatch):
+    """``nt paper-trade --config <yaml>`` must build the ``TradingNodeConfig``
+    exactly once per successful invocation.
+
+    Regression guard against the dual-build anti-pattern flagged by
+    /ultrareview on PR #41 (``bug_025``): the CLI used to call
+    ``runner.build_config()`` eagerly for friendly-error mapping AND
+    ``runner.main()`` (which re-built internally), doing the same msgspec
+    + ImportableActorConfig + builder work twice. Locking it to one call
+    prevents the same anti-pattern from creeping back into the parallel
+    backtest CLI in subsequent PRs.
+    """
+    from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
+
+    call_count = [0]
+    original_build = PaperTradeStrategyRunner.build_config
+
+    def _counting_build(self):
+        call_count[0] += 1
+        return original_build(self)
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "build_config", _counting_build)
+    # No-op the boot so we don't actually start a TradingNode. The CLI's
+    # lazy ``from nautilus_trading.paper_trade.node_config import
+    # run_paper_trade`` re-resolves the name at function-call time, so
+    # patching the source-module attribute is sufficient.
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.node_config.run_paper_trade",
+        lambda config: None,
+    )
+
+    yaml_path = tmp_path / "run.yaml"
+    yaml_path.write_text(
+        "strategy: ema_cross\n"
+        "instrument_id: BTCUSDT.BINANCE\n"
+        "bar_type: BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL\n"
+        'trade_size: "0.001"\n'
+        "params:\n"
+        "  fast_ema: 12\n"
+        "  slow_ema: 26\n"
+    )
+
+    cli_runner = CliRunner()
+    result = cli_runner.invoke(app, ["paper-trade", "--config", str(yaml_path)])
+    assert result.exit_code == 0, result.stdout
+    assert call_count[0] == 1, (
+        f"Expected build_config() to be called exactly once; got {call_count[0]}. "
+        "The CLI must reuse the eager-validated config rather than rebuilding it."
+    )
+
+
 def test_paper_trade_top_level_fields_override_params_block(tmp_path, monkeypatch):
     """Top-level YAML fields (``instrument_id`` / ``bar_type`` / ``trade_size``)
     are the canonical source of truth. If a user mistakenly drops one of
@@ -113,14 +171,20 @@ def test_paper_trade_top_level_fields_override_params_block(tmp_path, monkeypatc
     ``**run_config.params`` came AFTER the top-level fields and could
     silently shadow them.
     """
-    captured: list[dict] = []
-
-    def _capture_main(self):
-        captured.append(dict(self.params))
-
     from nautilus_trading.paper_trade.strategy_runner import PaperTradeStrategyRunner
 
-    monkeypatch.setattr(PaperTradeStrategyRunner, "main", _capture_main)
+    captured: list[dict] = []
+    original_init = PaperTradeStrategyRunner.__init__
+
+    def _capture_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        captured.append(dict(self.params))
+
+    monkeypatch.setattr(PaperTradeStrategyRunner, "__init__", _capture_init)
+    monkeypatch.setattr(
+        "nautilus_trading.paper_trade.node_config.run_paper_trade",
+        lambda config: None,
+    )
 
     # Top-level says BTCUSDT.BINANCE; params block tries (incorrectly) to
     # override it with a different instrument_id.

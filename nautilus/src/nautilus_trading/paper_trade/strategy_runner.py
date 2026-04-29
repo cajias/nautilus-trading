@@ -19,7 +19,10 @@ the message bus, the strategy consumes them — so the actor must be up first.
 The runner itself does no TradingNode wiring — it delegates to
 :func:`~nautilus_trading.paper_trade.node_config.build_paper_trade_node_config`,
 which centralizes the Binance Testnet adapter setup (Ed25519, instrument
-provider, account/environment).
+provider, account/environment). Booting the resulting
+:class:`TradingNodeConfig` is the CLI's job — see ``cli/paper_trade.py``,
+which calls :func:`run_paper_trade` directly with the config emitted by
+:meth:`PaperTradeStrategyRunner.build_config`.
 """
 
 from __future__ import annotations
@@ -30,10 +33,7 @@ from typing import Any
 from nautilus_trader.config import ImportableActorConfig, TradingNodeConfig
 
 from nautilus_trading.cli._strategy_specs import StrategySpec
-from nautilus_trading.paper_trade.node_config import (
-    build_paper_trade_node_config,
-    run_paper_trade,
-)
+from nautilus_trading.paper_trade.node_config import build_paper_trade_node_config
 
 
 @dataclass
@@ -62,9 +62,14 @@ class PaperTradeStrategyRunner:
     log_level: str = "INFO"
 
     def build_config(self) -> TradingNodeConfig:
-        """Build the :class:`TradingNodeConfig`. Separated from :meth:`main`
-        so unit tests can assert on the static config shape without booting
-        a :class:`TradingNode`.
+        """Build the :class:`TradingNodeConfig`.
+
+        Returning a config (rather than booting a :class:`TradingNode`) lets
+        unit tests assert on the static config shape and lets the CLI reuse
+        the eager-validated config for both error mapping and the actual
+        boot — see ``cli/paper_trade.py``, which calls
+        :func:`~nautilus_trading.paper_trade.node_config.run_paper_trade`
+        with the result.
 
         Build order: actors → strategy. The ``self.params`` dict feeds both
         builders, so per-run state (instrument_id / bar_type / overrides)
@@ -95,12 +100,3 @@ class PaperTradeStrategyRunner:
             # value into ``[]`` either way.
             actors=actor_configs,
         )
-
-    def main(self) -> None:
-        """Build the config and block on a running :class:`TradingNode`.
-
-        Delegates to :func:`run_paper_trade`, which installs the SIGINT /
-        SIGTERM handlers and validates Binance Testnet credentials before
-        booting the node.
-        """
-        run_paper_trade(self.build_config())
