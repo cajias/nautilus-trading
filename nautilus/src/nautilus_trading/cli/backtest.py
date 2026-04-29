@@ -41,7 +41,7 @@ from typing import Annotated
 import msgspec
 import typer
 
-from nautilus_trading.cli._common import _ensure_project_root_on_path, _resolve_strategy_paths
+from nautilus_trading.cli._common import _ensure_project_root_on_path
 
 
 def backtest(
@@ -200,7 +200,15 @@ def _run_yaml_backtest(config_path: Path) -> None:
 
     try:
         data_source = build_data_source(run_config.data_source)
-    except (TypeError, ValueError) as exc:
+    except ValueError as exc:
+        # Narrowed to ValueError: ``_construct`` in
+        # ``data_sources/__init__.py`` re-labels signature mismatches
+        # (the user-facing case — typo'd YAML field, missing required
+        # field) as ValueError. Internal ``TypeError`` s raised inside
+        # an adapter constructor body MUST propagate as TypeError so
+        # crash reports stay diagnostic — re-mapping them to
+        # BadParameter would silently undo _construct's two-phase
+        # validation discipline.
         raise typer.BadParameter(str(exc), param_hint="--config") from exc
 
     runner = BacktestStrategyRunner(
@@ -241,7 +249,12 @@ def _run_legacy_backtest(
     Kronos backtest still routes here in PR 2 — its
     :class:`KronosBacktestRunner` hasn't been ported yet.
     """
+    # Lazy imports so module-level ``import nautilus_trading.cli.backtest``
+    # stays cheap — only the legacy path needs ``_resolve_strategy_paths``,
+    # ``build_backtest_config``, and ``ensure_catalog``. Mirrors the
+    # lazy-import pattern in ``cli/paper_trade.py``.
     from nautilus_trading.backtest.runner import build_backtest_config, print_results, run_backtest
+    from nautilus_trading.cli._common import _resolve_strategy_paths
     from nautilus_trading.data.download import ensure_catalog
 
     _ensure_project_root_on_path()
