@@ -7,10 +7,10 @@ Three adapters ship in PR 2:
   :class:`~nautilus_trader.persistence.catalog.ParquetDataCatalog`.
   Default for crypto strategies that use the committed fixture catalog.
 - :class:`BinanceRestDataSource` — fetches klines via the public
-  ``/api/v3/klines`` REST endpoint. Ports the logic from
-  ``strategies/crypto/kronos/_fetch_binance.py`` behind the protocol;
-  the original kronos helper is left in place — PR 3 retires it once
-  the kronos backtest moves to the generic runner.
+  ``/api/v3/klines`` REST endpoint. Originally ported from the
+  now-deleted ``strategies/crypto/kronos/_fetch_binance.py`` (PR 2);
+  became the canonical Binance REST source after PR 3 retired the
+  kronos helper.
 - :class:`TestDataSource` — wraps the existing
   :class:`~nautilus_trading.data.providers.TestDataProvider` (sample
   EUR/USD ticks). Useful for end-to-end smoke tests in Task C.

@@ -138,11 +138,10 @@ def test_backtest_config_dispatches_kronos_yaml(tmp_path, monkeypatch):
     call ``runner.main()`` exactly once.
 
     Mirrors :func:`test_backtest_config_dispatches_to_runner` but for
-    kronos. Sub-project B.5 PR 3 ports kronos onto the generic runner
-    via :data:`STRATEGY_SPECS["kronos"]` + :class:`BinanceRestDataSource`;
-    once that lands the new path is the canonical kronos backtest
-    invocation (the legacy ``KronosBacktestRunner`` is deleted in
-    Task #20).
+    kronos. Sub-project B.5 PR 3 ported kronos onto the generic runner
+    via :data:`STRATEGY_SPECS["kronos"]` + :class:`BinanceRestDataSource`
+    and retired the legacy ``KronosBacktestRunner``; this is now the
+    canonical kronos backtest invocation.
 
     HTTP is not exercised — the test stubs ``BacktestStrategyRunner.main``
     so no network or engine wiring runs.

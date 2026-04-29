@@ -1,21 +1,20 @@
 """``BinanceRestDataSource`` — fetch klines via Binance public REST.
 
-Ports the logic from ``strategies/crypto/kronos/_fetch_binance.py``
+Originally ported from the now-deleted
+``strategies/crypto/kronos/_fetch_binance.py`` (sub-project B.5 PR 2)
 behind the :class:`~nautilus_trading.backtest.data_sources.DataSource`
-protocol. The original kronos helper is **not deleted** in PR 2 — its
-``KronosBacktestRunner`` keeps using it directly until PR 3 ports
-kronos to the generic runner via a parity-snapshot test.
+protocol. After PR 3's parity-snapshot test confirmed equivalence,
+the kronos helper was retired and this adapter became the canonical
+Binance REST data source for any backtest YAML with
+``data_source.type: binance_rest``.
 
 No API key required (uses the unauthenticated ``/api/v3/klines``
 endpoint). Pagination + 120ms throttle to stay well within Binance's
 rate limits.
 
-Instrument shape (precision, fees, currency mapping) is inlined from
-``kronos/backtest_config.build_instrument`` rather than imported. PR 3
-deletes both ``kronos/backtest.py`` and ``kronos/backtest_config.py``
-when kronos moves to the generic runner; inlining here keeps this
-adapter self-contained across that deletion. The values must stay
-identical to kronos's original until PR 3's parity test passes.
+Instrument shape (precision, fees, currency mapping) is inlined here
+rather than imported from a strategy module — keeps the adapter
+self-contained and decoupled from any single strategy's wiring.
 """
 
 from __future__ import annotations
@@ -122,7 +121,8 @@ class BinanceRestDataSource:
         return DataSourceResult(instrument=instrument, data=bars)
 
     # ------------------------------------------------------------------
-    # Internal: kline → Bar conversion (ported from kronos/_fetch_binance.py)
+    # Internal: kline → Bar conversion (originally ported from the
+    # now-deleted kronos/_fetch_binance.py — PR 3).
     # ------------------------------------------------------------------
 
     def _fetch_bars(

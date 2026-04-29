@@ -9,18 +9,20 @@ signal-flow contract) and exposes the standard ``BacktestRunner`` ABC
 lifecycle (``build_config``, ``add_data``, ``run``, ``print_results``,
 ``main``).
 
-PR-2 scope reminders that shape this suite:
+Scope reminders that shape this suite:
 
-- **Kronos engine boot is OFF-LIMITS**: kronos still rides the old
-  ``KronosBacktestRunner`` until PR 3 ports it. We can still use the
-  kronos spec for config-shape + actor-ordering tests because those
-  paths only call ``spec.builder.build()`` / ``actor_spec.builder.build()``
-  — they don't import ``KronosActor``. We just don't instantiate the
-  ``BacktestEngine`` for kronos here.
+- **Kronos engine boot is OFF-LIMITS** in this file: it requires
+  loading ``KronosActor`` (which pulls heavy ML deps). The kronos
+  config-shape + actor-ordering tests below use the spec safely —
+  they only call ``spec.builder.build()`` /
+  ``actor_spec.builder.build()`` and never instantiate the actor.
+  End-to-end kronos parity lives in
+  ``tests/strategies/crypto/kronos/test_backtest_parity.py`` and uses
+  a mocked HTTP fetcher.
 - **End-to-end smoke uses the committed crypto fixture catalog**
-  (``tests/fixtures/crypto/catalog/``, BTCUSDT 1H 2024-01-01..14). Both
-  ``ema_cross`` and ``grid_bot`` get a real engine boot — that's the
-  safety gate against silent miswiring in the runner.
+  (``tests/fixtures/crypto/catalog/``, BTCUSDT 1H 2024-01-01..14).
+  Both ``ema_cross`` and ``grid_bot`` get a real engine boot — that's
+  the safety gate against silent miswiring in the runner.
 """
 
 from __future__ import annotations
@@ -93,7 +95,6 @@ def _kronos_run_config():
 def _make_runner(run_config, data_source=None):
     from nautilus_trading.backtest.data_sources import build_data_source
     from nautilus_trading.backtest.strategy_runner import BacktestStrategyRunner
-
     from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
 
     return BacktestStrategyRunner(
@@ -308,10 +309,10 @@ _PER_SPEC_TRADE_SIZE: dict[str, str | None] = {
 def test_runner_builds_valid_config_for_every_non_kronos_spec(spec_name):
     """Every non-kronos spec in ``STRATEGY_SPECS`` must produce a valid
     ``BacktestEngineConfig`` when the generic runner drives it. Kronos
-    excluded — its engine boot lives on the old ``KronosBacktestRunner``
-    until PR 3 ports it. Exclusion mirrors the YAML scope: 8 of 9."""
+    excluded — its engine boot pulls heavy ML deps; end-to-end parity
+    lives in ``tests/strategies/crypto/kronos/test_backtest_parity.py``
+    with mocked HTTP."""
     from nautilus_trading.backtest.run_config import BacktestRunConfig, DateRange
-
     from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
 
     rc = BacktestRunConfig(

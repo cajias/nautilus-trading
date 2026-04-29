@@ -22,17 +22,14 @@ Preserves the Kronos contract documented in
 strategy consumes them — actor must be up first). Mirror of PR 1's
 paper-trade ordering invariant.
 
-PR-2 scope
-----------
-This runner does not migrate kronos. The kronos backtest still rides
-:class:`~strategies.crypto.kronos.backtest.KronosBacktestRunner`
-through PR 2 — PR 3 ports it via a parity-snapshot test that gates on
-identical results vs. the old runner on a pinned window. Per task
-brief: this module **must not** import or reference
-``KronosBacktestRunner``; that would tangle the migrations. Build-shape
-tests can still drive the kronos spec safely because they only call
-``spec.builder.build`` / ``actor_spec.builder.build`` — they don't
-import ``KronosActor``.
+Kronos integration
+------------------
+PR 3 ported kronos onto this runner via a parity-snapshot test. The
+durable anchor at
+``tests/strategies/crypto/kronos/test_backtest_parity.py`` asserts that
+the kronos config emitted by this runner (driven by
+``STRATEGY_SPECS["kronos"]`` + :class:`BinanceRestDataSource`) matches
+the frozen snapshot — any drift trips the regression guard.
 
 Build-once contract
 -------------------

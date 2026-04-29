@@ -5,8 +5,8 @@ must round-trip through the strict msgspec decoder, and the ``params``
 bucket must reach the strategy spec's builder so the runner can produce
 a valid ``BacktestEngineConfig`` chain in Task C.
 
-PR 2 ships **8 backtest YAMLs** (kronos deferred to PR 3 — its existing
-``KronosBacktestRunner`` keeps running on the old code path until then).
+PR 3 added **kronos.yaml**, bringing the suite to 9 backtest YAMLs;
+the legacy ``KronosBacktestRunner`` was retired at the same time.
 """
 
 from __future__ import annotations
@@ -19,9 +19,10 @@ import pytest
 REPO_ROOT = Path(__file__).resolve().parents[2]
 CONFIGS_DIR = REPO_ROOT / "configs" / "backtest"
 
-# Same 8 strategies as PR 2 covers (kronos.yaml is intentionally absent —
-# it lands in PR 3 once the parity-snapshot test for KronosBacktestRunner →
-# generic runner passes).
+# 9 strategy YAMLs covering the full strategy registry. PR 3 added
+# kronos.yaml after the parity-snapshot test confirmed the generic
+# runner produces equivalent kronos output to the (now-deleted) legacy
+# ``KronosBacktestRunner``.
 BACKTEST_YAMLS = [
     "ema_cross.yaml",
     "grid_bot.yaml",
@@ -31,6 +32,7 @@ BACKTEST_YAMLS = [
     "timesfm_grid.yaml",
     "rvs_swing.yaml",
     "shock_guard.yaml",
+    "kronos.yaml",
 ]
 
 
@@ -175,7 +177,6 @@ def test_committed_backtest_yaml_decodes(filename):
     ``BacktestRunConfig`` and references a strategy registered in
     ``STRATEGY_SPECS`` — guards both schema drift and registry drift."""
     from nautilus_trading.backtest.run_config import load_run_config
-
     from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
 
     path = CONFIGS_DIR / filename
@@ -192,21 +193,11 @@ def test_committed_backtest_yaml_decodes(filename):
     )
 
 
-def test_kronos_backtest_yaml_intentionally_absent():
-    """PR 2 explicitly ships 8 backtest YAMLs (no kronos). The kronos
-    backtest still routes through the OLD ``KronosBacktestRunner``; PR 3
-    ports it to the generic runner via a parity-snapshot test and adds
-    the YAML at the same time. Lock that scope here so a stray kronos
-    YAML can't slip in mid-PR."""
-    assert not (CONFIGS_DIR / "kronos.yaml").exists(), (
-        "configs/backtest/kronos.yaml ships in PR 3, not PR 2"
-    )
-
-
-def test_eight_backtest_yamls_committed():
-    """PR 2 ships exactly the 8 YAMLs listed above. A drift in the
-    committed set (added, renamed, deleted file) should fail this test
-    explicitly rather than silently change the strategy coverage."""
+def test_all_backtest_yamls_committed():
+    """The committed set in ``configs/backtest/`` must match the
+    canonical ``BACKTEST_YAMLS`` list above. A drift (added, renamed,
+    or deleted file) fails this test explicitly rather than silently
+    changing the strategy coverage."""
     actual = sorted(p.name for p in CONFIGS_DIR.glob("*.yaml"))
     assert actual == sorted(BACKTEST_YAMLS), (
         f"configs/backtest YAML drift: expected {sorted(BACKTEST_YAMLS)}, got {actual}"

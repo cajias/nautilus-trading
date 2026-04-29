@@ -18,9 +18,8 @@ Two code paths:
 Kronos rides the same generic path as every other strategy from
 sub-project B.5 PR 3 onward. ``configs/backtest/kronos.yaml`` ships
 alongside the parity-snapshot test (see
-``tests/strategies/crypto/kronos/test_backtest_parity.py``); the OLD
-``KronosBacktestRunner`` is retired in PR 3 Task #20 once the parity
-gate is green.
+``tests/strategies/crypto/kronos/test_backtest_parity.py``); the
+legacy ``KronosBacktestRunner`` was retired in PR 3 Task #20.
 
 Build-once contract
 ===================

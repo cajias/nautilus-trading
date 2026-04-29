@@ -38,8 +38,9 @@ class BacktestRunner(ABC):
     def main(self) -> None:
         """Run the backtest end-to-end.
 
-        Subclasses own engine construction, venue/Money wrapping, data loading,
-        execution, and result printing. No default composition — Option D (see
-        PR #16 Copilot thread). Both known subclasses (EMABacktestRunner,
-        KronosBacktestRunner) already provide a concrete `main()`.
+        Subclasses own engine construction, venue/Money wrapping, data
+        loading, execution, and result printing. No default composition
+        — Option D (see PR #16 Copilot thread). Concrete subclasses
+        (``EMABacktestRunner``, ``BacktestStrategyRunner``) provide
+        their own ``main()``.
         """

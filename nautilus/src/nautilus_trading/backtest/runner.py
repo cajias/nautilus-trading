@@ -168,11 +168,12 @@ def print_results(results: list) -> None:
 class EMABacktestRunner(BacktestRunner):
     """Wrap the function-based EMA/BacktestNode flow behind the BacktestRunner ABC.
 
-    Unlike KronosBacktestRunner (which drives a BacktestEngine directly), this
-    runner's run_backtest() constructs a BacktestNode internally — the engine
-    lives inside the node, not in this class. The ``engine`` parameter on
-    ``add_data()`` / ``run()`` is therefore unused; ``main()`` is overridden
-    to skip the default engine-creation step entirely.
+    Unlike :class:`BacktestStrategyRunner` (which drives a
+    ``BacktestEngine`` directly), this runner's ``run_backtest()``
+    constructs a ``BacktestNode`` internally — the engine lives inside
+    the node, not in this class. The ``engine`` parameter on
+    ``add_data()`` / ``run()`` is therefore unused; ``main()`` is
+    overridden to skip the default engine-creation step entirely.
     """
 
     def __init__(self, catalog: ParquetDataCatalog, **kwargs: Any) -> None:
