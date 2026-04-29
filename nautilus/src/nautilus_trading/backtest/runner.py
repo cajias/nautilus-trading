@@ -185,7 +185,7 @@ class EMABacktestRunner(BacktestRunner):
         self._run_config = build_backtest_config(self._catalog, **self._kwargs)
         return self._run_config
 
-    def add_data(self, engine: Any, config: Any) -> None:
+    def add_data(self, engine: Any) -> None:
         """No-op — BacktestNode wires data from BacktestDataConfig internally."""
         return
 

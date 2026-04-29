@@ -128,16 +128,13 @@ class BacktestStrategyRunner(BacktestRunner):
             logging=LoggingConfig(log_level=self.run_config.log_level),
         )
 
-    def add_data(self, engine: BacktestEngine, config: BacktestEngineConfig) -> None:
+    def add_data(self, engine: BacktestEngine) -> None:
         """Load the instrument + bars from the data source and attach
         them to ``engine``.
 
-        ``config`` is unused here — the engine config is wired during
-        construction; the data adapter is the one that knows where to
-        get the bars from. Kept in the signature to match the
-        :class:`BacktestRunner` ABC.
+        Reads everything from ``self.run_config`` and ``self.data_source``
+        — the engine config is wired during construction.
         """
-        del config  # unused; ABC signature only
         date_range = self.run_config.date_range
         result = self.data_source.load(
             instrument_id=self.run_config.instrument_id,
@@ -194,7 +191,7 @@ class BacktestStrategyRunner(BacktestRunner):
             base_currency=None,
             starting_balances=[Money.from_str(b) for b in self.run_config.starting_balances],
         )
-        self.add_data(engine, config)
+        self.add_data(engine)
         try:
             self.run(engine)
             self.print_results(engine)

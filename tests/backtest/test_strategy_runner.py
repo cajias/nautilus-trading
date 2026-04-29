@@ -272,7 +272,7 @@ def test_main_builds_config_exactly_once(monkeypatch):
         lambda self, config: _StubEngine(),
         raising=False,
     )
-    monkeypatch.setattr(BacktestStrategyRunner, "add_data", lambda self, e, c: None)
+    monkeypatch.setattr(BacktestStrategyRunner, "add_data", lambda self, e: None)
     monkeypatch.setattr(BacktestStrategyRunner, "run", lambda self, e: e)
     monkeypatch.setattr(BacktestStrategyRunner, "print_results", lambda self, r: None)
 
