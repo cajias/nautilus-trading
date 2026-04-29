@@ -153,6 +153,52 @@ def test_backtest_config_dispatches_to_runner(tmp_path, monkeypatch):
     assert runners[0].spec.name == "ema_cross"
 
 
+def test_backtest_config_dispatches_kronos_yaml(tmp_path, monkeypatch):
+    """``nt backtest --config configs/backtest/kronos.yaml`` must
+    instantiate ``BacktestStrategyRunner`` with the kronos spec and
+    call ``runner.main()`` exactly once.
+
+    Mirrors :func:`test_backtest_config_dispatches_to_runner` but for
+    kronos. Sub-project B.5 PR 3 ports kronos onto the generic runner
+    via :data:`STRATEGY_SPECS["kronos"]` + :class:`BinanceRestDataSource`;
+    once that lands the new path is the canonical kronos backtest
+    invocation (the legacy ``KronosBacktestRunner`` is deleted in
+    Task #20).
+
+    HTTP is not exercised — the test stubs ``BacktestStrategyRunner.main``
+    so no network or engine wiring runs.
+    """
+    del tmp_path  # use the committed YAML — exercises the file decoder too
+    from nautilus_trading.backtest.strategy_runner import BacktestStrategyRunner
+
+    runners: list[BacktestStrategyRunner] = []
+    main_calls: list[BacktestStrategyRunner] = []
+    original_init = BacktestStrategyRunner.__init__
+
+    def _capturing_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        runners.append(self)
+
+    monkeypatch.setattr(BacktestStrategyRunner, "__init__", _capturing_init)
+    monkeypatch.setattr(
+        BacktestStrategyRunner,
+        "main",
+        lambda self: main_calls.append(self),
+    )
+
+    yaml_path = CONFIGS_DIR / "kronos.yaml"
+    assert yaml_path.exists(), "configs/backtest/kronos.yaml must be committed alongside this test"
+
+    runner_cli = CliRunner()
+    result = runner_cli.invoke(app, ["backtest", "--config", str(yaml_path)])
+    assert result.exit_code == 0, result.stdout
+    assert len(runners) == 1
+    assert len(main_calls) == 1
+    assert runners[0].spec.name == "kronos"
+    # Kronos is the only strategy with a sibling actor (KronosActor).
+    assert runners[0].spec.actor_specs, "kronos spec must wire KronosActor"
+
+
 def test_backtest_config_internal_typeerror_propagates(tmp_path, monkeypatch):
     """An adapter constructor raising ``TypeError`` (an internal bug —
     NOT a signature mismatch) must propagate as ``TypeError`` through
