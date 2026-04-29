@@ -64,34 +64,13 @@ def test_backtest_config_unknown_strategy_is_usage_error(tmp_path):
     assert "nonexistent_bot" in result.output
 
 
-def test_backtest_config_kronos_routed_to_legacy_friendly_error(tmp_path):
-    """Hand-rolled ``strategy: kronos`` YAML in PR 2 must surface a
-    friendly message pointing at the legacy ``--strategy`` invocation
-    rather than crashing inside the runner. PR 3 ports kronos and ships
-    ``configs/backtest/kronos.yaml`` simultaneously."""
-    yaml_path = tmp_path / "kronos.yaml"
-    yaml_path.write_text(
-        "strategy: kronos\n"
-        "instrument_id: BTCUSDT.BINANCE\n"
-        "bar_type: BTCUSDT.BINANCE-1-HOUR-LAST-EXTERNAL\n"
-        'trade_size: "0.001"\n'
-        "venue: BINANCE\n"
-        "account_type: CASH\n"
-        'starting_balances: ["500 USDT"]\n'
-        "data_source:\n"
-        "  type: binance_rest\n"
-        "  symbol: BTCUSDT\n"
-        "  interval: 1h\n"
-        "date_range:\n"
-        '  start: "2024-01-01"\n'
-        '  end: "2024-01-07"\n'
-    )
-    runner = CliRunner()
-    result = runner.invoke(app, ["backtest", "--config", str(yaml_path)])
-    assert result.exit_code != 0
-    # Friendly message directs users at the legacy path explicitly.
-    assert "kronos" in result.output.lower()
-    assert "legacy" in result.output.lower() or "--strategy" in result.output
+# NOTE: The PR 2-era guard `test_backtest_config_kronos_routed_to_legacy_friendly_error`
+# was deleted in sub-project B.5 PR 3. Its purpose — rejecting hand-rolled
+# `strategy: kronos` YAMLs with a friendly pointer at the legacy
+# `--strategy` invocation — is obsolete: kronos.yaml now ships in
+# `configs/backtest/` and the new path handles kronos like every other
+# strategy. The successor test is
+# `test_backtest_config_dispatches_kronos_yaml` below.
 
 
 def test_backtest_config_unknown_yaml_field_is_usage_error(tmp_path):
