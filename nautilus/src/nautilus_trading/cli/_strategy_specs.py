@@ -289,14 +289,18 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
         spec = ep.load()
         if callable(spec):
             spec = spec()  # support factory functions
+        # ``EntryPoint.dist`` is typed Optional but populated for any ep yielded by
+        # ``entry_points(group=...)``; the fallback keeps mypy happy and gives a
+        # human-readable label if a future Python release relaxes the contract.
+        dist_name = ep.dist.name if ep.dist is not None else "<unknown distribution>"
         if spec.name in specs:
             raise RuntimeError(
                 f"Duplicate strategy registration: '{spec.name}' "
-                f"declared by both '{sources[spec.name]}' and '{ep.dist.name}'. "
+                f"declared by both '{sources[spec.name]}' and '{dist_name}'. "
                 f"Uninstall or rename one to resolve."
             )
         specs[spec.name] = spec
-        sources[spec.name] = ep.dist.name
+        sources[spec.name] = dist_name
     return specs
 
 
