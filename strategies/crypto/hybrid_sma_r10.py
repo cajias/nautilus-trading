@@ -26,6 +26,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import HybridSMAConfigBuilder, StrategySpec
+
 ZERO = Decimal("0")
 
 
@@ -277,3 +279,11 @@ class HybridSMAR10Strategy(Strategy):
             f"Rebalance {side.name} qty={qty} "
             f"(current={current_qty} target={target_qty} fraction={target_fraction})",
         )
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="hybrid_sma_r10",
+    builder=HybridSMAConfigBuilder(),
+    strategy_path="strategies.crypto.hybrid_sma_r10:HybridSMAR10Strategy",
+    config_path="strategies.crypto.hybrid_sma_r10:HybridSMAR10Config",
+)
