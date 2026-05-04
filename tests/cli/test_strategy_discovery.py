@@ -83,3 +83,36 @@ def test_discover_strategy_specs_raises_on_duplicate_names() -> None:
     ):
         with pytest.raises(RuntimeError, match="package-a.*package-b|package-b.*package-a"):
             _discover_strategy_specs()
+
+
+def test_discover_strategy_specs_raises_on_name_mismatch() -> None:
+    """_discover_strategy_specs() raises RuntimeError when ep.name != spec.name.
+
+    The entry-point key (used in YAML ``strategy:`` lookups) must match
+    ``STRATEGY_SPEC.name`` (used by dispatch + duplicate detection). A mismatch
+    would let an external package expose a name different from what it registered.
+    """
+    from dataclasses import replace
+    from unittest.mock import MagicMock, patch
+
+    from strategies.crypto.grid_bot import STRATEGY_SPEC as GRID_BOT_SPEC
+
+    from nautilus_trading.cli._strategy_specs import _discover_strategy_specs
+
+    mismatched_spec = replace(GRID_BOT_SPEC, name="actual_name_in_spec")
+
+    fake_ep = MagicMock()
+    fake_ep.name = "registered_as"  # entry-point key
+    fake_ep.load.return_value = mismatched_spec
+    fake_ep.dist = MagicMock()
+    fake_ep.dist.name = "external-pkg"
+
+    with patch(
+        "nautilus_trading.cli._strategy_specs.importlib.metadata.entry_points",
+        return_value=[fake_ep],
+    ):
+        with pytest.raises(
+            RuntimeError,
+            match="registered_as.*actual_name_in_spec|actual_name_in_spec.*registered_as",
+        ):
+            _discover_strategy_specs()

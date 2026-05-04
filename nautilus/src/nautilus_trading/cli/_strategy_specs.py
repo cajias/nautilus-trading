@@ -280,9 +280,19 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
     Raises
     ------
     RuntimeError
-        If two installed packages register the same strategy name (the error message
-        names both packages so the user knows which to uninstall or rename).
+        If two installed packages register the same strategy name, or if an
+        entry-point's registered name does not match its ``STRATEGY_SPEC.name``.
+        Both error messages name the source package(s) so the user knows what
+        to uninstall, rename, or correct.
     """
+    # Repo-root strategies (``strategies.forex.*``, ``strategies.crypto.*``) live
+    # outside the ``nautilus_trading`` package and rely on a sys.path bootstrap.
+    # Discovery fires at module import — before any CLI dispatcher has had a
+    # chance to call this — so do the bootstrap here. The helper is idempotent.
+    from nautilus_trading.cli._common import _ensure_project_root_on_path
+
+    _ensure_project_root_on_path()
+
     specs: dict[str, StrategySpec] = {}
     sources: dict[str, str] = {}  # spec.name -> source distribution name
     for ep in importlib.metadata.entry_points(group="nautilus_trading.strategies"):
@@ -293,6 +303,16 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
         # ``entry_points(group=...)``; the fallback keeps mypy happy and gives a
         # human-readable label if a future Python release relaxes the contract.
         dist_name = ep.dist.name if ep.dist is not None else "<unknown distribution>"
+        # Contract: the entry-point key (used by YAML's ``strategy:`` field) must
+        # match ``STRATEGY_SPEC.name`` (used by dispatch + the duplicate-detect
+        # check below). A mismatch would let a third party silently expose a
+        # name differently from what they registered.
+        if spec.name != ep.name:
+            raise RuntimeError(
+                f"Entry-point name mismatch: '{dist_name}' registered the strategy "
+                f"as '{ep.name}' but its STRATEGY_SPEC.name is '{spec.name}'. "
+                f"The two must match."
+            )
         if spec.name in specs:
             raise RuntimeError(
                 f"Duplicate strategy registration: '{spec.name}' "
