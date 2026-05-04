@@ -74,3 +74,9 @@ dist/
 !.agent/history/.gitkeep
 # Keep Ralph's scratchpad ignored (previously covered by broad .agent/ ignore):
 .agent/scratchpad.md
+
+
+# APM dependencies (reproducible from apm.yml + apm.lock.yaml via `apm install`)
+# APM-deployed .claude/agents/, .claude/skills/, .claude/commands/ are already
+# ignored by the .claude/* rule above.
+apm_modules/

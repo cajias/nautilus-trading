@@ -1,0 +1,20 @@
+name: fizzy-wobbling-rossum
+version: 1.0.0
+description: APM project for fizzy-wobbling-rossum
+author: Raul
+dependencies:
+  apm:
+  - wshobson/agents/plugins/quantitative-trading
+  - wshobson/agents/plugins/python-development
+  - wshobson/agents/plugins/tdd-workflows
+  - wshobson/agents/plugins/data-engineering
+  - wshobson/agents/plugins/machine-learning-ops
+  - wshobson/agents/plugins/code-refactoring
+  - wshobson/agents/plugins/dependency-management
+  - wshobson/agents/plugins/documentation-standards
+  - wshobson/agents/plugins/context-management
+  - wshobson/agents/plugins/error-debugging
+  - openprose/prose
+  mcp: []
+includes: auto
+scripts: {}
