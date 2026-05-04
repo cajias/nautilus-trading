@@ -24,6 +24,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import StrategySpec, TimesFMConfigBuilder
 from strategies.crypto.risk_guard import RiskGuard
 
 try:
@@ -315,3 +316,11 @@ class TimesFMSwingStrategy(RiskGuard, Strategy):
             self.log.info(f"Take profit triggered ({direction}): {pnl_pct:.4f}")
             self.close_all_positions(instrument_id)
             self._entry_price = None
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="timesfm_swing",
+    builder=TimesFMConfigBuilder(),
+    strategy_path="strategies.crypto.timesfm_swing:TimesFMSwingStrategy",
+    config_path="strategies.crypto.timesfm_swing:TimesFMSwingConfig",
+)
