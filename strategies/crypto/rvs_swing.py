@@ -19,6 +19,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import RVSSwingConfigBuilder, StrategySpec
 from strategies.crypto.risk_guard import RiskGuard
 from strategies.crypto.rvs_data import RVSSignal
 
@@ -264,3 +265,11 @@ class RVSSwingStrategy(RiskGuard, Strategy):
         self._entry_price = price
         self._highest_since_entry = price
         self._profit_threshold_reached = False
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="rvs_swing",
+    builder=RVSSwingConfigBuilder(),
+    strategy_path="strategies.crypto.rvs_swing:RVSSwingStrategy",
+    config_path="strategies.crypto.rvs_swing:RVSSwingConfig",
+)
