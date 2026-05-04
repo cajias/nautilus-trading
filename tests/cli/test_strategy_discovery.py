@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib
+import importlib.metadata
 
 import pytest
 
@@ -34,14 +35,17 @@ def test_strategy_module_exports_strategy_spec(name: str, module_path: str) -> N
     )
 
 
-import importlib.metadata
-
-
 def test_strategy_specs_dict_is_populated_from_entry_points() -> None:
     """STRATEGY_SPECS is populated from `nautilus_trading.strategies` entry-points."""
     from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
 
     eps = {ep.name for ep in importlib.metadata.entry_points(group="nautilus_trading.strategies")}
+    # Guard: a passing test on empty == empty would silently no-op when the
+    # pyproject entry-points block is missing or `uv sync` was skipped.
+    assert eps, (
+        "no strategies registered — pyproject.toml entry-points block missing "
+        "or `uv sync` skipped after editing pyproject.toml?"
+    )
     assert set(STRATEGY_SPECS.keys()) == eps, (
         f"STRATEGY_SPECS keys ({sorted(STRATEGY_SPECS)}) must match registered entry-points ({sorted(eps)})"
     )
