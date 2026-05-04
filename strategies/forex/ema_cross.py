@@ -8,6 +8,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import EMAConfigBuilder, StrategySpec
+
 
 class EMACrossConfig(StrategyConfig, frozen=True):
     instrument_id: InstrumentId
@@ -84,3 +86,11 @@ class EMACrossStrategy(Strategy):
     def on_reset(self) -> None:
         self.fast_ema.reset()
         self.slow_ema.reset()
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="ema_cross",
+    builder=EMAConfigBuilder(),
+    strategy_path="strategies.forex.ema_cross:EMACrossStrategy",
+    config_path="strategies.forex.ema_cross:EMACrossConfig",
+)
