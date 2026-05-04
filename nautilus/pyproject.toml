@@ -47,6 +47,17 @@ dev = [
 [project.scripts]
 nt = "nautilus_trading.cli:app"
 
+[project.entry-points."nautilus_trading.strategies"]
+ema_cross = "strategies.forex.ema_cross:STRATEGY_SPEC"
+grid_bot = "strategies.crypto.grid_bot:STRATEGY_SPEC"
+dca_bot = "strategies.crypto.dca_bot:STRATEGY_SPEC"
+timesfm_swing = "strategies.crypto.timesfm_swing:STRATEGY_SPEC"
+hybrid_sma_r10 = "strategies.crypto.hybrid_sma_r10:STRATEGY_SPEC"
+timesfm_grid = "strategies.crypto.timesfm_grid:STRATEGY_SPEC"
+rvs_swing = "strategies.crypto.rvs_swing:STRATEGY_SPEC"
+shock_guard = "strategies.crypto.shock_guard:STRATEGY_SPEC"
+kronos = "strategies.crypto.kronos:STRATEGY_SPEC"
+
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"

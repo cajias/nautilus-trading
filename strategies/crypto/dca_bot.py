@@ -8,6 +8,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import DCABotConfigBuilder, StrategySpec
 from strategies.crypto.risk_guard import RiskGuard
 
 
@@ -213,3 +214,11 @@ class DCABotStrategy(RiskGuard, Strategy):
         self._bar_count = 0
         self._last_rsi_exit_bar = -999
         self._reset_tracking()
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="dca_bot",
+    builder=DCABotConfigBuilder(),
+    strategy_path="strategies.crypto.dca_bot:DCABotStrategy",
+    config_path="strategies.crypto.dca_bot:DCABotConfig",
+)

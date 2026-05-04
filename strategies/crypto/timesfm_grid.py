@@ -25,6 +25,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import StrategySpec, TimesFMGridConfigBuilder
 from nautilus_trading.paper_trade.node_config import round_to_tick
 from strategies.crypto._grid_math import (
     compute_atr_adjusted_step,
@@ -554,3 +555,11 @@ class TimesFMGridStrategy(RiskGuard, Strategy):
             time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="timesfm_grid",
+    builder=TimesFMGridConfigBuilder(),
+    strategy_path="strategies.crypto.timesfm_grid:TimesFMGridStrategy",
+    config_path="strategies.crypto.timesfm_grid:TimesFMGridConfig",
+)

@@ -10,6 +10,7 @@ from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import GridBotConfigBuilder, StrategySpec
 from strategies.crypto._grid_math import compute_uniform_grid_levels
 from strategies.crypto.risk_guard import RiskGuard
 
@@ -251,3 +252,11 @@ class GridBotStrategy(RiskGuard, Strategy):
         self._prev_ema_value = 0.0
         self._is_trending = False
         self._stop_loss_price = Decimal("0")
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="grid_bot",
+    builder=GridBotConfigBuilder(),
+    strategy_path="strategies.crypto.grid_bot:GridBotStrategy",
+    config_path="strategies.crypto.grid_bot:GridBotConfig",
+)
