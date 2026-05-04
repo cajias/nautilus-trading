@@ -26,6 +26,7 @@ list) to keep the frozen instance hashable without a custom ``__hash__``.
 
 from __future__ import annotations
 
+import importlib.metadata
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -265,74 +266,42 @@ class StrategySpec:
 
 
 # ---------------------------------------------------------------------------
-# Registry
+# Registry — discovered from the ``nautilus_trading.strategies`` entry-point group
 # ---------------------------------------------------------------------------
 
 
-_KRONOS_ACTOR_SPEC = ActorSpec(
-    actor_path="strategies.crypto.kronos.actor:KronosActor",
-    config_path="strategies.crypto.kronos.actor:KronosActorConfig",
-    builder=KronosActorConfigBuilder(),
-)
+def _discover_strategy_specs() -> dict[str, StrategySpec]:
+    """Discover strategies registered via the ``nautilus_trading.strategies`` entry-point group.
+
+    Each entry-point resolves to a :class:`StrategySpec` constant or a zero-arg factory
+    returning one. Discovery happens at module import; the result is cached in the
+    module-level ``STRATEGY_SPECS`` dict for the process lifetime.
+
+    Raises
+    ------
+    RuntimeError
+        If two installed packages register the same strategy name (the error message
+        names both packages so the user knows which to uninstall or rename).
+    """
+    specs: dict[str, StrategySpec] = {}
+    sources: dict[str, str] = {}  # spec.name -> source distribution name
+    for ep in importlib.metadata.entry_points(group="nautilus_trading.strategies"):
+        spec = ep.load()
+        if callable(spec):
+            spec = spec()  # support factory functions
+        if spec.name in specs:
+            raise RuntimeError(
+                f"Duplicate strategy registration: '{spec.name}' "
+                f"declared by both '{sources[spec.name]}' and '{ep.dist.name}'. "
+                f"Uninstall or rename one to resolve."
+            )
+        specs[spec.name] = spec
+        sources[spec.name] = ep.dist.name
+    return specs
 
 
-STRATEGY_SPECS: dict[str, StrategySpec] = {
-    "grid_bot": StrategySpec(
-        name="grid_bot",
-        builder=GridBotConfigBuilder(),
-        strategy_path="strategies.crypto.grid_bot:GridBotStrategy",
-        config_path="strategies.crypto.grid_bot:GridBotConfig",
-    ),
-    "dca_bot": StrategySpec(
-        name="dca_bot",
-        builder=DCABotConfigBuilder(),
-        strategy_path="strategies.crypto.dca_bot:DCABotStrategy",
-        config_path="strategies.crypto.dca_bot:DCABotConfig",
-    ),
-    "ema_cross": StrategySpec(
-        name="ema_cross",
-        builder=EMAConfigBuilder(),
-        strategy_path="strategies.forex.ema_cross:EMACrossStrategy",
-        config_path="strategies.forex.ema_cross:EMACrossConfig",
-    ),
-    "timesfm_swing": StrategySpec(
-        name="timesfm_swing",
-        builder=TimesFMConfigBuilder(),
-        strategy_path="strategies.crypto.timesfm_swing:TimesFMSwingStrategy",
-        config_path="strategies.crypto.timesfm_swing:TimesFMSwingConfig",
-    ),
-    "hybrid_sma_r10": StrategySpec(
-        name="hybrid_sma_r10",
-        builder=HybridSMAConfigBuilder(),
-        strategy_path="strategies.crypto.hybrid_sma_r10:HybridSMAR10Strategy",
-        config_path="strategies.crypto.hybrid_sma_r10:HybridSMAR10Config",
-    ),
-    "timesfm_grid": StrategySpec(
-        name="timesfm_grid",
-        builder=TimesFMGridConfigBuilder(),
-        strategy_path="strategies.crypto.timesfm_grid:TimesFMGridStrategy",
-        config_path="strategies.crypto.timesfm_grid:TimesFMGridConfig",
-    ),
-    "rvs_swing": StrategySpec(
-        name="rvs_swing",
-        builder=RVSSwingConfigBuilder(),
-        strategy_path="strategies.crypto.rvs_swing:RVSSwingStrategy",
-        config_path="strategies.crypto.rvs_swing:RVSSwingConfig",
-    ),
-    "shock_guard": StrategySpec(
-        name="shock_guard",
-        builder=ShockGuardConfigBuilder(),
-        strategy_path="strategies.crypto.shock_guard:ShockGuardStrategy",
-        config_path="strategies.crypto.shock_guard:ShockGuardConfig",
-    ),
-    "kronos": StrategySpec(
-        name="kronos",
-        builder=KronosConfigBuilder(),
-        strategy_path="strategies.crypto.kronos.strategy:KronosStrategy",
-        config_path="strategies.crypto.kronos.strategy:KronosStrategyConfig",
-        actor_specs=(_KRONOS_ACTOR_SPEC,),
-    ),
-}
+# Discovery happens at module import; cached for the process lifetime.
+STRATEGY_SPECS: dict[str, StrategySpec] = _discover_strategy_specs()
 
 
 # Derived name → builder projection. ``backtest/runner.py`` still consumes
