@@ -36,3 +36,24 @@ HuggingFace model/tokenizer IDs are configurable for advanced use::
         huggingface_tokenizer_id="NeoQuasar/Kronos-Tokenizer-2k",
     )
 """
+
+from nautilus_trading.cli._strategy_specs import (
+    ActorSpec,
+    KronosActorConfigBuilder,
+    KronosConfigBuilder,
+    StrategySpec,
+)
+
+STRATEGY_SPEC = StrategySpec(
+    name="kronos",
+    builder=KronosConfigBuilder(),
+    strategy_path="strategies.crypto.kronos.strategy:KronosStrategy",
+    config_path="strategies.crypto.kronos.strategy:KronosStrategyConfig",
+    actor_specs=(
+        ActorSpec(
+            actor_path="strategies.crypto.kronos.actor:KronosActor",
+            config_path="strategies.crypto.kronos.actor:KronosActorConfig",
+            builder=KronosActorConfigBuilder(),
+        ),
+    ),
+)
