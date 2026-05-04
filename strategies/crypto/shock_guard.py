@@ -28,6 +28,7 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
+from nautilus_trading.cli._strategy_specs import ShockGuardConfigBuilder, StrategySpec
 from strategies.crypto.risk_guard import RiskGuard
 
 
@@ -358,3 +359,11 @@ class ShockGuardStrategy(RiskGuard, Strategy):
         )
         self.submit_order(order)
         self._entry_price = current_price
+
+
+STRATEGY_SPEC = StrategySpec(
+    name="shock_guard",
+    builder=ShockGuardConfigBuilder(),
+    strategy_path="strategies.crypto.shock_guard:ShockGuardStrategy",
+    config_path="strategies.crypto.shock_guard:ShockGuardConfig",
+)
