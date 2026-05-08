@@ -19,7 +19,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
-from nautilus_trading.cli._strategy_specs import RVSSwingConfigBuilder, StrategySpec
+from nautilus_trading.cli._strategy_specs import RVSSwingConfigBuilder
+from nautilus_trading.specs import StrategySpec
 from strategies.crypto.risk_guard import RiskGuard
 from strategies.crypto.rvs_data import RVSSignal
 

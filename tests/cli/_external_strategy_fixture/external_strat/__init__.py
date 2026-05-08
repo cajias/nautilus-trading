@@ -14,15 +14,18 @@ from __future__ import annotations
 
 from typing import Any
 
-from nautilus_trading.cli._strategy_specs import StrategySpec
+from nautilus_trading.specs import StrategySpec
 
 
 class ExternalStratConfigBuilder:
     """Pass-through builder for the synthetic external strategy.
 
-    Mirrors the in-repo ``StrategyConfigBuilder`` Protocol used by
-    :mod:`nautilus_trading.cli._strategy_specs` — the test only needs the
-    ``build`` method to exist, not to do anything sophisticated.
+    Mirrors the in-repo ``ConfigBuilder`` Protocol exposed by
+    :mod:`nautilus_trading.specs` — the test only needs the ``build`` method
+    to exist, not to do anything sophisticated. Plugin authors import
+    ``StrategySpec`` from the public ``nautilus_trading.specs`` surface, NOT
+    from the private ``cli._strategy_specs`` module; this fixture exercises
+    that contract.
     """
 
     def build(self, args: dict[str, Any]) -> dict[str, Any]:

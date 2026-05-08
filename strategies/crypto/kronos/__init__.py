@@ -38,11 +38,10 @@ HuggingFace model/tokenizer IDs are configurable for advanced use::
 """
 
 from nautilus_trading.cli._strategy_specs import (
-    ActorSpec,
     KronosActorConfigBuilder,
     KronosConfigBuilder,
-    StrategySpec,
 )
+from nautilus_trading.specs import ActorSpec, StrategySpec
 
 STRATEGY_SPEC = StrategySpec(
     name="kronos",

@@ -1,50 +1,83 @@
-"""StrategySpec registry — unified home for strategy + actor wiring.
+"""StrategySpec registry — internal discovery glue.
 
-Each :class:`StrategySpec` captures everything a generic runner needs to
-attach a strategy to a node:
+The public ``StrategySpec`` / ``ActorSpec`` / Protocol surface lives in
+:mod:`nautilus_trading.specs`. Plugin authors (in-repo strategies under
+``strategies/`` and any third-party packages registering on the
+``nautilus_trading.strategies`` entry-point group) should import from
+``nautilus_trading.specs``. This module imports those names back so any
+existing call site that still does
+``from nautilus_trading.cli._strategy_specs import StrategySpec`` keeps
+working as a backwards-compat shim, but the canonical home is
+:mod:`nautilus_trading.specs`.
 
-- the name (CLI / YAML key)
-- the config builder (parsed args → strategy_config dict)
-- the strategy + config import paths (for ``ImportableStrategyConfig``)
-- zero or more :class:`ActorSpec` s (for strategies that depend on sibling
-  actors, e.g. Kronos's inference actor)
+What stays here:
 
-The 8 non-kronos specs have ``actor_specs == ()``. The kronos spec carries
-a single :class:`ActorSpec` pointing at ``KronosActor`` + ``KronosActorConfig``.
+- Concrete ``*ConfigBuilder`` classes used by in-repo strategies (each
+  encodes the args-validation contract of one strategy's config).
+- ``_discover_strategy_specs`` — the entry-point-walking discovery function.
+- ``get_strategy_specs`` / ``get_strategy_builders`` — :func:`functools.cache`
+  -decorated lazy accessors. The cache is process-lifetime; tests that need
+  a fresh registry should call ``clear_strategy_caches()`` (clears both
+  accessors at once, since clearing only one leaves the other stale).
+- ``STRATEGY_SPECS`` / ``STRATEGY_BUILDERS`` — module-level names served
+  lazily through PEP 562 ``__getattr__`` so ``from ... import STRATEGY_SPECS``
+  triggers discovery only on first reference, not at module import.
 
-The dict :data:`STRATEGY_BUILDERS` is a derived projection
-``{name: spec.builder for name, spec in STRATEGY_SPECS.items()}``, kept
-because :mod:`nautilus_trading.backtest.runner` still consumes it for
-strategy-name → builder lookup. New code should consume :data:`STRATEGY_SPECS`
-directly so it picks up the strategy + config import paths and any actor
-wiring at the same time.
-
-Design note: ``StrategySpec`` + ``ActorSpec`` are frozen dataclasses so they
-can be hashed and stored in sets. ``actor_specs`` is a ``tuple`` (not a
-list) to keep the frozen instance hashable without a custom ``__hash__``.
+Design note: keeping ``importlib.metadata`` and ``_discover_strategy_specs``
+in *this* module is load-bearing — :mod:`tests.cli.test_strategy_discovery`
+patches ``nautilus_trading.cli._strategy_specs.importlib.metadata.entry_points``
+and calls the underlying function directly. Moving either out would silently
+break those tests.
 """
 
 from __future__ import annotations
 
+import functools
 import importlib.metadata
-from dataclasses import dataclass
-from typing import Any, Protocol
+import logging
+from typing import Any
 
-# ---------------------------------------------------------------------------
-# Protocols
-# ---------------------------------------------------------------------------
+# Public dataclasses + Protocol are now re-exported from
+# :mod:`nautilus_trading.specs`. Keep these imports so existing
+# ``from nautilus_trading.cli._strategy_specs import StrategySpec, ...``
+# call sites (in-repo + any third-party plugin pinned to the old path)
+# continue to resolve. New code should import from ``nautilus_trading.specs``.
+from nautilus_trading.specs import (
+    ActorConfigBuilder,
+    ActorSpec,
+    StrategyConfigBuilder,
+    StrategySpec,
+)
 
+# NOTE: ``STRATEGY_SPECS`` / ``STRATEGY_BUILDERS`` are intentionally NOT in
+# ``__all__``. They are served lazily through PEP 562 ``__getattr__`` and
+# ruff's F822 check ("undefined name in __all__") flags any name that isn't
+# a real module-level binding. The accessors ``get_strategy_specs`` /
+# ``get_strategy_builders`` are the canonical export.
+__all__ = [
+    "ActorConfigBuilder",
+    "ActorSpec",
+    "StrategyConfigBuilder",
+    "StrategySpec",
+    # Concrete builder classes — internal to discovery glue, exported for tests.
+    "DCABotConfigBuilder",
+    "EMAConfigBuilder",
+    "GridBotConfigBuilder",
+    "HybridSMAConfigBuilder",
+    "KronosActorConfigBuilder",
+    "KronosConfigBuilder",
+    "RVSSwingConfigBuilder",
+    "ShockGuardConfigBuilder",
+    "TimesFMConfigBuilder",
+    "TimesFMGridConfigBuilder",
+    # Registry accessors.
+    "_discover_strategy_specs",
+    "clear_strategy_caches",
+    "get_strategy_builders",
+    "get_strategy_specs",
+]
 
-class StrategyConfigBuilder(Protocol):
-    """Builds a strategy_config dict from parsed CLI / YAML args."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]: ...
-
-
-class ActorConfigBuilder(Protocol):
-    """Builds an actor_config dict from parsed CLI / YAML args."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]: ...
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -81,7 +114,7 @@ def _base(args: dict[str, Any], *, include_trade_size: bool = True) -> dict[str,
 
 class GridBotConfigBuilder:
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("upper_price") or not args.get("lower_price"):
+        if args.get("upper_price") is None or args.get("lower_price") is None:
             raise ValueError("grid_bot requires --upper-price and --lower-price")
         if args.get("grid_levels") is None:
             raise ValueError("grid_bot requires grid_levels")
@@ -210,63 +243,10 @@ class KronosActorConfigBuilder:
 
 
 # ---------------------------------------------------------------------------
-# Spec dataclasses
-# ---------------------------------------------------------------------------
-
-
-@dataclass(frozen=True)
-class ActorSpec:
-    """Wire-description for an actor attached to a strategy.
-
-    Attributes
-    ----------
-    actor_path
-        Import path for the Actor class, e.g.
-        ``"strategies.crypto.kronos.actor:KronosActor"``. Consumed by
-        ``ImportableActorConfig``.
-    config_path
-        Import path for the Actor's config class, e.g.
-        ``"strategies.crypto.kronos.actor:KronosActorConfig"``.
-    builder
-        Maps parsed CLI / YAML args → the actor_config dict passed to
-        ``ImportableActorConfig.config``.
-    """
-
-    actor_path: str
-    config_path: str
-    builder: ActorConfigBuilder
-
-
-@dataclass(frozen=True)
-class StrategySpec:
-    """Wire-description for a strategy the generic runners can attach.
-
-    Attributes
-    ----------
-    name
-        CLI / YAML key (``"grid_bot"``, ``"kronos"``, ...).
-    builder
-        Maps parsed args → strategy_config dict for ``ImportableStrategyConfig``.
-    strategy_path
-        Import path for the Strategy class.
-    config_path
-        Import path for the Strategy's config class.
-    actor_specs
-        Zero or more ``ActorSpec``s to attach before the strategy. Empty tuple
-        for all non-kronos strategies shipped in sub-project A; kronos carries
-        a single entry for ``KronosActor``. A tuple (not a list) keeps the
-        frozen instance hashable without a custom ``__hash__``.
-    """
-
-    name: str
-    builder: StrategyConfigBuilder
-    strategy_path: str
-    config_path: str
-    actor_specs: tuple[ActorSpec, ...] = ()
-
-
-# ---------------------------------------------------------------------------
 # Registry — discovered from the ``nautilus_trading.strategies`` entry-point group
+#
+# ``StrategySpec`` / ``ActorSpec`` / Protocols live in
+# :mod:`nautilus_trading.specs` and are re-imported at the top of this file.
 # ---------------------------------------------------------------------------
 
 
@@ -274,8 +254,16 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
     """Discover strategies registered via the ``nautilus_trading.strategies`` entry-point group.
 
     Each entry-point resolves to a :class:`StrategySpec` constant or a zero-arg factory
-    returning one. Discovery happens at module import; the result is cached in the
-    module-level ``STRATEGY_SPECS`` dict for the process lifetime.
+    returning one. This is the underlying discovery function. Callers should normally
+    use :func:`get_strategy_specs` (cached) or the lazy ``STRATEGY_SPECS`` module
+    attribute (resolved via PEP 562 ``__getattr__``). This raw function is exposed so
+    tests can patch ``entry_points`` and call it without triggering the cache.
+
+    Resilience: a single broken plugin must not crash the CLI. Three guards apply
+    per entry-point — ``ep.load()`` failure, factory-call failure, and wrong type
+    are each logged-and-skipped. Duplicate names and name mismatches still raise
+    ``RuntimeError`` because those are unambiguous plugin-author errors that
+    silent skipping would mask.
 
     Raises
     ------
@@ -296,13 +284,40 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
     specs: dict[str, StrategySpec] = {}
     sources: dict[str, str] = {}  # spec.name -> source distribution name
     for ep in importlib.metadata.entry_points(group="nautilus_trading.strategies"):
-        spec = ep.load()
-        if callable(spec):
-            spec = spec()  # support factory functions
         # ``EntryPoint.dist`` is typed Optional but populated for any ep yielded by
-        # ``entry_points(group=...)``; the fallback keeps mypy happy and gives a
-        # human-readable label if a future Python release relaxes the contract.
+        # ``entry_points(group=...)``; the fallback gives a human-readable label
+        # if a future Python release relaxes the contract.
         dist_name = ep.dist.name if ep.dist is not None else "<unknown distribution>"
+        try:
+            spec_obj: object = ep.load()
+        except Exception as exc:  # noqa: BLE001 — broken plugin must not crash discovery
+            logger.warning(
+                "Skipping strategy entry-point %r from %r: load failed (%s)",
+                ep.name,
+                dist_name,
+                exc,
+            )
+            continue
+        if callable(spec_obj):
+            try:
+                spec_obj = spec_obj()
+            except Exception as exc:  # noqa: BLE001 — same rationale as above
+                logger.warning(
+                    "Skipping strategy entry-point %r from %r: factory call failed (%s)",
+                    ep.name,
+                    dist_name,
+                    exc,
+                )
+                continue
+        if not isinstance(spec_obj, StrategySpec):
+            logger.warning(
+                "Skipping strategy entry-point %r from %r: expected StrategySpec, got %s",
+                ep.name,
+                dist_name,
+                type(spec_obj).__name__,
+            )
+            continue
+        spec = spec_obj
         # Contract: the entry-point key (used by YAML's ``strategy:`` field) must
         # match ``STRATEGY_SPEC.name`` (used by dispatch + the duplicate-detect
         # check below). A mismatch would let a third party silently expose a
@@ -324,14 +339,55 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
     return specs
 
 
-# Discovery happens at module import; cached for the process lifetime.
-STRATEGY_SPECS: dict[str, StrategySpec] = _discover_strategy_specs()
+@functools.cache
+def get_strategy_specs() -> dict[str, StrategySpec]:
+    """Discover and cache the strategy registry on first call.
+
+    The cache is process-lifetime; tests that need a fresh registry
+    can call ``get_strategy_specs.cache_clear()``. Discovery walks the
+    ``nautilus_trading.strategies`` entry-point group and bootstraps
+    ``sys.path`` for repo-root strategies.
+
+    The cached dict is shared across callers — never mutate it in place;
+    if you need a copy, use ``dict(get_strategy_specs())``.
+    """
+    return _discover_strategy_specs()
 
 
-# Derived name → builder projection. ``backtest/runner.py`` still consumes
-# this for strategy-name → builder lookup; new code should consume
-# ``STRATEGY_SPECS`` directly so it picks up the import paths + actor wiring
-# at the same time.
-STRATEGY_BUILDERS: dict[str, StrategyConfigBuilder] = {
-    name: spec.builder for name, spec in STRATEGY_SPECS.items()
-}
+@functools.cache
+def get_strategy_builders() -> dict[str, StrategyConfigBuilder]:
+    """Lazy ``name -> builder`` projection of :func:`get_strategy_specs`.
+
+    Kept as a separate cache so callers consuming only the builder map
+    don't pay an extra dict comprehension on every access. ``backtest/runner.py``
+    is the remaining consumer; new code should prefer :func:`get_strategy_specs`
+    so it picks up import paths + actor wiring at the same time.
+    """
+    return {name: spec.builder for name, spec in get_strategy_specs().items()}
+
+
+def clear_strategy_caches() -> None:
+    """Clear both cached accessors at once for tests that need a fresh registry.
+
+    :func:`get_strategy_specs` and :func:`get_strategy_builders` are cached
+    independently, so clearing only one can leave the other stale. Tests that
+    re-patch ``importlib.metadata.entry_points`` (or otherwise need to force
+    a re-scan) should prefer this helper. The per-accessor ``.cache_clear()``
+    methods still work — they're just easy to forget the second one of.
+    """
+    get_strategy_specs.cache_clear()
+    get_strategy_builders.cache_clear()
+
+
+# PEP 562 module-level ``__getattr__`` makes the legacy module-level
+# constants ``STRATEGY_SPECS`` / ``STRATEGY_BUILDERS`` lazy: importing them
+# (``from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS``) does
+# NOT trigger discovery at import time — only the first reference does,
+# via :func:`get_strategy_specs`. New code should call the accessors
+# directly; these aliases exist for backwards compat.
+def __getattr__(name: str) -> Any:
+    if name == "STRATEGY_SPECS":
+        return get_strategy_specs()
+    if name == "STRATEGY_BUILDERS":
+        return get_strategy_builders()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
