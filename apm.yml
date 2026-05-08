@@ -1,7 +1,7 @@
-name: fizzy-wobbling-rossum
-version: 1.0.0
-description: APM project for fizzy-wobbling-rossum
-author: Raul
+name: nautilus-trading
+version: 0.1.0
+description: NautilusTrader algorithmic-trading project — publishable APM plugin for the `nt` CLI plus consumer dependencies.
+author: cajias
 dependencies:
   apm:
   - wshobson/agents/plugins/quantitative-trading

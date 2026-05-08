@@ -1,0 +1,20 @@
+{
+  "name": "nautilus-trading",
+  "version": "0.1.0",
+  "description": "Curated skills, slash commands, and an agent for using the nt CLI from cajias/nautilus-trading: backtest, paper-trade, and live-trade NautilusTrader strategies on Binance.",
+  "author": {
+    "name": "cajias",
+    "url": "https://github.com/cajias/nautilus-trading"
+  },
+  "homepage": "https://github.com/cajias/nautilus-trading",
+  "repository": "https://github.com/cajias/nautilus-trading",
+  "license": "MIT",
+  "keywords": [
+    "nautilus-trader",
+    "algorithmic-trading",
+    "backtest",
+    "paper-trade",
+    "binance",
+    "strategy"
+  ]
+}
