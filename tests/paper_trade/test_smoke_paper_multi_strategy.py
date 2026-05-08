@@ -11,10 +11,13 @@ Like ``test_smoke_paper.py`` this is opt-in (gated by
 ``binance_testnet`` and an autouse credentials fixture); default
 ``make test`` skips it.
 
-Parameterized over N=1, 2, 3 strategies — N=1 is a baseline; N=2+
-exercises the multi-subscriber fan-out path. If the upstream bug
-regressed (or this test stopped using FanoutBar), only the first
-strategy's counter would be > 0 and the assertion would fail.
+Parameterized over a single value N=2 — the smallest N that exercises
+the multi-subscriber fan-out path. Higher N values were dropped because
+nautilus_trader's global Rust logger is a process-singleton and rebooting
+a second TradingNode in the same pytest session aborts the process; the
+rationale is documented in detail on the test function's docstring. If
+the upstream bug regressed (or this test stopped using FanoutBar), only
+the first strategy's counter would be > 0 and the assertion would fail.
 """
 
 from __future__ import annotations

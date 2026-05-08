@@ -8,14 +8,16 @@ new code should not depend on.
 
 Why a dedicated public module:
 
-- Importing :mod:`nautilus_trading.cli._strategy_specs` triggers
-  entry-point discovery as a side effect (it bootstraps ``sys.path`` and
-  enumerates installed entry points). Plugin authors only need the
-  dataclass shapes — they should be able to import them without paying the
-  discovery cost or risking a circular import while their own
-  ``STRATEGY_SPEC`` is still being constructed.
-- The ``_``-prefix on ``_strategy_specs`` is a deliberate "private" signal.
-  Public surface lives here under the package root.
+- Importing :mod:`nautilus_trading.cli._strategy_specs` no longer triggers
+  discovery — discovery is deferred until first access of ``STRATEGY_SPECS``
+  (via PEP 562 module ``__getattr__``) or first call to
+  ``get_strategy_specs()``. Even so, plugin authors should depend only on
+  the dataclass shapes exposed here, not on private discovery glue: a
+  third-party plugin importing from ``_strategy_specs`` can race its own
+  ``STRATEGY_SPEC`` construction against the first cache miss, and the
+  ``_``-prefix is a deliberate "private" signal.
+- Public surface lives here under the package root, not in a
+  ``_``-prefixed CLI submodule.
 
 The two concrete dataclasses (``StrategySpec``, ``ActorSpec``) and a single
 :class:`ConfigBuilder` Protocol are the entire public contract. Concrete

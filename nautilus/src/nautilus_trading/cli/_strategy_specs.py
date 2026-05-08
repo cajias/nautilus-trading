@@ -17,7 +17,8 @@ What stays here:
 - ``_discover_strategy_specs`` — the entry-point-walking discovery function.
 - ``get_strategy_specs`` / ``get_strategy_builders`` — :func:`functools.cache`
   -decorated lazy accessors. The cache is process-lifetime; tests that need
-  a fresh registry call ``get_strategy_specs.cache_clear()``.
+  a fresh registry should call ``clear_strategy_caches()`` (clears both
+  accessors at once, since clearing only one leaves the other stale).
 - ``STRATEGY_SPECS`` / ``STRATEGY_BUILDERS`` — module-level names served
   lazily through PEP 562 ``__getattr__`` so ``from ... import STRATEGY_SPECS``
   triggers discovery only on first reference, not at module import.
@@ -71,6 +72,7 @@ __all__ = [
     "TimesFMGridConfigBuilder",
     # Registry accessors.
     "_discover_strategy_specs",
+    "clear_strategy_caches",
     "get_strategy_builders",
     "get_strategy_specs",
 ]
@@ -252,8 +254,10 @@ def _discover_strategy_specs() -> dict[str, StrategySpec]:
     """Discover strategies registered via the ``nautilus_trading.strategies`` entry-point group.
 
     Each entry-point resolves to a :class:`StrategySpec` constant or a zero-arg factory
-    returning one. Discovery happens at module import; the result is cached in the
-    module-level ``STRATEGY_SPECS`` dict for the process lifetime.
+    returning one. This is the underlying discovery function. Callers should normally
+    use :func:`get_strategy_specs` (cached) or the lazy ``STRATEGY_SPECS`` module
+    attribute (resolved via PEP 562 ``__getattr__``). This raw function is exposed so
+    tests can patch ``entry_points`` and call it without triggering the cache.
 
     Resilience: a single broken plugin must not crash the CLI. Three guards apply
     per entry-point — ``ep.load()`` failure, factory-call failure, and wrong type
@@ -360,6 +364,19 @@ def get_strategy_builders() -> dict[str, StrategyConfigBuilder]:
     so it picks up import paths + actor wiring at the same time.
     """
     return {name: spec.builder for name, spec in get_strategy_specs().items()}
+
+
+def clear_strategy_caches() -> None:
+    """Clear both cached accessors at once for tests that need a fresh registry.
+
+    :func:`get_strategy_specs` and :func:`get_strategy_builders` are cached
+    independently, so clearing only one can leave the other stale. Tests that
+    re-patch ``importlib.metadata.entry_points`` (or otherwise need to force
+    a re-scan) should prefer this helper. The per-accessor ``.cache_clear()``
+    methods still work — they're just easy to forget the second one of.
+    """
+    get_strategy_specs.cache_clear()
+    get_strategy_builders.cache_clear()
 
 
 # PEP 562 module-level ``__getattr__`` makes the legacy module-level
