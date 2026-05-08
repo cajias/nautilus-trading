@@ -1,7 +1,7 @@
-name: fizzy-wobbling-rossum
-version: 1.0.0
-description: APM project for fizzy-wobbling-rossum
-author: Raul
+name: nautilus-trading
+version: 0.1.0
+description: NautilusTrader algorithmic-trading project — APM consumer manifest plus a publishable marketplace for the `nt` CLI.
+author: cajias
 dependencies:
   apm:
   - wshobson/agents/plugins/quantitative-trading
@@ -18,3 +18,23 @@ dependencies:
   mcp: []
 includes: auto
 scripts: {}
+marketplace:
+  owner:
+    name: cajias
+    url: https://github.com/cajias
+  metadata:
+    name: nautilus-trading
+    description: Curated skills, slash commands, and an agent for the `nt` CLI shipped by cajias/nautilus-trading.
+    pluginRoot: ./plugins
+  packages:
+  - name: nautilus-trading
+    source: ./plugins/nautilus-trading
+    version: 0.1.0
+    description: Skills, slash commands, and an agent for backtesting / paper-trading / live-trading NautilusTrader strategies via the `nt` CLI.
+    keywords:
+    - nautilus-trader
+    - algorithmic-trading
+    - backtest
+    - paper-trade
+    - binance
+    - strategy
