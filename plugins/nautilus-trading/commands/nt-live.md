@@ -3,6 +3,14 @@ description: Run LIVE trading on Binance with the nt CLI. Real money. Read the s
 argument-hint: "<config-path>"
 ---
 
+> ⚠️ **STATUS: STUB** — `nt live` currently raises `NotImplementedError` per
+> the 2026-04-21 no-real-money directive. The 8-item safety preamble below
+> is forward-looking; this command exists to enforce the gate before real
+> funds are wired in. Running `nt live --config <path>` today will exit
+> with a stack trace, not place orders. Do not invoke until the directive
+> is lifted and the implementation is filled in (see
+> `nautilus/src/nautilus_trading/cli/live.py:116`).
+
 # WARNING — LIVE TRADING ON BINANCE
 
 This command places real orders on Binance with real money. Do NOT run

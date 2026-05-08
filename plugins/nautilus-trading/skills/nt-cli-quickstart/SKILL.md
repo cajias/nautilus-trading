@@ -1,6 +1,6 @@
 ---
 name: nt-cli-quickstart
-description: Quickstart for the `nt` CLI shipped by the cajias/nautilus-trading repo. Use when the user asks "how do I run nautilus", mentions the "nt CLI", says "list strategies", "run a backtest", "paper trade with nautilus", "what does nt strategies do", "nt backtest", "nt paper-trade", "nt live", or is bootstrapping a fresh clone of nautilus-trading and needs the canonical workflow. Covers `make install`, `nt strategies` discovery, running backtests, paper-trading on Binance Spot Testnet, and a "discovery is empty" troubleshooting path keyed to the lenient-discovery code in `nautilus_trading.cli._strategy_specs`.
+description: Quickstart for the `nt` CLI shipped by the cajias/nautilus-trading repo. Use when the user asks "how do I run nautilus", mentions the "nt CLI", says "list strategies", "run a backtest", "paper trade with nautilus", "what does nt strategies do", "nt backtest", "nt paper-trade", "nt live", or is bootstrapping a fresh clone of nautilus-trading and needs the canonical workflow. Covers `make install`, `nt strategies` discovery via the `nautilus_trading.strategies` entry-point group, running backtests, paper-trading on Binance Spot Testnet, and a "discovery is empty" troubleshooting path. The public spec types live in `nautilus_trading.specs` (StrategySpec, ActorSpec, ConfigBuilder).
 ---
 
 # nt CLI Quickstart
@@ -116,11 +116,13 @@ If your strategy isn't listed:
    ```
 
 3. **Lenient discovery skipped your entry-point on import error.**
-   `cli/_strategy_specs.py` runs each entry-point under a try/except and
-   logs a warning rather than crashing the whole CLI when one fails. Look
-   for `WARNING` lines from `nt strategies` referring to your package.
-   Common causes: import-time side effects that fail outside a backtest
-   context, mistyped imports, missing runtime deps in the venv.
+   Discovery is lenient — entry-point load failures emit a WARNING to
+   stderr naming the broken plugin and its source distribution. Check the
+   warning text first; fix the broken plugin or uninstall it. The public
+   spec types live in `nautilus_trading.specs` (StrategySpec, ActorSpec,
+   ConfigBuilder). Common causes: import-time side effects that fail
+   outside a backtest context, mistyped imports, missing runtime deps in
+   the venv.
 
 4. **Entry-point name vs `STRATEGY_SPEC.name` mismatch.** Discovery raises
    `RuntimeError: Entry-point name mismatch` when the key in
@@ -138,11 +140,9 @@ For the full "register an external strategy" workflow see
 ## Reference paths
 
 - Entry-point group: `nautilus_trading.strategies`
-- Discovery glue: `nautilus/src/nautilus_trading/cli/_strategy_specs.py`
 - Public spec types: `nautilus/src/nautilus_trading/specs.py`
-  (import `StrategySpec` and `ActorSpec` from here, never from the
-  underscore-prefixed CLI module)
-- Repo CLAUDE.md: `nautilus/CLAUDE.md`
+  (import `StrategySpec`, `ActorSpec`, and `ConfigBuilder` from here)
+- Repo CLAUDE.md: `CLAUDE.md` (repo root)
 - Paper-trade runbook: `docs/runbooks/paper-trade.md`
 - External-strategies runbook: `docs/runbooks/external-strategies.md`
 

@@ -1,6 +1,6 @@
 ---
 name: nautilus-strategy-authoring
-description: Authoring contract for NautilusTrader strategies pluggable into the cajias/nautilus-trading `nt` CLI. Use when the user asks to "write a new strategy", "author a strategy for nautilus", says "STRATEGY_SPEC", "register a strategy", "external strategy", "build an algo for nt", or wants to port a backtest into the registry. Covers the StrategySpec / ImportableStrategyConfig / msgspec-frozen StrategyConfig contract, entry-point registration via pyproject.toml, plus the eight bug landmines (RSI [0,1] scale, bar-close vs intra-bar exits, Binance MARKET+IOC, BarFanoutActor for shared bar_type, monetary-string parsing, indicator imports, signal-handler unsafety, frozen config defaults).
+description: Authoring contract for NautilusTrader strategies pluggable into the cajias/nautilus-trading `nt` CLI. Use when the user asks to "write a new strategy", "author a strategy for nautilus", says "STRATEGY_SPEC", "register a strategy", "external strategy", "build an algo for nt", or wants to port a backtest into the registry. Covers the StrategySpec / ImportableStrategyConfig / msgspec-frozen StrategyConfig contract, entry-point registration via pyproject.toml, plus ~10 canonical production gotchas spanning indicator scale, order time-in-force, multi-strategy actor pattern, monetary-string parsing, signal-handler safety, and CLI smoke-verification — full enumeration in the skill body.
 ---
 
 # Authoring a Strategy for the `nt` Registry
@@ -144,10 +144,12 @@ For the in-repo authoring path, drop the file under
 `pyproject.toml`'s entry-point table. See `strategies/forex/ema_cross.py`
 for the canonical worked example.
 
-## The eight bug landmines
+## The ten bug landmines (canonical list — single source of truth)
 
 These bite if you don't know them. Each is sourced from a real production
-incident.
+incident in this repo. The companion `strategy-author` agent references
+this list rather than duplicating it; if you find the agent body and this
+section disagree, this section is correct.
 
 ### 1. `RelativeStrengthIndex.value` is in `[0.0, 1.0]`, not `[0, 100]`
 
@@ -256,6 +258,33 @@ df["realized_pnl_num"] = (
 `realized_pnl` returns `"-9.48 USD"`, not a float. Same for `commissions`
 and any column produced by `engine.portfolio.analyzer` that carries a
 currency unit.
+
+### 9. `Actor.log` is not assignable in tests
+
+```python
+# WRONG — TypeError: attribute 'log' of 'nautilus_trader.common.actor.Actor'
+# objects is not writable.
+actor = MyActor.__new__(MyActor)
+actor.log = MagicMock()
+```
+
+`Actor.log` is a Cython slot; the underlying type forbids attribute
+assignment. Tests that need to mock logging must either patch the
+underlying logger object via `unittest.mock.patch`, or — preferably —
+extract the logic under test into a module-level pure function that
+takes a logger as an argument and unit-test the function directly.
+Don't try to instantiate Actor outside a `BacktestEngine`.
+
+### 10. `nt --help` doesn't exercise discovery — invoke a real subcommand
+
+`uv run nt --help` (and `uv run nt strategies --help`) prints Typer's
+synopsis without ever loading the entry-point group. A strategy with
+broken import-time side effects, a typoed `STRATEGY_SPEC.name`, or a
+mismatched entry-point key will pass `--help` cleanly and then fail at
+`nt strategies` or `nt backtest --strategy <name>` time. Always smoke
+with a real subcommand invocation (`nt strategies` listing your name,
+`nt backtest --strategy <name>` exiting 0) before declaring the
+registration done.
 
 ## Verifying
 
