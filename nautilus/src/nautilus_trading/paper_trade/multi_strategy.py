@@ -71,18 +71,18 @@ def _validate_inputs(
     # explicit overrides count — nautilus auto-derives a component_id
     # when the entry is absent, and those derived ids are guaranteed
     # unique by class+suffix logic.
-    seen: dict[str, int] = {}
-    duplicates: list[str] = []
+    seen: set[str] = set()
+    duplicates: set[str] = set()
     for s in strategy_configs:
         cid = (s.config or {}).get("component_id")
         if cid is None:
             continue
         if cid in seen:
-            duplicates.append(cid)
-        seen[cid] = seen.get(cid, 0) + 1
+            duplicates.add(cid)
+        seen.add(cid)
     if duplicates:
         raise ValueError(
-            f"Duplicate component_id values across strategy_configs: {sorted(set(duplicates))}",
+            f"Duplicate component_id values across strategy_configs: {sorted(duplicates)}",
         )
 
 
