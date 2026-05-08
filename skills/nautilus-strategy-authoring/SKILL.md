@@ -217,9 +217,13 @@ Binance Spot, set `time_in_force=TimeInForce.IOC`. See
 `TradingNodeConfig.strategies=[s1, s2, ...]` with a shared `bar_type`
 silently delivers bars only to the FIRST subscriber's `on_bar`; the rest
 stay empty forever. This is a NautilusTrader dispatch bug. The repo's
-workaround is `nautilus_trading.paper_trade.BarFanoutActor` — attach it
-as an actor and have each strategy subscribe to a fanned-out
-`bar_type`. See `nautilus_trading/paper_trade/` for the wiring pattern.
+workaround lives at `nautilus_trading.paper_trade.bar_fanout` — import
+`BarFanoutActor`, `BarFanoutActorConfig`, and `FanoutBar` from that
+module (NOT from the package root — `nautilus_trading.paper_trade.__init__`
+does not re-export them). Attach it as an actor and have each strategy
+subscribe to `DataType(FanoutBar)`. See
+`nautilus_trading/paper_trade/multi_strategy.py:build_multi_strategy_paper_node_config`
+for the wiring pattern.
 
 ### 6. Frozen `StrategyConfig` defaults vs. spec-builder defaults
 

@@ -46,13 +46,14 @@ empty or missing your strategy, see "Discovery is empty" below.
 ### 2. `nt backtest` — run a backtest
 
 ```bash
-# Default in-repo example:
+# Canonical: YAML config carries strategy + params as one artifact.
 cd nautilus
-uv run nt backtest --strategy strategies.forex.ema_cross
-
-# Or from the repo root via Make:
-make backtest STRATEGY=forex.ema_cross
+uv run nt backtest --config ../configs/backtest/ema_cross.yaml
 ```
+
+The legacy `--strategy <module>` path still works but emits a
+`DeprecationWarning` and is slated for removal in sub-project B.5 PR 4.
+Prefer `--config` so backtest setups are committed and reproducible.
 
 Loads sample EUR/USD tick data (auto-downloaded from
 `nautechsystems/nautilus_data`) and runs the backtest. Prints fills, P&L,
@@ -74,11 +75,17 @@ To add a new strategy-config, duplicate an existing YAML and edit the
 Required env vars (Ed25519 keys, recommended by Binance):
 
 ```bash
-export BINANCE_TESTNET_API_KEY="..."
-export BINANCE_TESTNET_API_SECRET="$(cat binance_ed25519_private.pem)"
+export BINANCE_TESTNET_API_KEY="<api-key-id-from-binance>"
+export BINANCE_TESTNET_API_SECRET="<placeholder>"   # presence-checked only
+export BINANCE_TESTNET_ED25519_KEY_PATH="/absolute/path/to/binance_testnet_ed25519_private.pem"
 ```
 
-See `docs/runbooks/paper-trade.md` in the repo for the full setup.
+The PEM contents are NOT placed in `BINANCE_TESTNET_API_SECRET` — that
+variable is presence-checked only. The actual Ed25519 signing key is
+loaded from the file at `BINANCE_TESTNET_ED25519_KEY_PATH`.
+
+See `docs/runbooks/paper-trade.md` in the repo for the full setup
+(generating Ed25519 keys, seeding testnet balance, troubleshooting).
 
 ### 4. `nt live` — Binance live trading
 

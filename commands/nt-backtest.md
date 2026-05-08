@@ -1,24 +1,22 @@
 ---
 description: Run a backtest with the nt CLI for a registered strategy.
-argument-hint: "<strategy-name>"
+argument-hint: "<config-path>"
 ---
 
-Run a backtest for the strategy named in `$ARGUMENTS`. The name must
-match a registered entry under `nt strategies` (e.g. `forex.ema_cross`,
-`crypto.shock_guard`).
+Run a backtest using the YAML config in `$ARGUMENTS` (path relative to
+`nautilus/`, typically a file under `configs/backtest/<name>.yaml`).
 
-Use the project Makefile so the venv and dependency paths are right:
-
-```bash
-make backtest STRATEGY=$ARGUMENTS
-```
-
-Equivalent to:
+Canonical invocation:
 
 ```bash
-cd nautilus && uv run nt backtest --strategy strategies.$ARGUMENTS
+cd nautilus && uv run nt backtest --config $ARGUMENTS
 ```
 
-If the run fails with `Strategy '<name>' not found`, run `/nt-strategies`
-first to see the registered names — the YAML / CLI key must match
-`STRATEGY_SPEC.name` byte-for-byte.
+The legacy `--strategy <name>` path still works but emits a
+`DeprecationWarning` and is slated for removal in sub-project B.5 PR 4 —
+new code should use `--config` so the strategy + parameters travel as
+a single committed artifact.
+
+Run `/nt-strategies` first to see the registered names — they must
+match `STRATEGY_SPEC.name` byte-for-byte for the dispatcher to find
+your config's `strategy:` field.
