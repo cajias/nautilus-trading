@@ -33,7 +33,57 @@ from nautilus_trader.config import (
     LoggingConfig,
     TradingNodeConfig,
 )
+from nautilus_trader.model.data import BarType
 from nautilus_trader.model.identifiers import InstrumentId
+
+
+def _validate_inputs(
+    strategy_configs: list[ImportableStrategyConfig],
+    bar_types: set[str],
+    instrument_ids: set[InstrumentId],
+) -> None:
+    """Fail-fast validation on the public builder's inputs.
+
+    All three checks surface bad inputs at builder time rather than at
+    ``node.build()`` / ``node.run()`` time, where the diagnostics are
+    deeper in nautilus internals and harder to map back to the call site.
+    """
+    if not strategy_configs:
+        raise ValueError("strategy_configs must not be empty")
+
+    # Validate instrument_ids BEFORE wrapping in frozenset — once frozen,
+    # iteration order on error is non-deterministic and the diagnostic
+    # would name an arbitrary bad member.
+    for iid in instrument_ids:
+        if not isinstance(iid, InstrumentId):
+            raise TypeError(
+                f"instrument_ids must contain InstrumentId instances; "
+                f"got {type(iid).__name__} ({iid!r}). "
+                f"Use InstrumentId.from_str(...) to convert strings.",
+            )
+
+    # Parse-check every bar_type at builder time — BarType.from_str is
+    # strict about format and would otherwise raise at node start.
+    for bt in bar_types:
+        BarType.from_str(bt)  # parseability only; result is discarded
+
+    # Detect duplicate component_id across the strategy configs. Only
+    # explicit overrides count — nautilus auto-derives a component_id
+    # when the entry is absent, and those derived ids are guaranteed
+    # unique by class+suffix logic.
+    seen: dict[str, int] = {}
+    duplicates: list[str] = []
+    for s in strategy_configs:
+        cid = (s.config or {}).get("component_id")
+        if cid is None:
+            continue
+        if cid in seen:
+            duplicates.append(cid)
+        seen[cid] = seen.get(cid, 0) + 1
+    if duplicates:
+        raise ValueError(
+            f"Duplicate component_id values across strategy_configs: {sorted(set(duplicates))}",
+        )
 
 
 def build_multi_strategy_paper_node_config(
@@ -74,8 +124,11 @@ def build_multi_strategy_paper_node_config(
         A node config with Binance Spot Testnet data + exec clients (Ed25519),
         the bar-fanout actors, and the supplied strategy configs.
     """
+    _validate_inputs(strategy_configs, bar_types, instrument_ids)
+
+    # frozenset is unordered — the prior ``sorted(...)`` was wasted work.
     instrument_provider = BinanceInstrumentProviderConfig(
-        load_ids=frozenset(sorted(instrument_ids, key=str)),
+        load_ids=frozenset(instrument_ids),
     )
 
     # One BarFanoutActor per unique bar_type. Sorted for deterministic

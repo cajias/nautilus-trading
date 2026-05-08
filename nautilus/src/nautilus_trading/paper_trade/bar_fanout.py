@@ -49,6 +49,11 @@ from nautilus_trader.config import ActorConfig
 from nautilus_trader.core.data import Data
 from nautilus_trader.model.data import Bar, BarType, DataType
 
+# Throttled-publish logging: emit on the first ``_LOG_FIRST_N`` bars to confirm
+# wiring, then every ``_LOG_EVERY_N`` thereafter for liveness without flooding.
+_LOG_FIRST_N = 3
+_LOG_EVERY_N = 30
+
 
 class FanoutBar(Data):
     """Custom Data type wrapping a Bar for multi-subscriber fan-out.
@@ -58,10 +63,19 @@ class FanoutBar(Data):
 
     The `Data` base class exposes `ts_event` / `ts_init` as read-only
     Cython properties backed by `_ts_event` / `_ts_init` — subclasses
-    must assign those private names directly.
+    must assign those private names directly. This is undocumented and
+    version-fragile (verified against nautilus_trader 1.224.0). The
+    matching unit test in ``tests/paper_trade/test_bar_fanout.py`` locks
+    the contract — if a future nautilus version renames or removes
+    `_ts_event`/`_ts_init`, that test will fail before this module's
+    behavior silently regresses.
     """
 
     def __init__(self, bar: Bar) -> None:
+        # Fail loudly: the Cython base's behavior on a None bar is a cryptic
+        # AttributeError on the `bar.ts_event` attribute access below.
+        if bar is None:
+            raise ValueError("FanoutBar(bar=None) is not allowed")
         super().__init__()
         self.bar = bar
         self._ts_event = bar.ts_event
@@ -98,6 +112,16 @@ class BarFanoutActor(Actor):
         self._published: int = 0
 
     def on_start(self) -> None:
+        # IMPORTANT: consumer strategies MUST call ``self.subscribe_data(
+        # DataType(FanoutBar))`` in their own ``on_start`` BEFORE this actor
+        # publishes its first bar. nautilus's DataEngine routes published
+        # custom-data only to subscribers registered at publish time; if a
+        # strategy subscribes after the actor has already published, the
+        # already-published FanoutBar messages are silently dropped — the
+        # exact failure mode this actor exists to work around. nautilus
+        # starts ``actors`` before ``strategies`` deterministically, so as
+        # long as both go through ``TradingNodeConfig`` this contract is
+        # preserved automatically.
         self.subscribe_bars(self._bar_type)
         self.log.info(f"BarFanoutActor: subscribed to {self._bar_type}")
 
@@ -105,12 +129,15 @@ class BarFanoutActor(Actor):
         wrapped = FanoutBar(bar)
         self.publish_data(DataType(FanoutBar), wrapped)
         self._published += 1
-        if self._published <= 3 or self._published % 30 == 0:
+        if self._published <= _LOG_FIRST_N or self._published % _LOG_EVERY_N == 0:
             self.log.info(
                 f"BarFanoutActor: published bar #{self._published} (close={bar.close}, ts={bar.ts_event})",
             )
 
     def on_stop(self) -> None:
+        # Pair the on_start subscribe so warm restarts don't leak the upstream
+        # binding in the DataEngine routing table.
+        self.unsubscribe_bars(self._bar_type)
         self.log.info(
             f"BarFanoutActor: stopping after publishing {self._published} bars",
         )

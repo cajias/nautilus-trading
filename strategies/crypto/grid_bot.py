@@ -10,7 +10,8 @@ from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.model.objects import Price
 from nautilus_trader.trading.strategy import Strategy
 
-from nautilus_trading.cli._strategy_specs import GridBotConfigBuilder, StrategySpec
+from nautilus_trading.cli._strategy_specs import GridBotConfigBuilder
+from nautilus_trading.specs import StrategySpec
 from strategies.crypto._grid_math import compute_uniform_grid_levels
 from strategies.crypto.risk_guard import RiskGuard
 

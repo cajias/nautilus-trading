@@ -10,10 +10,12 @@ and verify two contracts:
    strategies, with ``external-strat-fixture`` shown as the source package.
 
 ``STRATEGY_SPECS`` is computed at module-import time and cached for the
-process lifetime, so the install must be followed by an
-``importlib.reload()`` chain (specs → strategies → cli) to flush the cache.
-The teardown reverses both steps so subsequent test modules see the
-in-repo-only registry.
+process lifetime. The assertions therefore run in a fresh subprocess so the
+discovery happens AFTER the install has landed. This avoids the
+``importlib.reload()`` trap: reloading ``_strategy_specs`` mints a new
+``StrategySpec`` class identity, while the in-repo strategies still hold
+the OLD class — every ``isinstance`` check then fails, leaving the registry
+empty for every downstream test in the session.
 
 Implementation note: this repo is uv-managed and the venv does NOT include
 ``pip`` — ``python -m pip`` would fail with ``No module named pip``. We use
@@ -25,7 +27,6 @@ spuriously.
 
 from __future__ import annotations
 
-import importlib
 import shutil
 import subprocess
 import sys
@@ -50,97 +51,86 @@ def _uv_or_skip() -> str:
     return uv
 
 
-def _flush_strategy_caches() -> None:
-    """Reload the discovery chain so STRATEGY_SPECS is recomputed.
+def _run_in_subprocess(code: str) -> subprocess.CompletedProcess[str]:
+    """Run ``code`` in a fresh interpreter using the same Python as the test session.
 
-    Order matters:
-
-    * ``_strategy_specs`` re-runs ``_discover_strategy_specs()`` and rebuilds
-      the cached dict.
-    * ``cli.strategies`` re-binds its ``STRATEGY_SPECS`` import to the now-
-      fresh dict (otherwise it keeps the pre-reload reference).
-    * ``cli`` (``__init__``) re-registers the Typer commands so ``app`` points
-      at the freshly-reloaded ``strategies`` function.
+    The fresh interpreter is the whole point: ``STRATEGY_SPECS`` is computed
+    at module-import time, so a freshly-spawned Python sees the
+    just-installed external package's entry-point and rebuilds the registry
+    from scratch — without polluting the parent test session, where any
+    reload trick would leave dangling ``StrategySpec`` class identities and
+    break every downstream test that imports the registry.
     """
-    import nautilus_trading.cli as cli_module
-    import nautilus_trading.cli._strategy_specs as specs_module
-    import nautilus_trading.cli.strategies as strategies_module
-
-    importlib.reload(specs_module)
-    importlib.reload(strategies_module)
-    importlib.reload(cli_module)
-
-
-def _drop_external_strat_from_sys_modules() -> None:
-    """Evict the (now-uninstalled) external strat package from the import cache.
-
-    Without this, a future ``ep.load()`` could resurrect the stale module
-    object even after the .dist-info has been removed.
-    """
-    for mod_name in list(sys.modules):
-        if mod_name == "external_strat" or mod_name.startswith("external_strat."):
-            del sys.modules[mod_name]
+    return subprocess.run(
+        [sys.executable, "-c", code],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 @pytest.fixture(scope="module")
 def installed_external_strategy() -> Iterator[None]:
-    """Editable-install the synthetic fixture; uninstall + flush caches on teardown.
+    """Editable-install the synthetic fixture; uninstall on teardown.
 
-    Setuptools editable installs activate via a ``.pth``-loaded meta-path finder
-    that runs at ``site.py`` init — i.e. only at fresh interpreter startup.
-    Since pytest is already up, the finder isn't active, so ``ep.load()`` would
-    fail with ``ModuleNotFoundError: external_strat``. We work around this by
-    appending ``FIXTURE_DIR`` (the dir containing the ``external_strat/``
-    package) to ``sys.path`` ourselves, then popping it back on teardown.
+    No cache flushing or ``sys.path`` manipulation in the parent — the
+    assertions run in subprocesses (see ``_run_in_subprocess``) so the
+    parent's ``STRATEGY_SPECS`` is never observed and never needs to be
+    recomputed.
     """
     uv = _uv_or_skip()
     subprocess.run(
         [uv, "pip", "install", "--editable", str(FIXTURE_DIR), "--quiet"],
         check=True,
     )
-    fixture_path = str(FIXTURE_DIR)
-    added_path = fixture_path not in sys.path
-    if added_path:
-        sys.path.insert(0, fixture_path)
-    _flush_strategy_caches()
     try:
         yield
     finally:
-        if added_path and fixture_path in sys.path:
-            sys.path.remove(fixture_path)
         # ``uv pip uninstall`` is non-interactive (no ``-y`` needed) and
         # exits 0 even if the package was already removed.
         subprocess.run(
             [uv, "pip", "uninstall", FIXTURE_DIST_NAME, "--quiet"],
             check=True,
         )
-        _drop_external_strat_from_sys_modules()
-        _flush_strategy_caches()
 
 
 def test_external_strategy_is_discovered(installed_external_strategy: None) -> None:
     """After install, ``external_strat`` is present in ``STRATEGY_SPECS``."""
-    from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS
-
-    assert "external_strat" in STRATEGY_SPECS, (
-        f"external_strat not discovered; available: {sorted(STRATEGY_SPECS)}"
+    code = (
+        "from nautilus_trading.cli._strategy_specs import STRATEGY_SPECS\n"
+        "assert 'external_strat' in STRATEGY_SPECS, sorted(STRATEGY_SPECS)\n"
+        "spec = STRATEGY_SPECS['external_strat']\n"
+        "assert spec.name == 'external_strat', spec.name\n"
+        "assert spec.strategy_path == 'external_strat.strategy:ExternalStratStrategy', spec.strategy_path\n"
+        "assert spec.config_path == 'external_strat.strategy:ExternalStratConfig', spec.config_path\n"
     )
-    spec = STRATEGY_SPECS["external_strat"]
-    assert spec.name == "external_strat"
-    assert spec.strategy_path == "external_strat.strategy:ExternalStratStrategy"
-    assert spec.config_path == "external_strat.strategy:ExternalStratConfig"
+    result = _run_in_subprocess(code)
+    assert result.returncode == 0, (
+        f"subprocess failed (exit {result.returncode}):\n"
+        f"--- stdout ---\n{result.stdout}\n"
+        f"--- stderr ---\n{result.stderr}"
+    )
 
 
 def test_external_strategy_listed_by_strategies_command(
     installed_external_strategy: None,
 ) -> None:
     """``nt strategies`` lists ``external_strat`` and its source distribution."""
-    from typer.testing import CliRunner
-
-    from nautilus_trading.cli import app
-
-    runner = CliRunner()
-    result = runner.invoke(app, ["strategies"])
-    assert result.exit_code == 0, result.output
-    assert "external_strat" in result.output
-    assert "external-strat-fixture" in result.output
+    code = (
+        "from typer.testing import CliRunner\n"
+        "from nautilus_trading.cli import app\n"
+        "runner = CliRunner()\n"
+        "result = runner.invoke(app, ['strategies'])\n"
+        "if result.exit_code != 0:\n"
+        "    print(result.output)\n"
+        "    raise SystemExit(1)\n"
+        "print(result.output)\n"
+    )
+    result = _run_in_subprocess(code)
+    assert result.returncode == 0, (
+        f"subprocess failed (exit {result.returncode}):\n"
+        f"--- stdout ---\n{result.stdout}\n"
+        f"--- stderr ---\n{result.stderr}"
+    )
+    assert "external_strat" in result.stdout, result.stdout
+    assert "external-strat-fixture" in result.stdout, result.stdout

@@ -13,6 +13,7 @@ Design note (from adversarial debate):
   (Sebastiao & Godinho 2021: up to 9.62% annualized)
 """
 
+import importlib.util
 from decimal import Decimal
 
 import numpy as np
@@ -24,15 +25,36 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
-from nautilus_trading.cli._strategy_specs import StrategySpec, TimesFMConfigBuilder
+from nautilus_trading.cli._strategy_specs import TimesFMConfigBuilder
+from nautilus_trading.specs import StrategySpec
 from strategies.crypto.risk_guard import RiskGuard
 
-try:
-    import timesfm
+# Cheap availability probe: ``importlib.util.find_spec`` locates the package
+# on ``sys.path`` without importing it (and therefore without pulling torch).
+# Tests patch this constant to simulate "timesfm not installed"; the
+# ``_import_timesfm`` function honors it so the patch actually affects
+# the lazy-load path.
+TIMESFM_AVAILABLE: bool = importlib.util.find_spec("timesfm") is not None
 
-    TIMESFM_AVAILABLE = True
-except ImportError:
-    TIMESFM_AVAILABLE = False
+
+def _import_timesfm():
+    """Lazy-import timesfm to avoid pulling torch on every nt CLI invocation.
+
+    Phase C entry-point discovery executes every strategy module, so a
+    module-level ``import timesfm`` would force a ~seconds-long torch import
+    just to list strategies. Honors the ``TIMESFM_AVAILABLE`` module-level
+    flag so tests can short-circuit without monkeypatching imports. Returns
+    the module on success, ``None`` if timesfm is not installed (or the
+    flag has been patched to ``False``).
+    """
+    if not TIMESFM_AVAILABLE:
+        return None
+    try:
+        import timesfm
+
+        return timesfm
+    except ImportError:
+        return None
 
 
 class TimesFMSwingConfig(StrategyConfig, frozen=True):
@@ -135,7 +157,8 @@ class TimesFMSwingStrategy(RiskGuard, Strategy):
 
     def _load_model(self) -> None:
         """Lazy-load TimesFM model. Falls back to EMA-only on failure."""
-        if not TIMESFM_AVAILABLE:
+        timesfm = _import_timesfm()
+        if timesfm is None:
             self.log.warning(
                 "TimesFM not installed -- falling back to EMA crossover mode. "
                 "Install with: pip install timesfm",
@@ -284,7 +307,7 @@ class TimesFMSwingStrategy(RiskGuard, Strategy):
             instrument_id=self.config.instrument_id,
             order_side=side,
             quantity=self.instrument.make_qty(self.config.trade_size),
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
         self._entry_price = price

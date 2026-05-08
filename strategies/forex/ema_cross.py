@@ -8,7 +8,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
-from nautilus_trading.cli._strategy_specs import EMAConfigBuilder, StrategySpec
+from nautilus_trading.cli._strategy_specs import EMAConfigBuilder
+from nautilus_trading.specs import StrategySpec
 
 
 class EMACrossConfig(StrategyConfig, frozen=True):

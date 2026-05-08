@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -141,15 +140,23 @@ def _strategy_module_path() -> str:
 # --------------------------------------------------------------------------- #
 
 
-@pytest.mark.parametrize("n_strategies", [1, 2, 3], ids=["n=1", "n=2", "n=3"])
+@pytest.mark.parametrize("n_strategies", [2], ids=["n=2"])
 def test_multi_strategy_fanout_delivers_to_all_consumers(n_strategies: int) -> None:
     """Boot N BarCounter* strategies + 1 BarFanoutActor; assert every
     strategy's per-instance counter > 0 after the boot window.
 
-    N=1 is a baseline. N=2 / N=3 exercise the multi-subscriber fan-out path
-    that the BarFanoutActor exists to enable. Without the actor (or if its
-    FanoutBar republish stops working) only the first strategy would
-    receive bars and N>=2 would fail the per-instance assertion.
+    N=2 is sufficient as a regression guard for the multi-subscriber fan-out
+    path that BarFanoutActor exists to enable: the upstream dedup bug only
+    appears at N>=2, so failing at N=2 is the canonical signal.
+
+    Why a single parametrize value rather than [1, 2, 3]: nautilus_trader's
+    global Rust logger panics on second init within the same Python process,
+    and the local memory note ``nautilus-trader-logger-singleton.md``
+    documents the failure mode. Sweeping N would instantiate ``TradingNode``
+    three times in one pytest process and crash on the second boot. A full
+    N-sweep regression test belongs in a separate subprocess-per-N harness;
+    this single-value smoke is the cheapest gate that still catches the
+    upstream regression class.
     """
     module_path = _strategy_module_path()
     chosen = _COUNTER_CLASSES[:n_strategies]
@@ -241,10 +248,3 @@ def test_multi_strategy_fanout_delivers_to_all_consumers(n_strategies: int) -> N
             node.stop()
         finally:
             node.dispose()
-
-
-def _resolve_callable(_factory: Callable[[], object] | None = None) -> None:
-    """Placeholder kept for parity with test_smoke_paper.py's helper layout —
-    intentionally unused. (Some IDEs warn about ImportableActorConfig being
-    unused if no reference exists outside the assertion above.)"""
-    _ = ImportableActorConfig  # noqa: F841

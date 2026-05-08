@@ -26,7 +26,8 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
-from nautilus_trading.cli._strategy_specs import HybridSMAConfigBuilder, StrategySpec
+from nautilus_trading.cli._strategy_specs import HybridSMAConfigBuilder
+from nautilus_trading.specs import StrategySpec
 
 ZERO = Decimal("0")
 
@@ -272,7 +273,7 @@ class HybridSMAR10Strategy(Strategy):
             instrument_id=self.config.instrument_id,
             order_side=side,
             quantity=qty,
-            time_in_force=TimeInForce.GTC,
+            time_in_force=TimeInForce.IOC,  # Binance Spot: market orders must use IOC/FOK, not GTC
         )
         self.submit_order(order)
         self.log.info(

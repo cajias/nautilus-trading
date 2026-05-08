@@ -25,8 +25,9 @@ from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.model.instruments import Instrument
 from nautilus_trader.trading.strategy import Strategy
 
-from nautilus_trading.cli._strategy_specs import StrategySpec, TimesFMGridConfigBuilder
+from nautilus_trading.cli._strategy_specs import TimesFMGridConfigBuilder
 from nautilus_trading.paper_trade.node_config import round_to_tick
+from nautilus_trading.specs import StrategySpec
 from strategies.crypto._grid_math import (
     compute_atr_adjusted_step,
     compute_calibration_coverage,
