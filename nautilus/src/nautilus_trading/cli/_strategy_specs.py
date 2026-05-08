@@ -146,7 +146,11 @@ class _ConfigBuilder:
     surface call sites depend on.
     """
 
-    __slots__ = ("_fn",)
+    # NOTE: deliberately no __slots__ — these instances are targets of
+    # mock.patch.object(builder, "build") in tests/{backtest,paper_trade}/
+    # test_strategy_runner.py, and __slots__ blocks the delattr that
+    # mock teardown does. Memory savings of __slots__ are negligible
+    # at the ~10 instances we have.
 
     def __init__(self, fn: Callable[[dict[str, Any]], dict[str, Any]]) -> None:
         self._fn = fn
