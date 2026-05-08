@@ -12,8 +12,12 @@ working as a backwards-compat shim, but the canonical home is
 
 What stays here:
 
-- Concrete ``*ConfigBuilder`` classes used by in-repo strategies (each
-  encodes the args-validation contract of one strategy's config).
+- Module-level builder *instances* (``GRID_BOT_BUILDER``,
+  ``EMA_BUILDER``, ``BASE_ONLY_BUILDER``, ...) used by in-repo strategies.
+  Each is a thin :class:`_ConfigBuilder` wrapper around a
+  ``_build_*(args) -> dict`` function — the wrapper preserves the
+  ``ConfigBuilder`` Protocol's ``.build(args)`` shape while letting the
+  4 base-only strategies share a single ``BASE_ONLY_BUILDER`` instance.
 - ``_discover_strategy_specs`` — the entry-point-walking discovery function.
 - ``get_strategy_specs`` / ``get_strategy_builders`` — :func:`functools.cache`
   -decorated lazy accessors. The cache is process-lifetime; tests that need
@@ -28,6 +32,13 @@ in *this* module is load-bearing — :mod:`tests.cli.test_strategy_discovery`
 patches ``nautilus_trading.cli._strategy_specs.importlib.metadata.entry_points``
 and calls the underlying function directly. Moving either out would silently
 break those tests.
+
+Backwards-compat: legacy class names (``GridBotConfigBuilder``,
+``EMAConfigBuilder``, ``KronosActorConfigBuilder``, ...) are kept as
+zero-arg callable factories so existing ``GridBotConfigBuilder()`` /
+``KronosActorConfigBuilder().build(args)`` call sites in tests and
+strategy modules keep working — they just return the shared module-level
+instance.
 """
 
 from __future__ import annotations
@@ -35,6 +46,7 @@ from __future__ import annotations
 import functools
 import importlib.metadata
 import logging
+from collections.abc import Callable
 from typing import Any
 
 # Public dataclasses + Protocol are now re-exported from
@@ -59,7 +71,15 @@ __all__ = [
     "ActorSpec",
     "StrategyConfigBuilder",
     "StrategySpec",
-    # Concrete builder classes — internal to discovery glue, exported for tests.
+    # Module-level builder instances — what new code should reference.
+    "BASE_ONLY_BUILDER",
+    "DCA_BOT_BUILDER",
+    "EMA_BUILDER",
+    "GRID_BOT_BUILDER",
+    "HYBRID_SMA_BUILDER",
+    "KRONOS_ACTOR_BUILDER",
+    "TIMESFM_BUILDER",
+    # Backwards-compat factory aliases — keep `EMAConfigBuilder()` working.
     "DCABotConfigBuilder",
     "EMAConfigBuilder",
     "GridBotConfigBuilder",
@@ -112,134 +132,178 @@ def _base(args: dict[str, Any], *, include_trade_size: bool = True) -> dict[str,
     return out
 
 
-class GridBotConfigBuilder:
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if args.get("upper_price") is None or args.get("lower_price") is None:
-            raise ValueError("grid_bot requires --upper-price and --lower-price")
-        if args.get("grid_levels") is None:
-            raise ValueError("grid_bot requires grid_levels")
-        out = _base(args)  # ValueError on missing instrument_id/bar_type/trade_size
-        out["upper_price"] = args["upper_price"]
-        out["lower_price"] = args["lower_price"]
-        out["grid_levels"] = args["grid_levels"]
-        return out
+class _ConfigBuilder:
+    """Thin :class:`ConfigBuilder`-conforming wrapper around a build function.
 
+    Lets the 9 in-repo strategy/actor builders be module-level *instances*
+    (one per validation contract) instead of one stateless class per
+    strategy. Four of them — TimesFM-grid, RVS-swing, Shock-Guard, and
+    Kronos — share a single ``BASE_ONLY_BUILDER`` instance because their
+    bodies were all literal ``return _base(args)``.
 
-class DCABotConfigBuilder:
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("buy_interval_bars"):
-            raise ValueError("dca_bot requires buy_interval_bars")
-        out = _base(args)
-        if args.get("buy_amount"):
-            out["buy_amount"] = args["buy_amount"]
-        out["buy_interval_bars"] = args["buy_interval_bars"]
-        return out
-
-
-class EMAConfigBuilder:
-    """EMA cross / swing strategies that need both slow and fast EMA periods."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("slow_ema") or not args.get("fast_ema"):
-            raise ValueError("ema_cross requires slow_ema and fast_ema")
-        out = _base(args)
-        out["ema_period"] = args["slow_ema"]
-        out["fast_ema_period"] = args["fast_ema"]
-        out["slow_ema_period"] = args["slow_ema"]
-        return out
-
-
-class TimesFMConfigBuilder:
-    """TimesFM swing: uses ema_period + fallback_fast_ema_period (no fast_ema_period)."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("slow_ema") or not args.get("fast_ema"):
-            raise ValueError("timesfm_swing requires slow_ema and fast_ema")
-        out = _base(args)
-        out["ema_period"] = args["slow_ema"]
-        out["fallback_fast_ema_period"] = args["fast_ema"]
-        return out
-
-
-class HybridSMAConfigBuilder:
-    """Hybrid SMA ensemble: sizes from equity, so NO trade_size. Decimal fields as strings."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        if not args.get("sma_fast") or not args.get("sma_slow"):
-            raise ValueError("hybrid_sma_r10 requires sma_fast and sma_slow")
-        if args.get("stop_fast") is None or args.get("stop_slow") is None:
-            raise ValueError("hybrid_sma_r10 requires stop_fast and stop_slow")
-        out = _base(args, include_trade_size=False)
-        out["sma_fast"] = args["sma_fast"]
-        out["sma_slow"] = args["sma_slow"]
-        out["stop_fast"] = str(args["stop_fast"])
-        out["stop_slow"] = str(args["stop_slow"])
-        return out
-
-
-class TimesFMGridConfigBuilder:
-    """TimesFM quantile grid: base fields only — all ML/grid params have Config defaults."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
-
-
-class RVSSwingConfigBuilder:
-    """RVS swing: base fields only — anomaly/stop/EMA thresholds all have Config defaults."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
-
-
-class ShockGuardConfigBuilder:
-    """Shock Guard macro allocator: base fields only — all allocation/shock params default."""
-
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
-
-
-class KronosConfigBuilder:
-    """Kronos strategy config: base fields only.
-
-    ML hyperparameters (model_size, n_samples, forecast_horizon,
-    inference_interval_bars) live on the sibling ``KronosActorConfig`` — see
-    ``KronosActorConfigBuilder`` below. ``KronosStrategyConfig`` accepts only
-    the instrument_id / bar_type / trade_size triple, matching the shape pinned
-    in ``strategies/crypto/kronos/paper_runner.py``.
+    The wrapper intentionally implements only ``.build(args)`` (no
+    ``__call__``) so the ``ConfigBuilder`` Protocol contract is the single
+    surface call sites depend on.
     """
 
+    __slots__ = ("_fn",)
+
+    def __init__(self, fn: Callable[[dict[str, Any]], dict[str, Any]]) -> None:
+        self._fn = fn
+
     def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        return _base(args)
+        return self._fn(args)
 
 
-# ---------------------------------------------------------------------------
-# Actor config builders
-# ---------------------------------------------------------------------------
+# -- Per-strategy build functions ------------------------------------------
 
 
-class KronosActorConfigBuilder:
+def _build_grid_bot(args: dict[str, Any]) -> dict[str, Any]:
+    if args.get("upper_price") is None or args.get("lower_price") is None:
+        raise ValueError("grid_bot requires --upper-price and --lower-price")
+    if args.get("grid_levels") is None:
+        raise ValueError("grid_bot requires grid_levels")
+    out = _base(args)  # ValueError on missing instrument_id/bar_type/trade_size
+    out["upper_price"] = args["upper_price"]
+    out["lower_price"] = args["lower_price"]
+    out["grid_levels"] = args["grid_levels"]
+    return out
+
+
+def _build_dca_bot(args: dict[str, Any]) -> dict[str, Any]:
+    if not args.get("buy_interval_bars"):
+        raise ValueError("dca_bot requires buy_interval_bars")
+    out = _base(args)
+    if args.get("buy_amount"):
+        out["buy_amount"] = args["buy_amount"]
+    out["buy_interval_bars"] = args["buy_interval_bars"]
+    return out
+
+
+def _build_ema(args: dict[str, Any]) -> dict[str, Any]:
+    """EMA cross / swing strategies that need both slow and fast EMA periods."""
+    if not args.get("slow_ema") or not args.get("fast_ema"):
+        raise ValueError("ema_cross requires slow_ema and fast_ema")
+    out = _base(args)
+    out["ema_period"] = args["slow_ema"]
+    out["fast_ema_period"] = args["fast_ema"]
+    out["slow_ema_period"] = args["slow_ema"]
+    return out
+
+
+def _build_timesfm(args: dict[str, Any]) -> dict[str, Any]:
+    """TimesFM swing: uses ema_period + fallback_fast_ema_period (no fast_ema_period)."""
+    if not args.get("slow_ema") or not args.get("fast_ema"):
+        raise ValueError("timesfm_swing requires slow_ema and fast_ema")
+    out = _base(args)
+    out["ema_period"] = args["slow_ema"]
+    out["fallback_fast_ema_period"] = args["fast_ema"]
+    return out
+
+
+def _build_hybrid_sma(args: dict[str, Any]) -> dict[str, Any]:
+    """Hybrid SMA ensemble: sizes from equity, so NO trade_size. Decimal fields as strings."""
+    if not args.get("sma_fast") or not args.get("sma_slow"):
+        raise ValueError("hybrid_sma_r10 requires sma_fast and sma_slow")
+    if args.get("stop_fast") is None or args.get("stop_slow") is None:
+        raise ValueError("hybrid_sma_r10 requires stop_fast and stop_slow")
+    out = _base(args, include_trade_size=False)
+    out["sma_fast"] = args["sma_fast"]
+    out["sma_slow"] = args["sma_slow"]
+    out["stop_fast"] = str(args["stop_fast"])
+    out["stop_slow"] = str(args["stop_slow"])
+    return out
+
+
+# Defaults pinned for KronosActorConfig — mirrors the quarantined
+# paper_trade.py snapshot values referenced in
+# strategies/crypto/kronos/paper_runner.py.
+_KRONOS_ACTOR_DEFAULTS: dict[str, Any] = {
+    "model_size": "mini",
+    "n_samples": 10,
+    "forecast_horizon": 24,
+    "inference_interval_bars": 4,
+}
+
+
+def _build_kronos_actor(args: dict[str, Any]) -> dict[str, Any]:
     """Build a ``KronosActorConfig`` kwargs dict from parsed args.
 
     Defaults mirror the quarantined ``paper_trade.py`` snapshot values pinned
     in ``strategies/crypto/kronos/paper_runner.py`` (model_size="mini",
     n_samples=10, forecast_horizon=24, inference_interval_bars=4). Callers
     can override any field by supplying it in ``args``.
+
+    ``_base()`` validates instrument_id + bar_type and raises ``ValueError``
+    on missing — same uniform failure mode as every strategy-config builder.
     """
+    out = _base(args, include_trade_size=False)
+    for key, default in _KRONOS_ACTOR_DEFAULTS.items():
+        out[key] = args.get(key, default)
+    return out
 
-    _DEFAULTS: dict[str, Any] = {
-        "model_size": "mini",
-        "n_samples": 10,
-        "forecast_horizon": 24,
-        "inference_interval_bars": 4,
-    }
 
-    def build(self, args: dict[str, Any]) -> dict[str, Any]:
-        # _base() validates instrument_id + bar_type and raises ValueError on
-        # missing — same uniform failure mode as every strategy-config builder.
-        out = _base(args, include_trade_size=False)
-        for key, default in self._DEFAULTS.items():
-            out[key] = args.get(key, default)
-        return out
+# -- Module-level builder instances ----------------------------------------
+#
+# ``BASE_ONLY_BUILDER`` is a single shared instance for the 4 strategies whose
+# config-build is just ``_base(args)`` (TimesFM-grid, RVS-swing, Shock-Guard,
+# Kronos). Identity sharing is intentional: parity tests assert ``builder is
+# spec.builder`` for these four, and reusing the instance keeps the registry
+# small.
+GRID_BOT_BUILDER: _ConfigBuilder = _ConfigBuilder(_build_grid_bot)
+DCA_BOT_BUILDER: _ConfigBuilder = _ConfigBuilder(_build_dca_bot)
+EMA_BUILDER: _ConfigBuilder = _ConfigBuilder(_build_ema)
+TIMESFM_BUILDER: _ConfigBuilder = _ConfigBuilder(_build_timesfm)
+HYBRID_SMA_BUILDER: _ConfigBuilder = _ConfigBuilder(_build_hybrid_sma)
+BASE_ONLY_BUILDER: _ConfigBuilder = _ConfigBuilder(_base)
+KRONOS_ACTOR_BUILDER: _ConfigBuilder = _ConfigBuilder(_build_kronos_actor)
+
+
+# -- Backwards-compat factory aliases --------------------------------------
+#
+# Existing call sites do ``GridBotConfigBuilder()`` and
+# ``KronosActorConfigBuilder().build(args)``. Keeping these as zero-arg
+# callables that return the shared module-level instance preserves both
+# the ``.build()`` Protocol shape and the ``ClassName()`` instantiation
+# spelling used in tests and in third-party plugins pinned to the old name.
+def GridBotConfigBuilder() -> _ConfigBuilder:  # noqa: N802 — kept for back-compat
+    return GRID_BOT_BUILDER
+
+
+def DCABotConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return DCA_BOT_BUILDER
+
+
+def EMAConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return EMA_BUILDER
+
+
+def TimesFMConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return TIMESFM_BUILDER
+
+
+def HybridSMAConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return HYBRID_SMA_BUILDER
+
+
+def TimesFMGridConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return BASE_ONLY_BUILDER
+
+
+def RVSSwingConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return BASE_ONLY_BUILDER
+
+
+def ShockGuardConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return BASE_ONLY_BUILDER
+
+
+def KronosConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return BASE_ONLY_BUILDER
+
+
+def KronosActorConfigBuilder() -> _ConfigBuilder:  # noqa: N802
+    return KRONOS_ACTOR_BUILDER
 
 
 # ---------------------------------------------------------------------------
