@@ -27,23 +27,21 @@ Out of scope, deferred to future work:
 - Real-money production key rotation + promotion flow.
 - Operator-invoked panic-close endpoint (moves into sub-project C).
 
-## Sub-project B.5 — Runner unification (IN PROGRESS)
+## Sub-project B.5 — Runner unification (✅ SHIPPED 2026-04-30)
 
-Unify strategy execution under one generic `Strategy` class + three runners (`BacktestStrategyRunner`, `PaperTradeStrategyRunner`, `LiveStrategyRunner`) sharing a YAML-driven interface. Replaces the 8 near-identical `strategies/crypto/*_paper.py` shims with a single generic runner driven by a `StrategySpec` registry. Prerequisite for C — the R11+ submission contract requires strategies to be live-pluggable across all three modes without per-strategy runner code.
+Unify strategy execution under one generic `Strategy` class + three runners (`BacktestStrategyRunner`, `PaperTradeStrategyRunner`, `LiveStrategyRunner`) sharing a YAML-driven interface. Replaces the 8 near-identical `strategies/crypto/*_paper.py` shims with a single generic runner driven by a `StrategySpec` registry. Prerequisite for C — the R11+ submission contract required strategies to be live-pluggable across all three modes without per-strategy runner code.
 
 - **Plan:** `/Users/rc/.claude/plans/o-strategies-why-do-logical-fiddle.md` (approved 2026-04-23)
-- **PRs:** PR 0 roadmap, PR 1 ✅ generic paper runner + delete shims (#41), PR 2 ✅ generic backtest runner + 8 backtest YAMLs (#42), PR 3 ✅ kronos parity + retire `KronosBacktestRunner` + ABC simplification (#43), PR 4 scaffold `LiveStrategyRunner` + `nt live` CLI (raises `NotImplementedError` per 2026-04-21 no-real-money directive); with PR 4 the `nt {backtest, paper-trade, live} --config <yaml>` surface is complete and B.5 ships.
+- **PRs:** PR 0 roadmap (#40), PR 1 ✅ generic paper runner + delete shims (#41), PR 2 ✅ generic backtest runner + 8 backtest YAMLs (#42), PR 3 ✅ kronos parity + retire `KronosBacktestRunner` + ABC simplification (#43), PR 4 ✅ scaffold `LiveStrategyRunner` + `nt live` CLI (raises `NotImplementedError` per 2026-04-21 no-real-money directive — #44). With PR 4 the `nt {backtest, paper-trade, live} --config <yaml>` surface is complete.
 
-## Sub-project C — Competition platform (PLANNED, not started)
+## Sub-project C — External strategy plugin surface (✅ SHIPPED 2026-05-05)
 
-Everything under `competition/` and `strategies/competition/`. R11+ submission contract where agents submit research + a `Strategy` subclass that is live-pluggable.
+Reframed from the original "competition platform" scope. C now ships the entry-point-based strategy discovery contract that lets external Python packages register their own strategies via `pyproject.toml`'s `[project.entry-points."nautilus_trading.strategies"]` block — without forking this repo or sitting under `strategies/competition/`.
 
-Scope (from A's §2 non-goals):
-- Submission validators, leaderboard
-- `strategies/competition/` tree
-- Consumes A's Protocol surface
-
-**Status:** No spec yet. Next sub-project to brainstorm now that B has shipped.
+- **Spec:** `docs/archive/specs/2026-05-04-subproject-c-design.md`
+- **Plan:** `docs/archive/plans/2026-05-04-subproject-c-implementation.md`
+- **PRs:** PR 0 spec + plan (#46), PR 1 ✅ entry-point discovery + 9 in-repo strategies migrated (#47), PR 2 ✅ `nt strategies` CLI + external-strategy smoke + runbook (#48). Plus the BarFanoutActor multi-strategy workaround (e3e07ad).
+- **Follow-ups (post-Phase-C cleanup):** PRs #49 (review fixes), #50 (publishable APM package — this repo is now `apm install`-able with 2 skills + 5 commands + 1 agent), #51 (ConfigBuilder consolidation), #52 (small simplifications), #53 (slots regression fix).
 
 ## Why this order
 
