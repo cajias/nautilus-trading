@@ -1,0 +1,40 @@
+{
+  "skill_name": "nautilus-strategy-authoring",
+  "evals": [
+    {
+      "id": 0,
+      "name": "port-external-backtest-to-nt",
+      "prompt": "i have a working nautilus backtest in my own github repo (pkg name `raul_trades`) for a bollinger-band mean-reversion. i want nt strategies to see it so the ops team can run `nt paper-trade --config raul_trades.yaml`. what's the minimum set of files i need to touch? do i have to fork nautilus-trading?",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "rsi-scale-debugging",
+      "prompt": "my rsi strategy just sits there, never fires. i'm checking `if self.rsi.value > 70 and not self.portfolio.is_net_long(...)` in on_bar. the indicator is registered and `indicators_initialized()` is true. what am i missing",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "binance-market-order-rejected",
+      "prompt": "binance testnet keeps rejecting my MARKET orders with something like 'time in force not supported'. the order factory call is `self.order_factory.market(instrument_id, OrderSide.BUY, qty, time_in_force=TimeInForce.GTC)`. same code works in the backtest engine fine",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "multi-strategy-bar-subscription",
+      "prompt": "i've got three strategies all subscribing to EUR/USD.SIM-1-MINUTE-MID-INTERNAL bars. running them in the same node only strategy #1 sees bars after warmup. what's the pattern here",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 4,
+      "name": "strategyconfig-defaults-override",
+      "prompt": "why does my StrategyConfig default for `stop_bps=50` get ignored when the YAML doesn't set it? i'm pulling defaults from the config class in my ConfigBuilder and nt ends up using different values than when i run the class directly",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

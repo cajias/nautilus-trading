@@ -80,3 +80,4 @@ dist/
 # APM-deployed .claude/agents/, .claude/skills/, .claude/commands/ are already
 # ignored by the .claude/* rule above.
 apm_modules/
+.eval/

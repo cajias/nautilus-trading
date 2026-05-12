@@ -1,0 +1,40 @@
+{
+  "skill_name": "nt-cli-quickstart",
+  "evals": [
+    {
+      "id": 0,
+      "name": "fresh-clone-bootstrap",
+      "prompt": "hey i just cloned https://github.com/cajias/nautilus-trading fresh on a new laptop. python 3.13 is installed. what do i need to run to get a backtest going? assume i know nothing about the repo",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "empty-strategies-troubleshooting",
+      "prompt": "wtf — i installed my external package with `uv pip install -e .` and `uv run nt strategies` just shows an empty table. my pyproject.toml has `[project.entry-points.\"nautilus.strategies\"]` with my thing pointing at STRATEGY_SPEC. what am i missing",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "paper-trade-testnet-env-setup",
+      "prompt": "ok ran the ema_cross backtest, now i want to paper trade on binance testnet. i generated an ed25519 key pair already but i'm fuzzy on where the private pem goes vs the api key. walk me through the env vars and the exact command",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "nt-backtest-config-yaml",
+      "prompt": "i saw a `configs/paper/ema_cross.yaml` in the repo — do backtests also take a yaml or is that paper only? trying to run `nt backtest forex.ema_cross` per the old readme and getting confused",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 4,
+      "name": "live-vs-paper-safety",
+      "prompt": "is `nt live` actually wired up or is it stub? boss wants me to run the ema_cross live on binance spot next week with real money",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}
