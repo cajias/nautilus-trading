@@ -1,6 +1,6 @@
 lockfile_version: '1'
-generated_at: '2026-04-29T21:22:48.785092+00:00'
-apm_version: 0.10.0
+generated_at: '2026-05-12T10:44:33.550825+00:00'
+apm_version: 0.12.4
 dependencies:
 - repo_url: openprose/prose
   host: github.com
@@ -24,8 +24,6 @@ dependencies:
     .claude/commands/prose-run.md: sha256:0d28850a99c618c59d5895c0fed382157420708d9c66c88734d9bba0d788154d
     .claude/commands/prose-status.md: sha256:b0394de609b6186f2f7114955f132aa5149b398ca0d9a66c0af50dea508a94d7
   content_hash: sha256:89507a0b8570c5b99432eec6803198b2e5c00cdff2aea15591eee28c1d735a4b
-  discovered_via: prose
-  marketplace_plugin_name: open-prose
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -45,8 +43,6 @@ dependencies:
     .claude/commands/refactor-clean.md: sha256:635be3bad02313efbb812042a93e00d6568337f6e36dca52f94273758da1b193
     .claude/commands/tech-debt.md: sha256:ae242fc1d202873543f6ac6b734b03b8776cc75a81042e13a10337915dee166f
   content_hash: sha256:cbf3a07867902f6e39279377380a90c4ec0251e43e86d8bfbc9af0f3e98512e8
-  discovered_via: agents
-  marketplace_plugin_name: code-refactoring
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -55,13 +51,13 @@ dependencies:
   package_type: marketplace_plugin
   deployed_files:
   - .claude/agents/context-manager.md
+  - .claude/commands/context-restore.md
   - .claude/commands/context-save.md
   deployed_file_hashes:
     .claude/agents/context-manager.md: sha256:881afcf9e95cdd8e1111236847231d34f1e1210ffecdfe8be8526d8a652b4ad9
+    .claude/commands/context-restore.md: sha256:f923f531a4065e712cba56ee1ffcffc1f44c3224213e7cf8c83b3209195866bd
     .claude/commands/context-save.md: sha256:eea6c3f2f4fc99ee01fbf99869044d95447f5a65b7be213255f0122384283cf4
   content_hash: sha256:9afe90bbc7a2355b960692a9b72e6d8c8d9612cdf42b46187285841357576c31
-  discovered_via: agents
-  marketplace_plugin_name: context-management
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -83,8 +79,6 @@ dependencies:
     .claude/commands/data-driven-feature.md: sha256:267c8d66a8cbb0abf1c843e331d8b6cc9b33bb2a1a02dfe6a8997ecac2f51644
     .claude/commands/data-pipeline.md: sha256:a03fc33739381ae8ca36d01670e6438a21b88bb5b2d62074dc0f309b421b7ec0
   content_hash: sha256:01161964fe0b54df7e2118f61636a80fbcc18f3ce736df741949a856632a47df
-  discovered_via: agents
-  marketplace_plugin_name: data-engineering
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -92,12 +86,12 @@ dependencies:
   is_virtual: true
   package_type: marketplace_plugin
   deployed_files:
+  - .claude/agents/legacy-modernizer.md
   - .claude/commands/deps-audit.md
   deployed_file_hashes:
+    .claude/agents/legacy-modernizer.md: sha256:4b5514b8071bf9c5899a46e6f0cce757b168fcfbe5e7606647965d5c2e56092e
     .claude/commands/deps-audit.md: sha256:cdad96aa3355cd8dcf2350196743fdb52ea2f736741400b16f543142bbff3566
   content_hash: sha256:6a404b014ff7c3c477cef623072336b14cc4e70ee737736e4ed0ce499003d64d
-  discovered_via: agents
-  marketplace_plugin_name: dependency-management
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -107,8 +101,6 @@ dependencies:
   deployed_files:
   - .claude/skills/hads
   content_hash: sha256:128377e4aaca7a57340d598c37a2cfe717f48f88a31b03cf5d298b8ed80fab81
-  discovered_via: agents
-  marketplace_plugin_name: documentation-standards
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -128,8 +120,6 @@ dependencies:
     .claude/commands/error-trace.md: sha256:6dbdc547a71f0363a314ec7fe2f80f3e8a36887709a92b146033d326fd6f2c57
     .claude/commands/multi-agent-review.md: sha256:a3d4458c23181ffe81c4cb11fd4e73ae66e7916969fcdb230a1bad372feded6d
   content_hash: sha256:e930af98073b526f7cd640f9a260db5ac968e29339fd9246fe95acc694082b89
-  discovered_via: agents
-  marketplace_plugin_name: error-debugging
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -148,8 +138,6 @@ dependencies:
     .claude/agents/mlops-engineer.md: sha256:8663d1f3865097cfa987ae46c8e229b5df41defe580e6eec1e481268cb8292dc
     .claude/commands/ml-pipeline.md: sha256:643f3952d6f6e632ab09a5f512bf7bdd05c3a8fb4fff2298bffbe2f5b079c2a8
   content_hash: sha256:cd0b35223b1e8eba855183533a2d8e4d25aa29c6a13c450ae9d418d9b6987f4e
-  discovered_via: agents
-  marketplace_plugin_name: machine-learning-ops
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -183,8 +171,6 @@ dependencies:
     .claude/agents/python-pro.md: sha256:5c764591a3d06efac4495c30f80f1d37f460d7d833498eeed8441cf6a1f32f50
     .claude/commands/python-scaffold.md: sha256:62300c63918c4566fd5acefbdbdaa2952dd65e631082f39f066e904c8152d929
   content_hash: sha256:6e8d1cd254c2eac2217ab21dbb67b0a7710a1b56e8180e46e1f4627d6fe124b8
-  discovered_via: agents
-  marketplace_plugin_name: python-development
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -200,8 +186,6 @@ dependencies:
     .claude/agents/quant-analyst.md: sha256:0ebcad2d24557e93e75e63fb980ca553382b6ee3f9bb8d1bf263ab5f98f5e766
     .claude/agents/risk-manager.md: sha256:d49de27acde3d03bb350d1c2b6795829172b0954a29d46bc69b466d9c586dd1c
   content_hash: sha256:667a5e45c423d38879c178c822b3a3f9b154c77e08d311ffd4b527c1e9a9cbe7
-  discovered_via: agents
-  marketplace_plugin_name: quantitative-trading
 - repo_url: wshobson/agents
   host: github.com
   resolved_commit: c15b108a8d2fa853140b811e2dffdc30bd0ce788
@@ -209,17 +193,17 @@ dependencies:
   is_virtual: true
   package_type: marketplace_plugin
   deployed_files:
+  - .claude/agents/code-reviewer.md
   - .claude/agents/tdd-orchestrator.md
   - .claude/commands/tdd-cycle.md
   - .claude/commands/tdd-green.md
   - .claude/commands/tdd-red.md
   - .claude/commands/tdd-refactor.md
   deployed_file_hashes:
+    .claude/agents/code-reviewer.md: sha256:45c291695b0927fc286f1f961326dd0c385ee74d929db92f544cb90a3dd6b3c0
     .claude/agents/tdd-orchestrator.md: sha256:58fd3a44b1c277f02f6b88a83d2186f89b398e11b3e7818a7dc4a19c8fb95e60
     .claude/commands/tdd-cycle.md: sha256:8240d7e4596fa092acf48bbe1fe72eae56a280c56fc3fd6964dd2c87626bb726
     .claude/commands/tdd-green.md: sha256:5beda4445aca126a027b439aa7a666573533fc05350130d33cf895e7a94212ea
     .claude/commands/tdd-red.md: sha256:d306d41783ea946daa0c200b728a2b74e6a160368ce23cc9156efd70275ec946
     .claude/commands/tdd-refactor.md: sha256:66edec4a3f5e76e03a5cb931821ff4b65b32c7f66251fa9c2d969de335205863
   content_hash: sha256:b00320582074d03fafa15d7d7f67b3ce07f47000f1cc8cb812243bb2394ceb7e
-  discovered_via: agents
-  marketplace_plugin_name: tdd-workflows
