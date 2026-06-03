@@ -23,6 +23,14 @@
 
 A working algorithmic-trading workbench built on [NautilusTrader](https://github.com/nautechsystems/nautilus_trader) — the high-performance event-driven platform with a Rust/Cython core and Python API. The same venue-agnostic `Strategy` subclass runs unchanged across backtest, paper, and (scaffolded) live engines; what changes is a committed YAML run-config, not code. Strategies are discovered through Python entry points, so the in-repo book and any external plugin package register the same way. The repo also ships as a [Claude Code / APM](https://github.com/microsoft/apm) plugin, exposing the `nt` workflow through curated skills, slash commands, and an agent.
 
+## 🎬 Demo
+
+<p align="center">
+  <img src="assets/demo.gif" width="900" alt="The nt CLI: top-level help, strategy discovery, and the config-driven backtest command">
+</p>
+
+<p align="center"><em>The <code>nt</code> CLI — top-level surface, entry-point strategy discovery, and the config-driven backtest command.</em></p>
+
 ## ✨ Features
 
 - **One contract, three engines.** Strategies use only generic NautilusTrader types (`Bar`, `QuoteTick`, `OrderSide`) and never import venue adapters — venue wiring lives in the node config, so backtest / paper / live share the identical strategy class.
