@@ -37,6 +37,7 @@ htmlcov/
 .claude/*
 !.claude/hooks/
 !.claude/hooks/**
+.claude/hooks/.logs/
 !.claude/settings.json
 .playwright-mcp/
 .remember/
